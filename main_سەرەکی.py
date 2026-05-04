@@ -180,7 +180,9 @@ if st.session_state.timer_running and st.session_state.end_time:
     
     if remaining > 0:
         mins, secs = divmod(int(remaining), 60)
-        progress = min(1.0, 1 - (remaining / st.session_state.total_seconds))
+        progress = 1.0 - (remaining / st.session_state.total_seconds)
+        if progress > 0.99:
+        progress = 1.0
         
         st.markdown(f"""
         <div style="display: flex; justify-content: center; margin: 20px;">
