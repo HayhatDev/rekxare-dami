@@ -4,6 +4,7 @@ import random
 from datetime import datetime
 import json
 import os
+import base64
 
 st.set_page_config(
     page_title="Rekxare Dami",
@@ -137,7 +138,7 @@ with col2:
     if st.session_state.timer_running:
         stop_timer = st.button("⏸️ راوەستاندن")
     elif st.session_state.paused:
-        stop_timer = st.button("⏸️ راوەستاندن", disabled=True)
+        st.button("⏸️ راوەستاندن", disabled=True)
     else:
         st.button("⏸️ راوەستاندن", disabled=True)
 
@@ -180,16 +181,17 @@ if st.session_state.timer_running and st.session_state.end_time:
     
     if remaining > 0:
         mins, secs = divmod(int(remaining), 60)
+        # إصلاح امتلاء الدائرة
+        circumference = 100.0
         progress = 1.0 - (remaining / st.session_state.total_seconds)
-        if progress > 0.99:
-            progress = 1.0
+        dash_length = progress * circumference
         
         st.markdown(f"""
         <div style="display: flex; justify-content: center; margin: 20px;">
             <div style="position: relative; width: 200px; height: 200px;">
                 <svg width="200" height="200" viewBox="0 0 36 36">
                     <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#333" stroke-width="2"/>
-                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831" fill="none" stroke="#4CAF50" stroke-width="2" stroke-dasharray="{progress * 100}, 100"/>
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831" fill="none" stroke="#4CAF50" stroke-width="2" stroke-dasharray="{dash_length}, 1000"/>
                     <text x="18" y="20.5" text-anchor="middle" fill="white" font-size="8" font-weight="bold">{mins:02d}:{secs:02d}</text>
                 </svg>
             </div>
@@ -212,18 +214,16 @@ if st.session_state.timer_running and st.session_state.end_time:
         subject_name = ders.split(" ", 1)[1] if " " in ders else ders
         st.session_state.last_subject = subject_name
         
-        from datetime import datetime
         now = datetime.now().strftime("%H:%M")
         minutes = st.session_state.total_seconds // 60
         st.session_state.study_history.append(f"{now} - {subject_name} ({minutes} خ)")
         save_data()
         
-        # صوت التنبيه
+        # صوت التنبيه باستخدام HTML5 Audio بشكل صحيح
         st.markdown("""
-        <script>
-            var audio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+AgH9/f3+Af39/gIB/f39/gH9/f4CAf39/f4B/f3+AgH9/f3+Af39/gIB/f39/gH9/f4B/f3+AgH9/f3+Af39/gIB/f39/gH9/f4B/f3+AgH9/f3+Af39/gIB/f39/gH9/f4B/f3+AgH9/f3+Af39/gIB/f39/gH9/f4A=");
-            audio.play();
-        </script>
+        <audio autoplay>
+            <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+        </audio>
         """, unsafe_allow_html=True)
         
         st.balloons()
@@ -232,13 +232,14 @@ if st.session_state.timer_running and st.session_state.end_time:
 # --- عرض حالة الإيقاف المؤقت ---
 elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
     mins, secs = divmod(int(st.session_state.remaining_at_pause), 60)
-    progress = min(1.0, 1 - (st.session_state.remaining_at_pause / st.session_state.total_seconds))
+    progress = 1.0 - (st.session_state.remaining_at_pause / st.session_state.total_seconds)
+    dash_length = progress * 100.0
     st.markdown(f"""
     <div style="display: flex; justify-content: center; margin: 20px;">
         <div style="position: relative; width: 200px; height: 200px;">
             <svg width="200" height="200" viewBox="0 0 36 36">
                 <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#333" stroke-width="2"/>
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831" fill="none" stroke="#FFA500" stroke-width="2" stroke-dasharray="{progress * 100}, 100"/>
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831" fill="none" stroke="#FFA500" stroke-width="2" stroke-dasharray="{dash_length}, 1000"/>
                 <text x="18" y="20.5" text-anchor="middle" fill="white" font-size="8" font-weight="bold">{mins:02d}:{secs:02d}</text>
             </svg>
         </div>
@@ -254,29 +255,12 @@ elif not st.session_state.timer_running and not st.session_state.paused and st.s
 if st.session_state.dark_mode:
     st.markdown("""
     <style>
-        .stApp {
-            background-color: #1a1a2e;
-        }
-        .css-1d391kg, [data-testid="stSidebar"] {
-            background-color: #16213e;
-        }
-        .stApp, .stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label {
-            color: #e0e0e0 !important;
-        }
-        .stTextInput input, .stSelectbox select {
-            background-color: #2d2d44;
-            color: #ffffff;
-            border: 1px solid #444;
-        }
-        .stButton button {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .stProgress > div > div {
-            background-color: #4CAF50;
-        }
-        svg path:first-of-type {
-            stroke: #555 !important;
-        }
+        .stApp { background-color: #1a1a2e; }
+        .css-1d391kg, [data-testid="stSidebar"] { background-color: #16213e; }
+        .stApp, .stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label { color: #e0e0e0 !important; }
+        .stTextInput input, .stSelectbox select { background-color: #2d2d44; color: #ffffff; border: 1px solid #444; }
+        .stButton button { background-color: #4CAF50; color: white; }
+        .stProgress > div > div { background-color: #4CAF50; }
+        svg path:first-of-type { stroke: #555 !important; }
     </style>
     """, unsafe_allow_html=True)
