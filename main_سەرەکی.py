@@ -469,4 +469,19 @@ if st.session_state.timer_running and st.session_state.end_time:
         (function(){
             var AC = window.AudioContext || window.webkitAudioContext;
             var ctx = new AC();
-            function note(f
+            function note(f, d, dur){
+                var o = ctx.createOscillator(), g = ctx.createGain();
+                o.connect(g); g.connect(ctx.destination);
+                o.type = 'sine'; o.frequency.value = f;
+                var t = ctx.currentTime + d;
+                g.gain.setValueAtTime(0, t);
+                g.gain.linearRampToValueAtTime(0.25, t + 0.02);
+                g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+                o.start(t); o.stop(t + dur);
+            }
+            note(659, 0.0, 1.2);
+            note(830, 0.22, 1.2);
+            note(988, 0.44, 1.4);
+        })();
+        </script>
+        """, height=0)
