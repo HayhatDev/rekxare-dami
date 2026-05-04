@@ -301,7 +301,7 @@ with st.sidebar:
 
     st.markdown('<div class="sb-lbl">ڕێکخستن</div>', unsafe_allow_html=True)
     st.markdown('<div class="settings-box">', unsafe_allow_html=True)
-    goal_mins = st.slider("🎯 ئامانجێ ئەمڕۆ (خ)", 30, 480,
+    goal_mins = st.slider("🎯 ئارمانجێن ئەڤروکە (خ)", 30, 480,
                           st.session_state.daily_goal_seconds // 60, step=15)
     if goal_mins * 60 != st.session_state.daily_goal_seconds:
         st.session_state.daily_goal_seconds = goal_mins * 60
