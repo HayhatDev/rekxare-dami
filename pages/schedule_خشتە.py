@@ -105,7 +105,7 @@ for tab, day_key, day_name in zip(tabs, tab_keys, tab_labels):
             schedule.append({"start": "07:00", "end": "08:00", "task": "", "done": False})
 
         if day_key == today_key:
-            st.markdown('<span class="today-badge">🔵 ئەمڕۆ</span>', unsafe_allow_html=True)
+            st.markdown('<span class="today-badge">🔵 ئەڤروکە</span>', unsafe_allow_html=True)
 
         total_tasks = len(schedule)
         done_tasks = sum(1 for t in schedule if t.get("done", False))
