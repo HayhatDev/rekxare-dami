@@ -50,6 +50,31 @@ if "study_history" not in st.session_state:
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
 
+st.markdown("""
+<style>
+    .stButton > button {
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        transition: opacity 0.2s ease !important;
+    }
+    .stButton > button:hover:not(:disabled) { opacity: 0.85 !important; }
+    .stSlider > div { padding-top: 4px; }
+    .stSelectbox > div > div { border-radius: 10px !important; }
+    .stTextInput > div > div > input { border-radius: 10px !important; }
+    div[data-testid="metric-container"] {
+        background: rgba(76,175,80,0.08);
+        border-radius: 10px;
+        padding: 8px 12px;
+    }
+    .timer-card {
+        border-radius: 20px;
+        padding: 24px 16px 16px 16px;
+        margin: 16px 0;
+        text-align: center;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 with st.sidebar:
     st.title("📊 ئامارێن تە")
     st.divider()
@@ -82,13 +107,33 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
-    if st.button("🧹 ئاماران پاک بکە"):
+    if st.button("🧹 ئاماران پاک بکە", use_container_width=True):
         st.session_state.total_study_seconds = 0
         st.session_state.completed_sessions = 0
         st.session_state.last_subject = "—"
         st.session_state.study_history = []
         save_data()
         st.rerun()
+
+if st.session_state.dark_mode:
+    st.markdown("""
+    <style>
+        .stApp { background-color: #1a1a2e !important; }
+        [data-testid="stSidebar"] { background-color: #16213e !important; }
+        .stApp, .stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label { color: #e0e0e0 !important; }
+        .stTextInput input, .stSelectbox select { background-color: #2d2d44 !important; color: #ffffff !important; border: 1px solid #444 !important; }
+        .stButton button { background-color: #2d2d44 !important; color: #e0e0e0 !important; border: 1px solid #555 !important; }
+        .timer-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+        div[data-testid="metric-container"] { background: rgba(76,175,80,0.12) !important; }
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <style>
+        .timer-card { background: rgba(76,175,80,0.05); border: 1px solid rgba(76,175,80,0.15); }
+        .stButton button { background-color: #f0f2f6 !important; color: #1a1a2e !important; }
+    </style>
+    """, unsafe_allow_html=True)
 
 st.title("📚 Rekxare Dami | بو قوتابیان و خوێندەکاران")
 
@@ -114,29 +159,28 @@ ders = st.selectbox("تو كيژ دەرسێ دخوینی؟",
      "🧬 زیندەوەرزانی", "📜 مێژوو", "🌍 جوگرافیا", "💻 کۆمپیوتەر", "☪️ ئايين"])
 
 deqe = st.slider("چەند دەقیقە؟", 1, 240, 25)
-
 total_seconds = deqe * 60
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
     if not st.session_state.timer_running and not st.session_state.paused:
-        dest_pe_bike = st.button("🚀 دەست پێ بکە")
+        dest_pe_bike = st.button("🚀 دەست پێ بکە", use_container_width=True)
     elif st.session_state.paused:
-        resume = st.button("▶️ بەردەوام بە")
+        resume = st.button("▶️ بەردەوام بە", use_container_width=True)
     else:
-        st.button("🚀 دەست پێ بکە", disabled=True)
+        st.button("🚀 دەست پێ بکە", disabled=True, use_container_width=True)
 
 with col2:
     if st.session_state.timer_running:
-        stop_timer = st.button("⏸️ راوەستاندن")
+        stop_timer = st.button("⏸️ راوەستاندن", use_container_width=True)
     elif st.session_state.paused:
-        st.button("⏸️ راوەستاندن", disabled=True)
+        st.button("⏸️ راوەستاندن", disabled=True, use_container_width=True)
     else:
-        st.button("⏸️ راوەستاندن", disabled=True)
+        st.button("⏸️ راوەستاندن", disabled=True, use_container_width=True)
 
 with col3:
-    dubare = st.button("🔄 دووبارە")
+    dubare = st.button("🔄 دووبارە", use_container_width=True)
 
 hezt = ["بەردەوام بە!", "تو دێ سەرکەڤێ!", "ئەڤ چەندە باشە!", "بەرێ خوە بدە ئارمانجان!"]
 
@@ -167,31 +211,26 @@ if dubare:
     st.session_state.remaining_at_pause = 0
     st.rerun()
 
-if st.session_state.dark_mode:
-    st.markdown("""
-    <style>
-        .stApp { background-color: #1a1a2e !important; }
-        [data-testid="stSidebar"] { background-color: #16213e !important; }
-        .stApp, .stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label { color: #e0e0e0 !important; }
-        .stTextInput input, .stSelectbox select { background-color: #2d2d44 !important; color: #ffffff !important; border: 1px solid #444 !important; }
-        .stButton button { background-color: #4CAF50 !important; color: white !important; }
-        svg path:first-of-type { stroke: #555 !important; }
-    </style>
-    """, unsafe_allow_html=True)
-
 def render_circle(mins_val, secs_val, progress, color):
     dash_length = progress * 100.0
+    is_dark = st.session_state.get("dark_mode", False)
+    track_color = "#2d2d44" if is_dark else "#e8eaf0"
+    text_color = "#ffffff" if is_dark else "#1a1a2e"
+    glow = f"filter: drop-shadow(0 0 6px {color}88);" if progress > 0 else ""
     st.markdown(f"""
-    <div style="display: flex; justify-content: center; margin: 20px;">
-        <div style="position: relative; width: 200px; height: 200px;">
-            <svg width="200" height="200" viewBox="0 0 36 36">
+    <div class="timer-card">
+        <div style="display: flex; justify-content: center;">
+            <svg width="260" height="260" viewBox="0 0 36 36" style="{glow}">
                 <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none" stroke="#333" stroke-width="2"/>
+                      fill="none" stroke="{track_color}" stroke-width="2.5"/>
                 <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none" stroke="{color}" stroke-width="2"
+                      fill="none" stroke="{color}" stroke-width="2.5"
+                      stroke-linecap="round"
                       stroke-dasharray="{dash_length:.2f}, 200"/>
-                <text x="18" y="20.5" text-anchor="middle" fill="white"
-                      font-size="8" font-weight="bold">{mins_val:02d}:{secs_val:02d}</text>
+                <text x="18" y="17.5" text-anchor="middle" fill="{text_color}"
+                      font-size="6.5" font-weight="700">{mins_val:02d}:{secs_val:02d}</text>
+                <text x="18" y="22.5" text-anchor="middle" fill="{text_color}88"
+                      font-size="2.8">دەقیقە : چرکە</text>
             </svg>
         </div>
     </div>
@@ -204,34 +243,27 @@ if st.session_state.timer_running and st.session_state.end_time:
         mins_val, secs_val = divmod(int(remaining), 60)
         progress = min(1.0, 1.0 - (remaining / st.session_state.total_seconds))
         render_circle(mins_val, secs_val, progress, "#4CAF50")
-
         st.success(f"✅ باشە {nav}! تو دێ {deqe} دەقیقان بۆ {ders} تەرخان دکەی.")
         st.info(f"💬 {random.choice(hezt)}")
-
         time.sleep(1)
         st.rerun()
 
     else:
         st.session_state.timer_running = False
         st.session_state.paused = False
-
         st.session_state.total_study_seconds += st.session_state.total_seconds
         st.session_state.completed_sessions += 1
-
         subject_name = ders.split(" ", 1)[1] if " " in ders else ders
         st.session_state.last_subject = subject_name
-
         now = datetime.now().strftime("%H:%M")
         minutes = st.session_state.total_seconds // 60
         st.session_state.study_history.append(f"{now} - {subject_name} ({minutes} خ)")
         save_data()
-
         components.html("""
         <script>
             (function() {
                 var AudioContext = window.AudioContext || window.webkitAudioContext;
                 var ctx = new AudioContext();
-
                 function playNote(freq, startDelay, duration) {
                     var osc = ctx.createOscillator();
                     var gain = ctx.createGain();
@@ -246,15 +278,12 @@ if st.session_state.timer_running and st.session_state.end_time:
                     osc.start(t);
                     osc.stop(t + duration);
                 }
-
-                // Ascending 3-note chime: E5 → G#5 → B5
                 playNote(659, 0.0, 1.2);
                 playNote(830, 0.22, 1.2);
                 playNote(988, 0.44, 1.4);
             })();
         </script>
         """, height=0)
-
         st.balloons()
         st.success("دەمێ تە ب دوماهیک هات! سەرکەفتی بێ 🎉")
 
@@ -264,5 +293,7 @@ elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
     render_circle(mins_val, secs_val, progress, "#FFA500")
     st.warning(f"⏸️ دەم هاتە راوەستاندن. {deqe} دەقیقان بۆ {ders}")
 
-elif not st.session_state.timer_running and not st.session_state.paused and st.session_state.total_seconds > 0:
-    st.info("🔄 دەم هاتە راوەستاندن. دووبارە دەست پێ بکە.")
+else:
+    render_circle(deqe, 0, 0.0, "#4CAF50")
+    if st.session_state.total_seconds > 0:
+        st.info("🔄 دەم هاتە راوەستاندن. دووبارە دەست پێ بکە.")
