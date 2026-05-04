@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 import json
 import os
-import math
+import streamlit.components.v1 as components
 
 st.set_page_config(
     page_title="Rekxare Dami",
@@ -12,7 +12,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- دوال حفظ وتحميل البيانات ---
 DATA_FILE = "study_data.json"
 
 def load_data():
@@ -36,12 +35,10 @@ def save_data():
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-# تحميل البيانات عند بدء التطبيق
 if "data_loaded" not in st.session_state:
     load_data()
     st.session_state.data_loaded = True
 
-# --- تهيئة الإحصائيات ---
 if "total_study_seconds" not in st.session_state:
     st.session_state.total_study_seconds = 0
 if "completed_sessions" not in st.session_state:
@@ -50,8 +47,9 @@ if "last_subject" not in st.session_state:
     st.session_state.last_subject = "—"
 if "study_history" not in st.session_state:
     st.session_state.study_history = []
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = False
 
-# --- الشريط الجانبي: لوحة الإحصائيات ---
 with st.sidebar:
     st.title("📊 ئامارێن تە")
     st.divider()
@@ -74,10 +72,8 @@ with st.sidebar:
         for entry in st.session_state.study_history[-3:][::-1]:
             st.caption(entry)
     
-    st.divider() 
+    st.divider()
     st.write("🌓 ڕووکار")
-    if "dark_mode" not in st.session_state:
-        st.session_state.dark_mode = False
     
     dark_btn = st.checkbox("شەڤ", value=st.session_state.dark_mode)
     if dark_btn != st.session_state.dark_mode:
@@ -94,10 +90,8 @@ with st.sidebar:
         save_data()
         st.rerun()
 
-# --- الواجهة الرئيسية ---
 st.title("📚 Rekxare Dami | بو قوتابیان و خوێندەکاران")
 
-# تهيئة المؤقت
 if "timer_running" not in st.session_state:
     st.session_state.timer_running = False
 if "end_time" not in st.session_state:
@@ -123,7 +117,6 @@ deqe = st.slider("چەند دەقیقە؟", 1, 240, 25)
 
 total_seconds = deqe * 60
 
-# أزرار التحكم
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -147,7 +140,6 @@ with col3:
 
 hezt = ["بەردەوام بە!", "تو دێ سەرکەڤێ!", "ئەڤ چەندە باشە!", "بەرێ خوە بدە ئارمانجان!"]
 
-# منطق الأزرار
 if "dest_pe_bike" in locals() and dest_pe_bike:
     st.session_state.timer_running = True
     st.session_state.paused = False
@@ -164,7 +156,7 @@ if "resume" in locals() and resume:
 if "stop_timer" in locals() and stop_timer:
     st.session_state.timer_running = False
     st.session_state.paused = True
-    st.session_state.remaining_at_pause = st.session_state.end_time - time.time()
+    st.session_state.remaining_at_pause = max(0, st.session_state.end_time - time.time())
     st.rerun()
 
 if dubare:
@@ -175,8 +167,7 @@ if dubare:
     st.session_state.remaining_at_pause = 0
     st.rerun()
 
-# --- تطبيق الوضع الليلي (في الأعلى لضمان ثباته) ---
-if st.session_state.get("dark_mode", False):
+if st.session_state.dark_mode:
     st.markdown("""
     <style>
         .stApp { background-color: #1a1a2e !important; }
@@ -188,26 +179,31 @@ if st.session_state.get("dark_mode", False):
     </style>
     """, unsafe_allow_html=True)
 
-# --- عرض المؤقت الحي ---
+def render_circle(mins_val, secs_val, progress, color):
+    dash_length = progress * 100.0
+    st.markdown(f"""
+    <div style="display: flex; justify-content: center; margin: 20px;">
+        <div style="position: relative; width: 200px; height: 200px;">
+            <svg width="200" height="200" viewBox="0 0 36 36">
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none" stroke="#333" stroke-width="2"/>
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none" stroke="{color}" stroke-width="2"
+                      stroke-dasharray="{dash_length:.2f}, 200"/>
+                <text x="18" y="20.5" text-anchor="middle" fill="white"
+                      font-size="8" font-weight="bold">{mins_val:02d}:{secs_val:02d}</text>
+            </svg>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
 if st.session_state.timer_running and st.session_state.end_time:
     remaining = st.session_state.end_time - time.time()
     
     if remaining > 0:
-        mins, secs = divmod(int(remaining), 60)
+        mins_val, secs_val = divmod(int(remaining), 60)
         progress = min(1.0, 1.0 - (remaining / st.session_state.total_seconds))
-        dash_length = progress * 100.0
-        
-        st.markdown(f"""
-        <div style="display: flex; justify-content: center; margin: 20px;">
-            <div style="position: relative; width: 200px; height: 200px;">
-                <svg width="200" height="200" viewBox="0 0 36 36">
-                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#333" stroke-width="2"/>
-                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831" fill="none" stroke="#4CAF50" stroke-width="2" stroke-dasharray="{dash_length}, 1000"/>
-                    <text x="18" y="20.5" text-anchor="middle" fill="white" font-size="8" font-weight="bold">{mins:02d}:{secs:02d}</text>
-                </svg>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        render_circle(mins_val, secs_val, progress, "#4CAF50")
         
         st.success(f"✅ باشە {nav}! تو دێ {deqe} دەقیقان بۆ {ders} تەرخان دکەی.")
         st.info(f"💬 {random.choice(hezt)}")
@@ -230,8 +226,7 @@ if st.session_state.timer_running and st.session_state.end_time:
         st.session_state.study_history.append(f"{now} - {subject_name} ({minutes} خ)")
         save_data()
         
-        # صوت تنبيه حقيقي عبر JavaScript
-        st.markdown("""
+        components.html("""
         <script>
             var ctx = new (window.AudioContext || window.webkitAudioContext)();
             var osc = ctx.createOscillator();
@@ -241,31 +236,18 @@ if st.session_state.timer_running and st.session_state.end_time:
             osc.frequency.value = 800;
             gain.gain.value = 0.1;
             osc.start(0);
-            setTimeout(function() { osc.stop(); }, 200);
+            setTimeout(function() { osc.stop(); }, 1000);
         </script>
-        """, unsafe_allow_html=True)
+        """, height=0)
         
         st.balloons()
         st.success("دەمێ تە ب دوماهیک هات! سەرکەفتی بێ 🎉")
 
-# --- عرض حالة الإيقاف المؤقت ---
 elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
-    mins, secs = divmod(int(st.session_state.remaining_at_pause), 60)
+    mins_val, secs_val = divmod(int(st.session_state.remaining_at_pause), 60)
     progress = min(1.0, 1.0 - (st.session_state.remaining_at_pause / st.session_state.total_seconds))
-    dash_length = progress * 100.0
-    st.markdown(f"""
-    <div style="display: flex; justify-content: center; margin: 20px;">
-        <div style="position: relative; width: 200px; height: 200px;">
-            <svg width="200" height="200" viewBox="0 0 36 36">
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#333" stroke-width="2"/>
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831" fill="none" stroke="#FFA500" stroke-width="2" stroke-dasharray="{dash_length}, 1000"/>
-                <text x="18" y="20.5" text-anchor="middle" fill="white" font-size="8" font-weight="bold">{mins:02d}:{secs:02d}</text>
-            </svg>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    render_circle(mins_val, secs_val, progress, "#FFA500")
     st.warning(f"⏸️ دەم هاتە راوەستاندن. {deqe} دەقیقان بۆ {ders}")
 
-# --- عرض حالة إعادة الضبط ---
 elif not st.session_state.timer_running and not st.session_state.paused and st.session_state.total_seconds > 0:
     st.info("🔄 دەم هاتە راوەستاندن. دووبارە دەست پێ بکە.")
