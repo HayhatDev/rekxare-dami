@@ -4,6 +4,7 @@ import random
 from datetime import datetime
 import json
 import os
+
 st.set_page_config(
     page_title="Rekxare Dami",
     page_icon="📚",
@@ -39,7 +40,6 @@ if "data_loaded" not in st.session_state:
     load_data()
     st.session_state.data_loaded = True
 
-
 # --- تهيئة الإحصائيات ---
 if "total_study_seconds" not in st.session_state:
     st.session_state.total_study_seconds = 0
@@ -49,12 +49,12 @@ if "last_subject" not in st.session_state:
     st.session_state.last_subject = "—"
 if "study_history" not in st.session_state:
     st.session_state.study_history = []
-    # --- الشريط الجانبي: لوحة الإحصائيات ---
+
+# --- الشريط الجانبي: لوحة الإحصائيات ---
 with st.sidebar:
     st.title("📊 ئامارێن تە")
     st.divider()
     
-    # تحويل الثواني إلى ساعات ودقائق
     total_minutes = st.session_state.total_study_seconds // 60
     hours = total_minutes // 60
     mins = total_minutes % 60
@@ -68,11 +68,11 @@ with st.sidebar:
     st.divider()
     st.write(f"📚 دوماهيك دەرس: **{st.session_state.last_subject}**")
     
-    # عرض آخر 3 جلسات
     if st.session_state.study_history:
         st.write("**📋 دوماهيك چالاکی:**")
         for entry in st.session_state.study_history[-3:][::-1]:
             st.caption(entry)
+    
     st.divider() 
     st.write("🌓 ڕووکار")
     if "dark_mode" not in st.session_state:
@@ -92,9 +92,11 @@ with st.sidebar:
         st.session_state.study_history = []
         save_data()
         st.rerun()
+
+# --- الواجهة الرئيسية ---
 st.title("📚 Rekxare Dami | بو قوتابیان و خوێندەکاران")
 
-# تهيئة session_state
+# تهيئة المؤقت
 if "timer_running" not in st.session_state:
     st.session_state.timer_running = False
 if "end_time" not in st.session_state:
@@ -114,13 +116,13 @@ st.divider()
 
 ders = st.selectbox("تو كيژ دەرسێ دخوینی؟", 
     ["🧮 بیرکاری", "⚛️ فیزیا", "🧪 کیمیا", "🇬🇧 ئینگلیزی", 
-     "🧬 زیندەوەرزانی", "📜 مێژوو", "🌍 جوگرافیا", "💻 کۆمپیوتەر","ئايين  ☪️"])
+     "🧬 زیندەوەرزانی", "📜 مێژوو", "🌍 جوگرافیا", "💻 کۆمپیوتەر", "☪️ ئايين"])
 
 deqe = st.slider("چەند دەقیقە؟", 1, 240, 25)
 
 total_seconds = deqe * 60
 
-# أزرار التحكم (تتغير حسب الحالة)
+# أزرار التحكم
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -165,7 +167,6 @@ if "stop_timer" in locals() and stop_timer:
     st.rerun()
 
 if dubare:
-    # إذا كان المؤقت يعمل، نوقفه بدون تسجيل الجلسة
     st.session_state.timer_running = False
     st.session_state.paused = False
     st.session_state.end_time = None
@@ -173,14 +174,13 @@ if dubare:
     st.session_state.remaining_at_pause = 0
     st.rerun()
 
-# عرض المؤقت أو حالة الإيقاف
 # --- عرض المؤقت الحي ---
 if st.session_state.timer_running and st.session_state.end_time:
     remaining = st.session_state.end_time - time.time()
     
     if remaining > 0:
         mins, secs = divmod(int(remaining), 60)
-        progress = 1 - (remaining / st.session_state.total_seconds)
+        progress = min(1.0, 1 - (remaining / st.session_state.total_seconds))
         
         st.markdown(f"""
         <div style="display: flex; justify-content: center; margin: 20px;">
@@ -201,38 +201,36 @@ if st.session_state.timer_running and st.session_state.end_time:
         st.rerun()
         
     else:
-        # تمت الجلسة بنجاح
         st.session_state.timer_running = False
         st.session_state.paused = False
         
-        # إضافة الوقت إلى الإحصائيات
         st.session_state.total_study_seconds += st.session_state.total_seconds
         st.session_state.completed_sessions += 1
         
-        # استخراج اسم المادة بدون الإيموجي
         subject_name = ders.split(" ", 1)[1] if " " in ders else ders
-        
-        # تحديث آخر مادة
         st.session_state.last_subject = subject_name
         
-        # إضافة إلى السجل
         from datetime import datetime
         now = datetime.now().strftime("%H:%M")
         minutes = st.session_state.total_seconds // 60
         st.session_state.study_history.append(f"{now} - {subject_name} ({minutes} خ)")
         save_data()
+        
+        # صوت التنبيه
         st.markdown("""
-            <audio autoplay>
-                <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
-            </audio>
+        <script>
+            var audio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+AgH9/f3+Af39/gIB/f39/gH9/f4CAf39/f4B/f3+AgH9/f3+Af39/gIB/f39/gH9/f4B/f3+AgH9/f3+Af39/gIB/f39/gH9/f4B/f3+AgH9/f3+Af39/gIB/f39/gH9/f4B/f3+AgH9/f3+Af39/gIB/f39/gH9/f4A=");
+            audio.play();
+        </script>
         """, unsafe_allow_html=True)
+        
         st.balloons()
         st.success("دەمێ تە ب دوماهیک هات! سەرکەفتی بێ 🎉")
 
 # --- عرض حالة الإيقاف المؤقت ---
 elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
     mins, secs = divmod(int(st.session_state.remaining_at_pause), 60)
-    progress = 1 - (st.session_state.remaining_at_pause / st.session_state.total_seconds)
+    progress = min(1.0, 1 - (st.session_state.remaining_at_pause / st.session_state.total_seconds))
     st.markdown(f"""
     <div style="display: flex; justify-content: center; margin: 20px;">
         <div style="position: relative; width: 200px; height: 200px;">
@@ -249,38 +247,32 @@ elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
 # --- عرض حالة إعادة الضبط ---
 elif not st.session_state.timer_running and not st.session_state.paused and st.session_state.total_seconds > 0:
     st.info("🔄 دەم هاتە راوەستاندن. دووبارە دەست پێ بکە.")
+
 # --- تطبيق الوضع الليلي ---
 if st.session_state.dark_mode:
     st.markdown("""
     <style>
-        /* الخلفية الرئيسية */
         .stApp {
             background-color: #1a1a2e;
         }
-        /* الشريط الجانبي */
         .css-1d391kg, [data-testid="stSidebar"] {
             background-color: #16213e;
         }
-        /* النصوص */
         .stApp, .stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label {
             color: #e0e0e0 !important;
         }
-        /* حقول الإدخال */
         .stTextInput input, .stSelectbox select {
             background-color: #2d2d44;
             color: #ffffff;
             border: 1px solid #444;
         }
-        /* الأزرار */
         .stButton button {
             background-color: #4CAF50;
             color: white;
         }
-        /* شريط التقدم */
         .stProgress > div > div {
             background-color: #4CAF50;
         }
-        /* الدائرة الرمادية في الخلفية */
         svg path:first-of-type {
             stroke: #555 !important;
         }
