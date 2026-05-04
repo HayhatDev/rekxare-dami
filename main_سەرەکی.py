@@ -290,16 +290,3 @@ if st.session_state.dark_mode:
         }
     </style>
     """, unsafe_allow_html=True)
-
-# --- تطبيق تأثير الشطب على المهام المنجزة ---
-if any(st.session_state.tasks_done):
-    st.markdown("""
-    <style>
-        /* أي نص داخل صندوق إدخال تم تعطيله سيظهر مشطوباً */
-        input[disabled] {
-            text-decoration: line-through;
-            color: #888 !important;
-            background-color: #2d2d2d !important;
-        }
-    </style>
-    """, unsafe_allow_html=True)
