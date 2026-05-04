@@ -277,8 +277,8 @@ with st.sidebar:
     st.markdown(f"""
     <div class="goal-bar-wrap">
         <div class="goal-bar-header">
-            <span class="goal-bar-title">🎯 ئامانجێ ئەمڕۆ</span>
-            <span>{daily_done_min} / {daily_goal_min} خ — {daily_pct}%</span>
+            <span class="goal-bar-title">🎯 ئارمانجێن ئەڤروکە</span>
+            <span>{daily_done_min} / {daily_goal_min} خولەک — {daily_pct}%</span>
         </div>
         <div class="goal-bar-track">
             <div class="goal-bar-fill" style="width:{daily_pct}%;background:{goal_fill_color};"></div>
@@ -297,13 +297,13 @@ with st.sidebar:
         items_html = "".join([f'<div class="activity-item"><div class="act-dot"></div><span>{e}</span></div>' for e in history])
         st.markdown(f'<div class="activity-list">{items_html}</div>', unsafe_allow_html=True)
     else:
-        st.markdown('<div class="activity-list"><div class="activity-empty">هێش چالاکیێ نینە</div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="activity-list"><div class="activity-empty">هێشتا چالاکی نینە</div></div>', unsafe_allow_html=True)
 
     # Settings
     st.markdown('<div class="sb-section-label">ڕێکخستن</div>', unsafe_allow_html=True)
     st.markdown('<div class="settings-box">', unsafe_allow_html=True)
 
-    goal_mins = st.slider("🎯 ئامانجێ ئەمڕۆ (خ)", 30, 480, st.session_state.daily_goal_seconds // 60, step=15)
+    goal_mins = st.slider("🎯 ئارمانجێن ئەڤروکە (خولەک)", 30, 480, st.session_state.daily_goal_seconds // 60, step=15)
     if goal_mins * 60 != st.session_state.daily_goal_seconds:
         st.session_state.daily_goal_seconds = goal_mins * 60
         save_data()
