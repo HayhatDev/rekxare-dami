@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 import json
 import os
-import base64
+import math
 
 st.set_page_config(
     page_title="Rekxare Dami",
@@ -175,16 +175,27 @@ if dubare:
     st.session_state.remaining_at_pause = 0
     st.rerun()
 
+# --- تطبيق الوضع الليلي (في الأعلى لضمان ثباته) ---
+if st.session_state.get("dark_mode", False):
+    st.markdown("""
+    <style>
+        .stApp { background-color: #1a1a2e !important; }
+        [data-testid="stSidebar"] { background-color: #16213e !important; }
+        .stApp, .stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label { color: #e0e0e0 !important; }
+        .stTextInput input, .stSelectbox select { background-color: #2d2d44 !important; color: #ffffff !important; border: 1px solid #444 !important; }
+        .stButton button { background-color: #4CAF50 !important; color: white !important; }
+        svg path:first-of-type { stroke: #555 !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
 # --- عرض المؤقت الحي ---
 if st.session_state.timer_running and st.session_state.end_time:
     remaining = st.session_state.end_time - time.time()
     
     if remaining > 0:
         mins, secs = divmod(int(remaining), 60)
-        # إصلاح امتلاء الدائرة
-        circumference = 100.0
-        progress = 1.0 - (remaining / st.session_state.total_seconds)
-        dash_length = progress * circumference
+        progress = min(1.0, 1.0 - (remaining / st.session_state.total_seconds))
+        dash_length = progress * 100.0
         
         st.markdown(f"""
         <div style="display: flex; justify-content: center; margin: 20px;">
@@ -219,11 +230,19 @@ if st.session_state.timer_running and st.session_state.end_time:
         st.session_state.study_history.append(f"{now} - {subject_name} ({minutes} خ)")
         save_data()
         
-        # صوت التنبيه باستخدام HTML5 Audio بشكل صحيح
+        # صوت تنبيه حقيقي عبر JavaScript
         st.markdown("""
-        <audio autoplay>
-            <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
-        </audio>
+        <script>
+            var ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 800;
+            gain.gain.value = 0.1;
+            osc.start(0);
+            setTimeout(function() { osc.stop(); }, 200);
+        </script>
         """, unsafe_allow_html=True)
         
         st.balloons()
@@ -232,7 +251,7 @@ if st.session_state.timer_running and st.session_state.end_time:
 # --- عرض حالة الإيقاف المؤقت ---
 elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
     mins, secs = divmod(int(st.session_state.remaining_at_pause), 60)
-    progress = 1.0 - (st.session_state.remaining_at_pause / st.session_state.total_seconds)
+    progress = min(1.0, 1.0 - (st.session_state.remaining_at_pause / st.session_state.total_seconds))
     dash_length = progress * 100.0
     st.markdown(f"""
     <div style="display: flex; justify-content: center; margin: 20px;">
@@ -250,17 +269,3 @@ elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
 # --- عرض حالة إعادة الضبط ---
 elif not st.session_state.timer_running and not st.session_state.paused and st.session_state.total_seconds > 0:
     st.info("🔄 دەم هاتە راوەستاندن. دووبارە دەست پێ بکە.")
-
-# --- تطبيق الوضع الليلي ---
-if st.session_state.dark_mode:
-    st.markdown("""
-    <style>
-        .stApp { background-color: #1a1a2e; }
-        .css-1d391kg, [data-testid="stSidebar"] { background-color: #16213e; }
-        .stApp, .stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label { color: #e0e0e0 !important; }
-        .stTextInput input, .stSelectbox select { background-color: #2d2d44; color: #ffffff; border: 1px solid #444; }
-        .stButton button { background-color: #4CAF50; color: white; }
-        .stProgress > div > div { background-color: #4CAF50; }
-        svg path:first-of-type { stroke: #555 !important; }
-    </style>
-    """, unsafe_allow_html=True)
