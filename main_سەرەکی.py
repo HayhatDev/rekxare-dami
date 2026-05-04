@@ -225,6 +225,11 @@ if st.session_state.timer_running and st.session_state.end_time:
         minutes = st.session_state.total_seconds // 60
         st.session_state.study_history.append(f"{now} - {subject_name} ({minutes} خ)")
         save_data()
+        st.markdown("""
+            <audio autoplay>
+                <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+            </audio>
+        """, unsafe_allow_html=True)
         st.balloons()
         st.success("دەمێ تە ب دوماهیک هات! سەرکەفتی بێ 🎉")
 
