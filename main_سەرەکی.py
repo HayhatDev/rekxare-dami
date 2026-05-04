@@ -21,8 +21,6 @@ def load_data():
             st.session_state.completed_sessions = data.get("sessions", 0)
             st.session_state.last_subject = data.get("last_subject", "—")
             st.session_state.study_history = data.get("history", [])
-            st.session_state.tasks = data.get("tasks", ["", "", ""])
-            st.session_state.tasks_done = data.get("tasks_done", [False, False, False])
             st.session_state.dark_mode = data.get("dark_mode", False)
 
 def save_data():
@@ -31,9 +29,7 @@ def save_data():
         "sessions": st.session_state.completed_sessions,
         "last_subject": st.session_state.last_subject,
         "history": st.session_state.study_history,
-        "tasks": st.session_state.tasks,
-        "tasks_done": st.session_state.tasks_done,
-        "dark_mode": st.session_state.dark_mode,
+        "dark_mode": st.session_state.dark_mode
     }
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
