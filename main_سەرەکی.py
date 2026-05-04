@@ -50,63 +50,225 @@ if "study_history" not in st.session_state:
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
 
-st.markdown("""
+# ── Compute stats ──────────────────────────────────────────────────────────────
+total_minutes = st.session_state.total_study_seconds // 60
+hours = total_minutes // 60
+mins_stat = total_minutes % 60
+is_dark = st.session_state.dark_mode
+
+# ── Colour tokens ──────────────────────────────────────────────────────────────
+if is_dark:
+    sb_bg        = "#16213e"
+    card_bg      = "rgba(255,255,255,0.05)"
+    card_border  = "rgba(255,255,255,0.08)"
+    text_primary = "#e0e0e0"
+    text_muted   = "#8a8fa8"
+    section_label= "#6b7280"
+    tag_bg       = "rgba(76,175,80,0.18)"
+    tag_color    = "#81c784"
+    activity_bg  = "rgba(255,255,255,0.04)"
+    settings_bg  = "rgba(255,255,255,0.04)"
+    settings_bdr = "rgba(255,255,255,0.07)"
+    app_bg       = "#1a1a2e"
+    input_bg     = "#2d2d44"
+    btn_bg       = "#2d2d44"
+    btn_color    = "#e0e0e0"
+    btn_border   = "#555"
+    timer_track  = "#2d2d44"
+    timer_text   = "#ffffff"
+    timer_card_bg  = "rgba(255,255,255,0.04)"
+    timer_card_bdr = "rgba(255,255,255,0.08)"
+else:
+    sb_bg        = "#f8fafc"
+    card_bg      = "#ffffff"
+    card_border  = "#e8edf3"
+    text_primary = "#1a1a2e"
+    text_muted   = "#6b7280"
+    section_label= "#9ca3af"
+    tag_bg       = "rgba(76,175,80,0.1)"
+    tag_color    = "#2e7d32"
+    activity_bg  = "#f1f5f9"
+    settings_bg  = "#f1f5f9"
+    settings_bdr = "#e2e8f0"
+    app_bg       = "#ffffff"
+    input_bg     = "#ffffff"
+    btn_bg       = "#f0f2f6"
+    btn_color    = "#1a1a2e"
+    btn_border   = "#d1d5db"
+    timer_track  = "#e8eaf0"
+    timer_text   = "#1a1a2e"
+    timer_card_bg  = "rgba(76,175,80,0.05)"
+    timer_card_bdr = "rgba(76,175,80,0.15)"
+
+# ── Global CSS ─────────────────────────────────────────────────────────────────
+st.markdown(f"""
 <style>
-    .stButton > button {
+    [data-testid="stSidebar"] {{ background-color: {sb_bg} !important; }}
+    .stApp {{ background-color: {app_bg} !important; }}
+    .stApp, .stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label,
+    [data-testid="stSidebar"] * {{ color: {text_primary} !important; }}
+    .stTextInput input, .stSelectbox > div > div {{
+        background-color: {input_bg} !important;
+        border-radius: 10px !important;
+        border: 1px solid {card_border} !important;
+    }}
+    .stButton > button {{
         border-radius: 10px !important;
         font-weight: 600 !important;
-        transition: opacity 0.2s ease !important;
-    }
-    .stButton > button:hover:not(:disabled) { opacity: 0.85 !important; }
-    .stSlider > div { padding-top: 4px; }
-    .stSelectbox > div > div { border-radius: 10px !important; }
-    .stTextInput > div > div > input { border-radius: 10px !important; }
-    div[data-testid="metric-container"] {
-        background: rgba(76,175,80,0.08);
-        border-radius: 10px;
-        padding: 8px 12px;
-    }
-    .timer-card {
+        background-color: {btn_bg} !important;
+        color: {btn_color} !important;
+        border: 1px solid {btn_border} !important;
+        transition: opacity 0.18s ease !important;
+    }}
+    .stButton > button:hover:not(:disabled) {{ opacity: 0.78 !important; }}
+    .timer-card {{
+        background: {timer_card_bg};
+        border: 1px solid {timer_card_bdr};
         border-radius: 20px;
-        padding: 24px 16px 16px 16px;
+        padding: 24px 16px 16px;
         margin: 16px 0;
         text-align: center;
-    }
+    }}
+    div[data-testid="metric-container"] {{ display: none !important; }}
+    .sb-section-label {{
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        color: {section_label} !important;
+        margin: 18px 0 8px 2px;
+    }}
+    .stat-row {{ display: flex; gap: 10px; margin-bottom: 4px; }}
+    .stat-card {{
+        flex: 1;
+        background: {card_bg};
+        border: 1px solid {card_border};
+        border-radius: 12px;
+        padding: 12px 10px;
+        text-align: center;
+    }}
+    .stat-card .stat-icon {{ font-size: 18px; margin-bottom: 4px; }}
+    .stat-card .stat-value {{
+        font-size: 17px;
+        font-weight: 700;
+        color: {text_primary} !important;
+        line-height: 1.2;
+    }}
+    .stat-card .stat-label {{
+        font-size: 10px;
+        color: {text_muted} !important;
+        margin-top: 2px;
+    }}
+    .subject-tag {{
+        display: inline-block;
+        background: {tag_bg};
+        color: {tag_color} !important;
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 2px;
+    }}
+    .activity-list {{
+        background: {activity_bg};
+        border-radius: 10px;
+        padding: 6px 4px;
+    }}
+    .activity-item {{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        font-size: 12px;
+        color: {text_primary} !important;
+    }}
+    .activity-item .act-dot {{
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: #4CAF50;
+        flex-shrink: 0;
+    }}
+    .activity-empty {{
+        font-size: 12px;
+        color: {text_muted} !important;
+        padding: 8px;
+        text-align: center;
+    }}
+    .settings-box {{
+        background: {settings_bg};
+        border: 1px solid {settings_bdr};
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-top: 4px;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
+# ── SIDEBAR ────────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.title("📊 ئامارێن تە")
-    st.divider()
 
-    total_minutes = st.session_state.total_study_seconds // 60
-    hours = total_minutes // 60
-    mins = total_minutes % 60
+    # Brand header
+    st.markdown(f"""
+    <div style="padding: 20px 4px 4px 4px;">
+        <div style="font-size:22px; font-weight:800; color:{text_primary};">📚 Rekxare Dami</div>
+        <div style="font-size:12px; color:{text_muted}; margin-top:2px;">بو قوتابیان و خوێندەکاران</div>
+    </div>
+    <div style="height:1px; background:{card_border}; margin:14px 0 6px 0;"></div>
+    """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("⏱️ هەمی دەم", f"{hours} س {mins} خ")
-    with col2:
-        st.metric("✅ دانیشتن", st.session_state.completed_sessions)
+    # Stats
+    st.markdown(f'<div class="sb-section-label">ئامارێن تە</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="stat-row">
+        <div class="stat-card">
+            <div class="stat-icon">⏱️</div>
+            <div class="stat-value">{hours}س {mins_stat}خ</div>
+            <div class="stat-label">هەمی دەمی خوێندن</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">{st.session_state.completed_sessions}</div>
+            <div class="stat-label">دانیشتنێن تەواوبوو</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.divider()
-    st.write(f"📚 دوماهيك دەرس: **{st.session_state.last_subject}**")
+    # Last subject
+    st.markdown(f'<div class="sb-section-label">دوماهيك دەرس</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style="padding: 2px 0 8px 0;">
+        <span class="subject-tag">📖 {st.session_state.last_subject}</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-    if st.session_state.study_history:
-        st.write("**📋 دوماهيك چالاکی:**")
-        for entry in st.session_state.study_history[-3:][::-1]:
-            st.caption(entry)
+    # Recent activity
+    st.markdown(f'<div class="sb-section-label">دوماهيك چالاکی</div>', unsafe_allow_html=True)
+    history = st.session_state.study_history[-4:][::-1]
+    if history:
+        items_html = "".join([
+            f'<div class="activity-item"><div class="act-dot"></div><span>{e}</span></div>'
+            for e in history
+        ])
+        st.markdown(f'<div class="activity-list">{items_html}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div class="activity-list"><div class="activity-empty">هێش چالاکیێ نینە</div></div>', unsafe_allow_html=True)
 
-    st.divider()
-    st.write("🌓 ڕووکار")
-
-    dark_btn = st.checkbox("شەڤ", value=st.session_state.dark_mode)
+    # Settings
+    st.markdown(f'<div class="sb-section-label">ڕێکخستن</div>', unsafe_allow_html=True)
+    st.markdown('<div class="settings-box">', unsafe_allow_html=True)
+    dark_row_col, dark_toggle_col = st.columns([3, 1])
+    with dark_row_col:
+        st.markdown(f'<div style="font-size:13px; padding-top:6px;">🌙 دەم شەڤ</div>', unsafe_allow_html=True)
+    with dark_toggle_col:
+        dark_btn = st.checkbox("", value=st.session_state.dark_mode, label_visibility="collapsed")
     if dark_btn != st.session_state.dark_mode:
         st.session_state.dark_mode = dark_btn
         save_data()
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.divider()
+    st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
     if st.button("🧹 ئاماران پاک بکە", use_container_width=True):
         st.session_state.total_study_seconds = 0
         st.session_state.completed_sessions = 0
@@ -115,26 +277,7 @@ with st.sidebar:
         save_data()
         st.rerun()
 
-if st.session_state.dark_mode:
-    st.markdown("""
-    <style>
-        .stApp { background-color: #1a1a2e !important; }
-        [data-testid="stSidebar"] { background-color: #16213e !important; }
-        .stApp, .stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label { color: #e0e0e0 !important; }
-        .stTextInput input, .stSelectbox select { background-color: #2d2d44 !important; color: #ffffff !important; border: 1px solid #444 !important; }
-        .stButton button { background-color: #2d2d44 !important; color: #e0e0e0 !important; border: 1px solid #555 !important; }
-        .timer-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
-        div[data-testid="metric-container"] { background: rgba(76,175,80,0.12) !important; }
-    </style>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-    <style>
-        .timer-card { background: rgba(76,175,80,0.05); border: 1px solid rgba(76,175,80,0.15); }
-        .stButton button { background-color: #f0f2f6 !important; color: #1a1a2e !important; }
-    </style>
-    """, unsafe_allow_html=True)
-
+# ── MAIN PAGE ──────────────────────────────────────────────────────────────────
 st.title("📚 Rekxare Dami | بو قوتابیان و خوێندەکاران")
 
 if "timer_running" not in st.session_state:
@@ -213,29 +356,27 @@ if dubare:
 
 def render_circle(mins_val, secs_val, progress, color):
     dash_length = progress * 100.0
-    is_dark = st.session_state.get("dark_mode", False)
-    track_color = "#2d2d44" if is_dark else "#e8eaf0"
-    text_color = "#ffffff" if is_dark else "#1a1a2e"
     glow = f"filter: drop-shadow(0 0 6px {color}88);" if progress > 0 else ""
     st.markdown(f"""
     <div class="timer-card">
-        <div style="display: flex; justify-content: center;">
+        <div style="display:flex; justify-content:center;">
             <svg width="260" height="260" viewBox="0 0 36 36" style="{glow}">
                 <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none" stroke="{track_color}" stroke-width="2.5"/>
+                      fill="none" stroke="{timer_track}" stroke-width="2.5"/>
                 <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                       fill="none" stroke="{color}" stroke-width="2.5"
                       stroke-linecap="round"
                       stroke-dasharray="{dash_length:.2f}, 200"/>
-                <text x="18" y="17.5" text-anchor="middle" fill="{text_color}"
+                <text x="18" y="17.5" text-anchor="middle" fill="{timer_text}"
                       font-size="6.5" font-weight="700">{mins_val:02d}:{secs_val:02d}</text>
-                <text x="18" y="22.5" text-anchor="middle" fill="{text_color}88"
+                <text x="18" y="22.5" text-anchor="middle" fill="{timer_text}88"
                       font-size="2.8">دەقیقە : چرکە</text>
             </svg>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
+# ── Timer display ──────────────────────────────────────────────────────────────
 if st.session_state.timer_running and st.session_state.end_time:
     remaining = st.session_state.end_time - time.time()
 
@@ -259,6 +400,7 @@ if st.session_state.timer_running and st.session_state.end_time:
         minutes = st.session_state.total_seconds // 60
         st.session_state.study_history.append(f"{now} - {subject_name} ({minutes} خ)")
         save_data()
+
         components.html("""
         <script>
             (function() {
@@ -284,6 +426,7 @@ if st.session_state.timer_running and st.session_state.end_time:
             })();
         </script>
         """, height=0)
+
         st.balloons()
         st.success("دەمێ تە ب دوماهیک هات! سەرکەفتی بێ 🎉")
 
