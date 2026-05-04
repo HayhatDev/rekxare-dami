@@ -246,7 +246,7 @@ with st.sidebar:
         <div class="stat-card">
             <div class="stat-icon">⏱️</div>
             <div class="stat-val">{hours_total}س {mins_total}خ</div>
-            <div class="stat-lbl">هەمی دەمی خوێندن</div>
+            <div class="stat-lbl">هەمی دەمی خواندن</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon">✅</div>
@@ -256,7 +256,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="sb-lbl">زنجیرەیێ خوێندنێ</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-lbl">زنجیرەیێ خواندنێ</div>', unsafe_allow_html=True)
     sv = st.session_state.streak
     smsg = ("دەستپێک بکە! 💪" if sv == 0 else
             "ئامادەیی! 🌱"    if sv < 3  else
@@ -274,12 +274,12 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="sb-lbl">ئامانجێ ئەمڕۆ</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-lbl">ئارمانجێن ئەڤروکە</div>', unsafe_allow_html=True)
     gc = "#2196F3" if daily_pct >= 100 else "#4CAF50"
     st.markdown(f"""
     <div class="goal-wrap">
         <div class="goal-header">
-            <span class="goal-title">🎯 ئامانجێ ئەمڕۆ</span>
+            <span class="goal-title">🎯 ئارمانجێن ئەڤروکە</span>
             <span>{daily_done_min} / {daily_goal_min} خ — {daily_pct}%</span>
         </div>
         <div class="goal-track">
