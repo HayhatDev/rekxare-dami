@@ -110,7 +110,7 @@ if is_dark:
     activity_bg    = "rgba(255,255,255,0.04)"
     settings_bg    = "rgba(255,255,255,0.04)"
     settings_bdr   = "rgba(255,255,255,0.07)"
-    app_bg         = "#1a1a2e"
+    app_bg         = "#f0f2f6"
     input_bg       = "#2d2d44"
     btn_bg         = "#2d2d44"
     btn_color      = "#e0e0e0"
