@@ -464,7 +464,7 @@ if st.session_state.timer_running and st.session_state.end_time:
         minutes = st.session_state.total_seconds // 60
         st.session_state.study_history.append(f"{now_ts} - {subject_name} ({minutes} خ)")
         save_data()
-        components.html(""
+        components.html("""
         <script>
         (function(){
             var AC = window.AudioContext || window.webkitAudioContext;
