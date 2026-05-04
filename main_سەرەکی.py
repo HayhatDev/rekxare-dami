@@ -53,28 +53,28 @@ if "dark_mode" not in st.session_state:
 with st.sidebar:
     st.title("📊 ئامارێن تە")
     st.divider()
-    
+
     total_minutes = st.session_state.total_study_seconds // 60
     hours = total_minutes // 60
     mins = total_minutes % 60
-    
+
     col1, col2 = st.columns(2)
     with col1:
         st.metric("⏱️ هەمی دەم", f"{hours} س {mins} خ")
     with col2:
         st.metric("✅ دانیشتن", st.session_state.completed_sessions)
-    
+
     st.divider()
     st.write(f"📚 دوماهيك دەرس: **{st.session_state.last_subject}**")
-    
+
     if st.session_state.study_history:
         st.write("**📋 دوماهيك چالاکی:**")
         for entry in st.session_state.study_history[-3:][::-1]:
             st.caption(entry)
-    
+
     st.divider()
     st.write("🌓 ڕووکار")
-    
+
     dark_btn = st.checkbox("شەڤ", value=st.session_state.dark_mode)
     if dark_btn != st.session_state.dark_mode:
         st.session_state.dark_mode = dark_btn
@@ -109,8 +109,8 @@ if nav:
 
 st.divider()
 
-ders = st.selectbox("تو كيژ دەرسێ دخوینی؟", 
-    ["🧮 بیرکاری", "⚛️ فیزیا", "🧪 کیمیا", "🇬🇧 ئینگلیزی", 
+ders = st.selectbox("تو كيژ دەرسێ دخوینی؟",
+    ["🧮 بیرکاری", "⚛️ فیزیا", "🧪 کیمیا", "🇬🇧 ئینگلیزی",
      "🧬 زیندەوەرزانی", "📜 مێژوو", "🌍 جوگرافیا", "💻 کۆمپیوتەر", "☪️ ئايين"])
 
 deqe = st.slider("چەند دەقیقە؟", 1, 240, 25)
@@ -199,47 +199,62 @@ def render_circle(mins_val, secs_val, progress, color):
 
 if st.session_state.timer_running and st.session_state.end_time:
     remaining = st.session_state.end_time - time.time()
-    
+
     if remaining > 0:
         mins_val, secs_val = divmod(int(remaining), 60)
         progress = min(1.0, 1.0 - (remaining / st.session_state.total_seconds))
         render_circle(mins_val, secs_val, progress, "#4CAF50")
-        
+
         st.success(f"✅ باشە {nav}! تو دێ {deqe} دەقیقان بۆ {ders} تەرخان دکەی.")
         st.info(f"💬 {random.choice(hezt)}")
-        
+
         time.sleep(1)
         st.rerun()
-        
+
     else:
         st.session_state.timer_running = False
         st.session_state.paused = False
-        
+
         st.session_state.total_study_seconds += st.session_state.total_seconds
         st.session_state.completed_sessions += 1
-        
+
         subject_name = ders.split(" ", 1)[1] if " " in ders else ders
         st.session_state.last_subject = subject_name
-        
+
         now = datetime.now().strftime("%H:%M")
         minutes = st.session_state.total_seconds // 60
         st.session_state.study_history.append(f"{now} - {subject_name} ({minutes} خ)")
         save_data()
-        
+
         components.html("""
         <script>
-            var ctx = new (window.AudioContext || window.webkitAudioContext)();
-            var osc = ctx.createOscillator();
-            var gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.value = 800;
-            gain.gain.value = 0.1;
-            osc.start(0);
-            setTimeout(function() { osc.stop(); }, 1000);
+            (function() {
+                var AudioContext = window.AudioContext || window.webkitAudioContext;
+                var ctx = new AudioContext();
+
+                function playNote(freq, startDelay, duration) {
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    var t = ctx.currentTime + startDelay;
+                    gain.gain.setValueAtTime(0, t);
+                    gain.gain.linearRampToValueAtTime(0.25, t + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+                    osc.start(t);
+                    osc.stop(t + duration);
+                }
+
+                // Ascending 3-note chime: E5 → G#5 → B5
+                playNote(659, 0.0, 1.2);
+                playNote(830, 0.22, 1.2);
+                playNote(988, 0.44, 1.4);
+            })();
         </script>
         """, height=0)
-        
+
         st.balloons()
         st.success("دەمێ تە ب دوماهیک هات! سەرکەفتی بێ 🎉")
 
