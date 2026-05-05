@@ -54,21 +54,20 @@
 
 ---
 
-## 🚀 التشغيل | Getting Started
 
-### جرب التطبيق مباشرة | Try it Live
+## 🆕 الميزات الجديدة | What's New
 
-🔗 **[Rekxare Dami على Streamlit Cloud](https://rekxare-dami.streamlit.app/)**
-
-### تشغيل محلي | Run Locally
-
-```bash
-# استنساخ المستودع
-git clone https://github.com/HayhatDev/rekxera-dami
-cd rekxare-dami
-
-# تثبيت المتطلبات
-pip install streamlit
-
-# تشغيل التطبيق
-streamlit run planner.py
+| الميزة | Feature | الوصف المختصر | Brief Description |
+| :--- | :--- | :--- | :--- |
+| 🧠 ترحيب ذكي | Smart Greeting | تحية تتغير حسب الوقت مع بطاقة ترحيبية. | Time-based greeting with a welcome card. |
+| 🎨 ألوان المواد | Subject Colors | لكل مادة لونها الخاص، والدائرة تتلون بها. | Each subject has a color; the timer circle matches it. |
+| 🔥 سلسلة الدراسة | Study Streak | عداد للأيام المتتالية التي تدرس فيها. | Tracks consecutive study days with motivational badges. |
+| 🎯 هدف يومي | Daily Goal | تحدد هدفاً يومياً ويظهر شريط تقدم لإنجازك. | Set a daily goal and track progress with a bar. |
+| 💬 تحفيز مزدوج | Bilingual Quotes | رسائل تحفيزية عشوائية بالعربية والإنجليزية. | Random motivational quotes in both languages. |
+| 🖼️ شريط جانبي جديد | New Sidebar | بطاقات إحصائية، إعدادات، ومسح بيانات. | Stat cards, settings, and data reset in one place. |
+| 🌙 ألوان ديناميكية | Dynamic CSS | متغيرات ألوان كاملة تتغير بالوضع الفاتح/الداكن. | Full CSS variables switching with light/dark mode. |
+| 🗓️ شارة اليوم | Today Badge | علامة "ئەڤروکە" 🔵 تظهر على اليوم الحالي. | A "Today" badge appears on the current day. |
+| 📊 تقدم المهام | Task Progress | شريط تقدم يوضح نسبة إنجاز مهام كل يوم. | Progress bar showing daily task completion rate. |
+| 🔊 صوت تنبيه | Alarm Sound | نغمة ثلاثية عند انتهاء المؤقت. | Three-tone chime when the timer ends. |
+| 🌓 وضع ليلي ثابت | Stable Dark Mode | الوضع الليلي يحفظ ولا يختفي أثناء المؤقت. | Dark mode is saved and persists during countdown. |
+| 💾 حفظ تلقائي | Auto Save | كل البيانات تحفظ تلقائياً في ملف JSON. | All data auto-saves to a JSON file. |
