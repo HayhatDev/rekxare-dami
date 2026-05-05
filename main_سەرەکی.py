@@ -35,9 +35,9 @@ def subject_color(label: str) -> str:
 def get_greeting():
     h = datetime.now().hour
     if 5 <= h < 12:
-        return "سبەی خوش", "Good Morning"
+        return "سپێدە خوش", "Good Morning"
     elif 12 <= h < 17:
-        return "نیوڕۆیێ خوش", "Good Afternoon"
+        return "نيڤرويەکا خوش", "Good Afternoon"
     elif 17 <= h < 21:
         return "ئێڤارێ خوش", "Good Evening"
     else:
