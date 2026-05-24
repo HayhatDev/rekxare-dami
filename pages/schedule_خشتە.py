@@ -3,6 +3,45 @@ from datetime import datetime
 import json
 import os
 
+# --- Load translations ---
+with open("translations.json", "r", encoding="utf-8") as f:
+    TRANSLATIONS = json.load(f)
+
+if "lang" not in st.session_state:
+    st.session_state.lang = "badini"
+
+def t(key, **kwargs):
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
+    if kwargs:
+        text = text.format(**kwargs)
+    return text
+
+# --- Days of the week ---
+DAYS = [
+    ("sun", "☀️ ئێکشەمب", "Sunday"),
+    ("mon", "📖 دووشەمب", "Monday"),
+    ("tue", "📖 سێشەمب", "Tuesday"),
+    ("wed", "📖 چارشەمب", "Wednesday"),
+    ("thu", "📖 پێنجشەمب", "Thursday"),
+    ("fri", "🕌 خودبە", "Friday"),
+    ("sat", "🎉 شەمبی", "Saturday"),
+]
+
+def get_day_name(day_key):
+    for dk, badini_name, eng_name in DAYS:
+        if dk == day_key:
+            if st.session_state.lang == "badini":
+                return badini_name
+            elif st.session_state.lang == "arabic":
+                arabic_names = {
+                    "sun": "☀️ الأحد", "mon": "📖 الاثنين", "tue": "📖 الثلاثاء",
+                    "wed": "📖 الأربعاء", "thu": "📖 الخميس", "fri": "🕌 الجمعة", "sat": "🎉 السبت"
+                }
+                return arabic_names.get(day_key, eng_name)
+            else:
+                return f"📖 {eng_name}"
+    return day_key
+
 SCHEDULE_FILE = "schedule_data.json"
 
 def load_schedule():
@@ -22,7 +61,7 @@ def save_schedule():
     with open(SCHEDULE_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-st.set_page_config(page_title="خشتەیێ حەفتیانە", page_icon="📅")
+st.set_page_config(page_title=t("schedule_title"), page_icon="📅")
 
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
@@ -43,11 +82,6 @@ for day in ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]:
 
 today_map = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat"}
 today_key = today_map[datetime.now().weekday()]
-
-days = [
-    ("sun", "☀️ ئێکشەمب"), ("mon", "📖 دووشەمب"), ("tue", "📖 سێشەمب"),
-    ("wed", "📖 چارشەمب"), ("thu", "📖 پێنجشەمب"), ("fri", "🕌 خودبە"), ("sat", "🎉 شەمبی"),
-]
 
 st.markdown("""
 <style>
@@ -81,9 +115,10 @@ else:
     </style>
     """, unsafe_allow_html=True)
 
-st.title("📅 خشتەیێ حەفتیانە")
+st.title(t("schedule_title"))
 
-def get_tab_label(day_key, day_name):
+def get_tab_label(day_key):
+    day_name = get_day_name(day_key)
     tasks = st.session_state.schedule.get(day_key, [])
     if not tasks:
         return day_name
@@ -93,11 +128,11 @@ def get_tab_label(day_key, day_name):
     today_marker = " 🔵" if day_key == today_key else ""
     return f"{day_name}{today_marker}{marker}"
 
-tab_labels = [get_tab_label(dk, dn) for dk, dn in days]
-tab_keys = [dk for dk, _ in days]
+tab_labels = [get_tab_label(dk) for dk, _, _ in DAYS]
+tab_keys = [dk for dk, _, _ in DAYS]
 tabs = st.tabs(tab_labels)
 
-for tab, day_key, day_name in zip(tabs, tab_keys, tab_labels):
+for tab, (day_key, _, _) in zip(tabs, DAYS):
     with tab:
         schedule = st.session_state.schedule[day_key]
 
@@ -105,7 +140,7 @@ for tab, day_key, day_name in zip(tabs, tab_keys, tab_labels):
             schedule.append({"start": "07:00", "end": "08:00", "task": "", "done": False})
 
         if day_key == today_key:
-            st.markdown('<span class="today-badge">🔵 ئەڤروکە</span>', unsafe_allow_html=True)
+            st.markdown(f'<span class="today-badge">{t("today_badge")}</span>', unsafe_allow_html=True)
 
         total_tasks = len(schedule)
         done_tasks = sum(1 for t in schedule if t.get("done", False))
@@ -114,7 +149,7 @@ for tab, day_key, day_name in zip(tabs, tab_keys, tab_labels):
             bar_color = "#2196F3" if pct == 100 else "#4CAF50"
             st.markdown(f"""
             <div style="display:flex; justify-content:space-between; font-size:13px; opacity:0.7; margin-bottom:2px;">
-                <span>ئەرکێن تەواوبوون</span>
+                <span>{t("tasks_completed")}</span>
                 <span>{done_tasks}/{total_tasks} — {pct}%</span>
             </div>
             <div class="progress-bar-bg">
@@ -124,11 +159,11 @@ for tab, day_key, day_name in zip(tabs, tab_keys, tab_labels):
 
         hcol1, hcol2, hcol3, hcol4 = st.columns([2, 1, 5, 1])
         with hcol1:
-            st.caption("🕐 کات")
+            st.caption("🕐")
         with hcol2:
             st.caption("✅")
         with hcol3:
-            st.caption("📝 چالاکی")
+            st.caption("📝")
         with hcol4:
             st.caption("🗑️")
 
@@ -136,11 +171,11 @@ for tab, day_key, day_name in zip(tabs, tab_keys, tab_labels):
             col_time, col_done, col_task, col_delete = st.columns([2, 1, 5, 1])
 
             with col_time:
-                start_time = st.time_input("دەستپێک",
+                start_time = st.time_input("",
                     value=datetime.strptime(entry["start"], "%H:%M").time() if entry["start"] else datetime.min.time(),
                     key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}",
                     label_visibility="collapsed")
-                end_time = st.time_input("دووماهی",
+                end_time = st.time_input("",
                     value=datetime.strptime(entry["end"], "%H:%M").time() if entry["end"] else datetime.min.time(),
                     key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}",
                     label_visibility="collapsed")
@@ -151,10 +186,10 @@ for tab, day_key, day_name in zip(tabs, tab_keys, tab_labels):
                     label_visibility="collapsed")
 
             with col_task:
-                task_text = st.text_input("چالاکی", value=entry["task"],
+                task_text = st.text_input("", value=entry["task"],
                     key=f"{day_key}_task_{i}_{st.session_state[f'{day_key}_reset']}",
                     disabled=done, label_visibility="collapsed",
-                    placeholder="ناڤێ چالاکیێ بنڤیسە...")
+                    placeholder=t("activity_placeholder"))
 
             with col_delete:
                 st.write("")
@@ -177,7 +212,7 @@ for tab, day_key, day_name in zip(tabs, tab_keys, tab_labels):
                 st.rerun()
 
         st.divider()
-        if st.button("＋ ئەرکێ نوی",
+        if st.button(t("add_task"),
             key=f"{day_key}_add_{st.session_state[f'{day_key}_reset']}",
             use_container_width=True):
             schedule.append({"start": "08:00", "end": "09:00", "task": "", "done": False})
