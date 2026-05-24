@@ -14,17 +14,20 @@ st.set_page_config(
 
 DATA_FILE = "study_data.json"
 
-SUBJECT_COLORS = {
-    "بیرکاری":      "#2196F3",
-    "فیزیا":        "#9C27B0",
-    "کیمیا":        "#FF5722",
-    "ئینگلیزی":     "#00BCD4",
-    "زیندەوەرزانی": "#4CAF50",
-    "مێژوو":        "#795548",
-    "جوگرافیا":     "#FF9800",
-    "کۆمپیوتەر":    "#607D8B",
-    "ئايين":        "#FFC107",
-}
+# --- Load translations ---
+with open("translations.json", "r", encoding="utf-8") as f:
+    TRANSLATIONS = json.load(f)
+
+if "lang" not in st.session_state:
+    st.session_state.lang = "badini"
+
+def t(key, **kwargs):
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
+    if kwargs:
+        text = text.format(**kwargs)
+    return text
+
+SUBJECT_COLORS = TRANSLATIONS["badini"]["subjects_color"]
 
 def subject_color(label: str) -> str:
     for key, col in SUBJECT_COLORS.items():
@@ -35,13 +38,13 @@ def subject_color(label: str) -> str:
 def get_greeting():
     h = datetime.now().hour
     if 5 <= h < 12:
-        return "سپێدە خوش", "Good Morning"
+        return t("greeting_morning"), t("greeting_morning_en")
     elif 12 <= h < 17:
-        return "نيڤرويەکا خوش", "Good Afternoon"
+        return t("greeting_afternoon"), t("greeting_afternoon_en")
     elif 17 <= h < 21:
-        return "ئێڤارێ خوش", "Good Evening"
+        return t("greeting_evening"), t("greeting_evening_en")
     else:
-        return "شەڤێ خوش", "Good Night"
+        return t("greeting_night"), t("greeting_night_en")
 
 def load_data():
     if os.path.exists(DATA_FILE):
@@ -56,6 +59,7 @@ def load_data():
             st.session_state.last_study_date     = data.get("last_study_date", "")
             st.session_state.daily_seconds       = data.get("daily_seconds", 0)
             st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
+            st.session_state.lang                = data.get("lang", "badini")
 
 def save_data():
     data = {
@@ -68,6 +72,7 @@ def save_data():
         "last_study_date":    st.session_state.last_study_date,
         "daily_seconds":      st.session_state.daily_seconds,
         "daily_goal_seconds": st.session_state.daily_goal_seconds,
+        "lang":               st.session_state.lang,
     }
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -232,55 +237,65 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 with st.sidebar:
+    # --- Language Switcher ---
+    st.markdown('<div class="sb-lbl">زمان | Language</div>', unsafe_allow_html=True)
+    lang = st.selectbox("", ["badini", "english", "arabic"],
+                        index=["badini", "english", "arabic"].index(st.session_state.lang),
+                        label_visibility="collapsed")
+    if lang != st.session_state.lang:
+        st.session_state.lang = lang
+        save_data()
+        st.rerun()
+
     st.markdown(f"""
     <div style="padding:20px 4px 6px 4px;">
         <div style="font-size:22px;font-weight:800;">📚 Rekxare Dami</div>
-        <div style="font-size:12px;color:{TEXT_MUTED};margin-top:2px;">بو قوتابیان و خوێندەکاران</div>
+        <div style="font-size:12px;color:{TEXT_MUTED};margin-top:2px;">{t("app_title")}</div>
     </div>
     <div style="height:1px;background:{DIVIDER};margin:12px 0 6px;"></div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="sb-lbl">ئامارێن تە</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sb-lbl">{t("sidebar_title")}</div>', unsafe_allow_html=True)
     st.markdown(f"""
     <div class="stat-row">
         <div class="stat-card">
             <div class="stat-icon">⏱️</div>
-            <div class="stat-val">{hours_total}س {mins_total}خ</div>
-            <div class="stat-lbl">هەمی دەمی خواندن</div>
+            <div class="stat-val">{hours_total}{t("hours_unit")} {mins_total}{t("minutes_unit")}</div>
+            <div class="stat-lbl">{t("total_time")}</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon">✅</div>
             <div class="stat-val">{st.session_state.completed_sessions}</div>
-            <div class="stat-lbl">دانیشتنێن تەواوبوو</div>
+            <div class="stat-lbl">{t("sessions")}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="sb-lbl">زنجیرەیێ خواندنێ</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sb-lbl">{t("streak_section")}</div>', unsafe_allow_html=True)
     sv = st.session_state.streak
-    smsg = ("دەستپێک بکە! 💪" if sv == 0 else
-            "ئامادەیی! 🌱"    if sv < 3  else
-            "بەردەوام بە! 🔥"  if sv < 7  else
-            "تو قەهرەمانێ! 🏆")
+    smsg = (t("streak_start") if sv == 0 else
+            t("streak_ready") if sv < 3  else
+            t("streak_keep")  if sv < 7  else
+            t("streak_champ"))
     st.markdown(f"""
     <div class="streak-card">
         <div style="font-size:28px;">🔥</div>
         <div>
             <div class="streak-num">{sv}
-                <span style="font-size:13px;font-weight:400;color:{TEXT_MUTED};">رۆژ</span>
+                <span style="font-size:13px;font-weight:400;color:{TEXT_MUTED};">{t("hours_unit")}</span>
             </div>
             <div class="streak-sub">{smsg}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="sb-lbl">ئارمانجێن ئەڤروکە</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sb-lbl">{t("goal_section")}</div>', unsafe_allow_html=True)
     gc = "#2196F3" if daily_pct >= 100 else "#4CAF50"
     st.markdown(f"""
     <div class="goal-wrap">
         <div class="goal-header">
-            <span class="goal-title">🎯 ئارمانجێن ئەڤروکە</span>
-            <span>{daily_done_min} / {daily_goal_min} خ — {daily_pct}%</span>
+            <span class="goal-title">{t("today_goal")}</span>
+            <span>{daily_done_min} / {daily_goal_min} {t("minutes_unit")} — {daily_pct}%</span>
         </div>
         <div class="goal-track">
             <div class="goal-fill" style="width:{daily_pct}%;background:{gc};"></div>
@@ -288,20 +303,20 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="sb-lbl">دوماهيك دەرس</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sb-lbl">{t("last_subject")}</div>', unsafe_allow_html=True)
     st.markdown(f'<div style="padding:2px 0 8px;"><span class="subject-tag">📖 {st.session_state.last_subject}</span></div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="sb-lbl">دوماهيك چالاکی</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sb-lbl">{t("recent_activity")}</div>', unsafe_allow_html=True)
     hist = st.session_state.study_history[-4:][::-1]
     if hist:
         rows = "".join(f'<div class="act-item"><div class="act-dot"></div><span>{e}</span></div>' for e in hist)
         st.markdown(f'<div class="act-list">{rows}</div>', unsafe_allow_html=True)
     else:
-        st.markdown('<div class="act-list"><div class="act-empty">هێش چالاکیێ نینە</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="act-list"><div class="act-empty">{t("no_activity")}</div></div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="sb-lbl">ڕێکخستن</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sb-lbl">{t("settings")}</div>', unsafe_allow_html=True)
     st.markdown('<div class="settings-box">', unsafe_allow_html=True)
-    goal_mins = st.slider("🎯 ئارمانجێن ئەڤروکە (خ)", 30, 480,
+    goal_mins = st.slider(t("today_goal") + f" ({t('minutes_unit')})", 30, 480,
                           st.session_state.daily_goal_seconds // 60, step=15)
     if goal_mins * 60 != st.session_state.daily_goal_seconds:
         st.session_state.daily_goal_seconds = goal_mins * 60
@@ -310,7 +325,7 @@ with st.sidebar:
     st.markdown('<div style="height:6px;"></div>', unsafe_allow_html=True)
     dc, tc = st.columns([3, 1])
     with dc:
-        st.markdown('<div style="font-size:13px;padding-top:6px;">🌙 دەم شەڤ</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:13px;padding-top:6px;">{t("dark_mode")}</div>', unsafe_allow_html=True)
     with tc:
         dark_btn = st.checkbox("", value=is_dark, label_visibility="collapsed")
     if dark_btn != is_dark:
@@ -319,7 +334,7 @@ with st.sidebar:
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
-    if st.button("🧹 ئاماران پاک بکە", use_container_width=True):
+    if st.button(t("clear_stats"), use_container_width=True):
         for k, v in [("total_study_seconds",0),("completed_sessions",0),
                      ("last_subject","—"),("study_history",[]),
                      ("streak",0),("daily_seconds",0),("last_study_date","")]:
@@ -327,8 +342,8 @@ with st.sidebar:
         save_data()
         st.rerun()
 
-# ── Main page ──────────────────────────────────────────────────────────────────
-nav = st.text_input("ناڤێ خوە بنڤیسە:", "قوتابی", label_visibility="collapsed")
+# ── Main page ──
+nav = st.text_input(t("enter_name"), t("default_name"), label_visibility="collapsed")
 
 kurd_greet, eng_greet = get_greeting()
 h_now = datetime.now().hour
@@ -341,7 +356,7 @@ st.markdown(f"""
     <div class="greet-emoji">{greet_emoji}</div>
     <div>
         <div class="greet-name">{kurd_greet}، {nav}!</div>
-        <div class="greet-sub">{eng_greet} — بخێر هاتێ بۆ Rekxare Dami 📚</div>
+        <div class="greet-sub">{eng_greet} — {t('welcome')} 📚</div>
         <div class="greet-time">{now_str}</div>
     </div>
 </div>
@@ -349,41 +364,31 @@ st.markdown(f"""
 
 st.divider()
 
-ders = st.selectbox("تو كيژ دەرسێ دخوینی؟",
-    ["🧮 بیرکاری", "⚛️ فیزیا", "🧪 کیمیا", "🇬🇧 ئینگلیزی",
-     "🧬 زیندەوەرزانی", "📜 مێژوو", "🌍 جوگرافیا", "💻 کۆمپیوتەر", "☪️ ئايين"])
+subjects_list = t("subjects")
+if isinstance(subjects_list, str): subjects_list = TRANSLATIONS[st.session_state.lang]["subjects"]
+ders = st.selectbox(t("select_subject"), subjects_list)
 arc_color = subject_color(ders)
 
-deqe = st.slider("چەند دەقیقە؟", 1, 240, 25)
+deqe = st.slider(t("minutes_question"), 1, 240, 25)
 total_seconds = deqe * 60
 
 col1, col2, col3 = st.columns(3)
 with col1:
     if not st.session_state.timer_running and not st.session_state.paused:
-        dest_pe_bike = st.button("🚀 دەست پێ بکە", use_container_width=True)
+        dest_pe_bike = st.button(t("start_btn"), use_container_width=True)
     elif st.session_state.paused:
-        resume = st.button("▶️ بەردەوام بە", use_container_width=True)
+        resume = st.button(t("resume_btn"), use_container_width=True)
     else:
-        st.button("🚀 دەست پێ بکە", disabled=True, use_container_width=True)
+        st.button(t("start_btn"), disabled=True, use_container_width=True)
 with col2:
     if st.session_state.timer_running:
-        stop_timer = st.button("⏸️ راوەستاندن", use_container_width=True)
+        stop_timer = st.button(t("pause_btn"), use_container_width=True)
     else:
-        st.button("⏸️ راوەستاندن", disabled=True, use_container_width=True)
+        st.button(t("pause_btn"), disabled=True, use_container_width=True)
 with col3:
-    dubare = st.button("🔄 دووبارە", use_container_width=True)
+    dubare = st.button(t("reset_btn"), use_container_width=True)
 
-hezt = [
-    "بەردەوام بە!", "تو دێ سەرکەڤێ!", "ئەڤ چەندە باشە!",
-    "بەرێ خوە بدە ئارمانجان!",
-    "You've got this! 💪", "Every minute counts! ⏱️",
-    "Stay focused, stay strong! 🔥", "Small steps lead to big results! 🌱",
-    "Knowledge is power — keep going! ⚡", "You're building your future right now! 🏆",
-    "Consistency beats perfection! ✅", "One session at a time! 📖",
-    "Push through — the results are worth it! 🌟",
-    "Champions are made in moments like this! 🥇",
-    "Your future self will thank you! 🚀",
-]
+hezt = t("quotes")
 
 if "dest_pe_bike" in locals() and dest_pe_bike:
     st.session_state.timer_running = True
@@ -428,7 +433,7 @@ def render_circle(mins_val, secs_val, progress, color):
                     {mins_val:02d}:{secs_val:02d}
                 </text>
                 <text x="18" y="22.5" text-anchor="middle"
-                      fill="{TIMER_TEXT}88" font-size="2.8">دەقیقە : چرکە</text>
+                      fill="{TIMER_TEXT}88" font-size="2.8">{t('min_sec_labels')}</text>
             </svg>
         </div>
     </div>
@@ -440,7 +445,7 @@ if st.session_state.timer_running and st.session_state.end_time:
         mv, sv_ = divmod(int(remaining), 60)
         prog = min(1.0, 1.0 - (remaining / st.session_state.total_seconds))
         render_circle(mv, sv_, prog, arc_color)
-        st.success(f"✅ باشە {nav}! تو دێ {deqe} دەقیقان بۆ {ders} تەرخان دکەی.")
+        st.success(t("timer_running", name=nav, minutes=deqe, subject=ders))
         st.info(f"💬 {random.choice(hezt)}")
         time.sleep(1)
         st.rerun()
@@ -462,7 +467,7 @@ if st.session_state.timer_running and st.session_state.end_time:
         st.session_state.last_subject = subject_name
         now_ts  = datetime.now().strftime("%H:%M")
         minutes = st.session_state.total_seconds // 60
-        st.session_state.study_history.append(f"{now_ts} - {subject_name} ({minutes} خ)")
+        st.session_state.study_history.append(f"{now_ts} - {subject_name} ({minutes} {t('minutes_unit')})")
         save_data()
         components.html("""
         <script>
@@ -485,3 +490,5 @@ if st.session_state.timer_running and st.session_state.end_time:
         })();
         </script>
         """, height=0)
+        st.balloons()
+        st.success(t("timer_done"))
