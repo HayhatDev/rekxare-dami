@@ -71,3 +71,25 @@
 | 🔊 صوت تنبيه | Alarm Sound | نغمة ثلاثية عند انتهاء المؤقت. | Three-tone chime when the timer ends. |
 | 🌓 وضع ليلي ثابت | Stable Dark Mode | الوضع الليلي يحفظ ولا يختفي أثناء المؤقت. | Dark mode is saved and persists during countdown. |
 | 💾 حفظ تلقائي | Auto Save | كل البيانات تحفظ تلقائياً في ملف JSON. | All data auto-saves to a JSON file. |
+
+
+## 🌍 تعدد اللغات | Multilingual Support
+
+| الميزة | Feature | الوصف | Description |
+| :--- | :--- | :--- | :--- |
+| 🌍 ثلاث لغات | Three Languages | البادينية، الإنجليزية، العربية | Badini, English, Arabic |
+| 🔄 تبديل فوري | Instant Switch | زر اختيار اللغة في الشريط الجانبي | Language radio buttons in the sidebar |
+| 💾 حفظ اللغة | Language Saved | اللغة المختارة تحفظ تلقائياً | Selected language auto-saves |
+| 📅 أيام مترجمة | Translated Days | أيام الأسبوع تتغير حسب اللغة | Weekdays change with the language |
+| 📝 كل النصوص | All Texts | جميع الأزرار والرسائل والإحصائيات | All buttons, messages, and stats |
+
+## 🎨 تصميم جديد | Redesigned UI
+
+| الميزة | Feature | الوصف | Description |
+| :--- | :--- | :--- | :--- |
+| 🎨 ألوان متدرجة | Gradient Buttons | أزرار ابدأ وإيقاف بألوان متدرجة | Start/Pause buttons with gradient colors |
+| ✨ تأثيرات حركية | Animations | تأثيرات hover و transform على الأزرار | Hover and transform effects on buttons |
+| 📱 متجاوب بالكامل | Fully Responsive | تصميم يتكيف مع الجوال (@media) | Mobile-responsive design |
+| 🖼️ بطاقات وظلال | Cards & Shadows | ظلال أنيقة على البطاقات | Elegant box-shadows on cards |
+| 🔘 أزرار لغة أنيقة | Language Pills | أزرار دائرية لاختيار اللغة | Pill-shaped language selectors |
+| 🌓 وضع ليلي محسن | Enhanced Dark Mode | ألوان داكنة متناسقة مع تأثيرات | Consistent dark colors with effects |
