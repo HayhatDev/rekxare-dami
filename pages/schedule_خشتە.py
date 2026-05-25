@@ -269,7 +269,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         total_tasks = len(schedule)
         done_tasks  = sum(1 for tk in schedule if tk.get("done", False))
         
-        # 🎉 باقة الاحتفال عند إنجاز كل المهام
+                # 🎉 باقة الاحتفال عند إنجاز كل المهام
         if total_tasks > 0 and done_tasks == total_tasks:
             st.markdown(f'<div class="celebrate-banner">🎉 {t("tasks_completed")}! — هەمی ئەرکێن خوە تەواو کرن!</div>', unsafe_allow_html=True)
         
