@@ -299,15 +299,16 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             c_time, c_done, c_task, c_del = st.columns([2, 0.7, 5, 0.7])
 
             with c_time:
-                start_time = st.time_input("",
+                start_time = st.time_input(
+                    entry["start"],
                     value=datetime.strptime(entry["start"], "%H:%M").time(),
-                    key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}",
-                    label_visibility="collapsed")
-                end_time = st.time_input("",
+                    key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}"
+                )
+                end_time = st.time_input(
+                    entry["end"],
                     value=datetime.strptime(entry["end"], "%H:%M").time(),
-                    key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}",
-                    label_visibility="collapsed")
-
+                    key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}"
+                )
             with c_done:
                 st.markdown('<div style="padding-top:6px;">', unsafe_allow_html=True)
                 done = st.checkbox("",
