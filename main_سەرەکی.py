@@ -23,7 +23,8 @@ st.set_page_config(
     layout="centered"
 )
 
-DATA_FILE = "study_data.json"
+DATA_FILE     = "study_data.json"
+SCHEDULE_FILE = "schedule_data.json"
 
 with open("translations.json", "r", encoding="utf-8") as f:
     TRANSLATIONS = json.load(f)
@@ -70,6 +71,7 @@ def load_data():
             st.session_state.daily_seconds       = data.get("daily_seconds", 0)
             st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
             st.session_state.lang                = data.get("lang", "badini")
+            st.session_state.student_name        = data.get("student_name", "")
 
 def save_data():
     data = {
@@ -83,9 +85,23 @@ def save_data():
         "daily_seconds":      st.session_state.daily_seconds,
         "daily_goal_seconds": st.session_state.daily_goal_seconds,
         "lang":               st.session_state.lang,
+        "student_name":       st.session_state.get("student_name", ""),
     }
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+def load_today_schedule():
+    """Load today's tasks from the schedule file, returns list of task dicts."""
+    today_map = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat"}
+    today_key = today_map[datetime.now().weekday()]
+    if os.path.exists(SCHEDULE_FILE):
+        try:
+            with open(SCHEDULE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return today_key, data.get("schedule", {}).get(today_key, [])
+        except Exception:
+            return today_key, []
+    return today_key, []
 
 if "data_loaded" not in st.session_state:
     load_data()
@@ -100,7 +116,7 @@ DEFAULTS = {
     "streak": 0, "last_study_date": "", "daily_seconds": 0,
     "daily_goal_seconds": 7200, "timer_running": False,
     "end_time": None, "total_seconds": 0, "paused": False,
-    "remaining_at_pause": 0,
+    "remaining_at_pause": 0, "student_name": "",
 }
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
@@ -125,7 +141,6 @@ daily_goal_min = st.session_state.daily_goal_seconds // 60
 today_h = st.session_state.daily_seconds // 3600
 today_m = (st.session_state.daily_seconds % 3600) // 60
 
-# FIX: translated "days" unit — replaces hardcoded "رۆژ"
 _days_map = {"badini": "رۆژ", "english": "days", "arabic": "يوم"}
 days_lbl  = _days_map.get(st.session_state.lang, "رۆژ")
 
@@ -150,7 +165,7 @@ if is_dark:
     TIMER_TEXT     = "#ffffff"
     TIMER_CARD_BG  = "rgba(255,255,255,0.04)"
     TIMER_CARD_BDR = "rgba(255,255,255,0.09)"
-    PROG_TRACK     = "rgba(255,255,255,0.08)"
+    PROG_TRACK     = "rgba(255,255,255,0.10)"
     GREET_BG       = "rgba(255,255,255,0.05)"
     GREET_BDR      = "rgba(255,255,255,0.09)"
     DIVIDER        = "rgba(255,255,255,0.08)"
@@ -166,6 +181,10 @@ if is_dark:
     DANGER_BG      = "rgba(239,83,80,0.12)"
     DANGER_BDR     = "rgba(239,83,80,0.25)"
     DANGER_COLOR   = "#ef9a9a"
+    SCHED_BG       = "rgba(255,255,255,0.04)"
+    SCHED_BDR      = "rgba(255,255,255,0.10)"
+    SCHED_DONE_BG  = "rgba(76,175,80,0.10)"
+    SCHED_TODO_BG  = "rgba(255,255,255,0.03)"
 else:
     APP_BG         = "#e8edf5"
     SB_BG          = "#f4f7fb"
@@ -203,6 +222,10 @@ else:
     DANGER_BG      = "#ffebee"
     DANGER_BDR     = "#ef9a9a"
     DANGER_COLOR   = "#c62828"
+    SCHED_BG       = "#ffffff"
+    SCHED_BDR      = "#dde3ed"
+    SCHED_DONE_BG  = "rgba(76,175,80,0.07)"
+    SCHED_TODO_BG  = "#f9fafb"
 
 st.markdown(f"""
 <style>
@@ -380,6 +403,51 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 .greet-sub   {{ font-size: 13px; color: {TEXT_MUTED} !important; margin-top: 4px; }}
 .greet-time  {{ font-size: 11px; color: {TEXT_MUTED} !important; margin-top: 3px; opacity: 0.8; }}
 
+.sched-card {{
+    background: {SCHED_BG}; border: 1px solid {SCHED_BDR};
+    border-radius: 16px; padding: 16px; margin-bottom: 18px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+}}
+.sched-title {{
+    font-size: 12px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; color: {TEXT_MUTED} !important;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+}}
+.sched-item {{
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 10px; margin-bottom: 4px;
+    font-size: 13px;
+}}
+.sched-item-done {{
+    background: {SCHED_DONE_BG};
+    opacity: 0.65;
+}}
+.sched-item-todo {{
+    background: {SCHED_TODO_BG};
+}}
+.sched-time {{
+    font-size: 11px; font-weight: 600;
+    color: {TEXT_MUTED} !important;
+    min-width: 80px; flex-shrink: 0;
+}}
+.sched-task {{ font-weight: 500; flex: 1; }}
+.sched-task-done {{ text-decoration: line-through; color: {TEXT_MUTED} !important; }}
+.sched-check {{ flex-shrink: 0; }}
+.sched-empty {{
+    font-size: 13px; color: {TEXT_MUTED} !important;
+    text-align: center; padding: 12px; font-style: italic;
+}}
+.sched-prog-wrap {{
+    margin-top: 10px;
+    background: {PROG_TRACK};
+    border-radius: 99px;
+    height: 5px;
+    overflow: hidden;
+}}
+.sched-prog-fill {{
+    height: 5px; border-radius: 99px;
+}}
+
 hr {{ border-color: {DIVIDER} !important; margin: 18px 0 !important; }}
 
 @media (max-width: 640px) {{
@@ -392,10 +460,12 @@ hr {{ border-color: {DIVIDER} !important; margin: 18px 0 !important; }}
     .stButton > button {{ font-size: 13px !important; padding: 9px 10px !important; }}
     .streak-card {{ padding: 10px 12px; gap: 10px; }}
     .goal-wrap   {{ padding: 10px 12px; }}
+    .sched-card  {{ padding: 12px; }}
 }}
 </style>
 """, unsafe_allow_html=True)
 
+# ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(f"""
     <div style="padding:22px 4px 8px;">
@@ -491,7 +561,7 @@ with st.sidebar:
     with dc:
         st.markdown(f'<div style="font-size:13px;padding-top:6px;font-weight:500;">{t("dark_mode")}</div>', unsafe_allow_html=True)
     with tc:
-        dark_btn = st.checkbox("", value=is_dark, label_visibility="collapsed")
+        dark_btn = st.checkbox("", value=is_dark, label_visibility="collapsed", key="dark_mode_sb")
     if dark_btn != is_dark:
         st.session_state.dark_mode = dark_btn
         save_data()
@@ -499,7 +569,6 @@ with st.sidebar:
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
 
-    # Two-step clear — prevents accidental data loss
     if not st.session_state.confirm_clear:
         if st.button(t("clear_stats"), use_container_width=True):
             st.session_state.confirm_clear = True
@@ -521,8 +590,19 @@ with st.sidebar:
                 st.session_state.confirm_clear = False
                 st.rerun()
 
-# ── Main page ──────────────────────────────────────────────────────────────────
-nav = st.text_input(t("enter_name"), t("default_name"), label_visibility="collapsed")
+# ── Main page ─────────────────────────────────────────────────────────────────
+
+# Name input — persists in session state and is saved to disk
+_saved_name = st.session_state.get("student_name", "") or t("default_name")
+nav = st.text_input(
+    t("enter_name"),
+    value=_saved_name,
+    label_visibility="collapsed",
+    placeholder=t("default_name")
+)
+if nav != st.session_state.get("student_name", ""):
+    st.session_state.student_name = nav
+    save_data()
 
 kurd_greet, eng_greet = get_greeting()
 h_now = datetime.now().hour
@@ -541,11 +621,70 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# ── Today's Schedule preview ──────────────────────────────────────────────────
+_today_key, today_tasks = load_today_schedule()
+DAYS_SHORT = {
+    "sun": ("Sunday", "☀️"), "mon": ("Monday", "📖"), "tue": ("Tuesday", "📖"),
+    "wed": ("Wednesday", "📖"), "thu": ("Thursday", "📖"),
+    "fri": ("Friday", "🕌"), "sat": ("Saturday", "🎉"),
+}
+_day_eng, _day_emoji = DAYS_SHORT.get(_today_key, ("Today", "📅"))
+
+today_tasks_with_task = [t_item for t_item in today_tasks if t_item.get("task", "").strip()]
+if today_tasks_with_task:
+    done_count  = sum(1 for t_item in today_tasks_with_task if t_item.get("done", False))
+    total_count = len(today_tasks_with_task)
+    pct_sched   = int((done_count / total_count) * 100) if total_count else 0
+    prog_color  = "#2196F3" if done_count == total_count else "#4CAF50"
+
+    sched_title_map = {
+        "badini": f"📅 بەرنامەی ئەمرۆ — {_day_emoji} {_day_eng}",
+        "english": f"📅 Today's Schedule — {_day_emoji} {_day_eng}",
+        "arabic": f"📅 جدول اليوم — {_day_emoji} {_day_eng}",
+    }
+    sched_title = sched_title_map.get(st.session_state.lang, f"📅 Today — {_day_eng}")
+
+    rows_html = []
+    for t_item in today_tasks_with_task[:6]:
+        done_cls  = "sched-item-done" if t_item.get("done") else "sched-item-todo"
+        task_cls  = "sched-task-done" if t_item.get("done") else "sched-task"
+        check_ico = "✅" if t_item.get("done") else "⬜"
+        time_label = f"{t_item.get('start', '')} – {t_item.get('end', '')}"
+        task_name = t_item.get("task", "")
+        rows_html.append(f"""
+        <div class="sched-item {done_cls}">
+            <span class="sched-time">{time_label}</span>
+            <span class="{task_cls}">{task_name}</span>
+            <span class="sched-check">{check_ico}</span>
+        </div>
+        """)
+
+    if len(today_tasks_with_task) > 6:
+        extra = len(today_tasks_with_task) - 6
+        extra_lbl = f"+{extra} more" if st.session_state.lang == "english" else f"+{extra}"
+        rows_html.append(f'<div style="font-size:11px;color:{TEXT_MUTED};padding:4px 10px;">{extra_lbl}</div>')
+
+    rows_joined = "".join(rows_html)
+
+    st.markdown(f"""
+    <div class="sched-card">
+        <div class="sched-title">{sched_title}
+            <span style="margin-left:auto;font-size:11px;color:{TEXT_MUTED};font-weight:500;letter-spacing:0;">{done_count}/{total_count} — {pct_sched}%</span>
+        </div>
+        {rows_joined}
+        <div class="sched-prog-wrap">
+            <div class="sched-prog-fill" style="width:{pct_sched}%;background:{prog_color};"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
 st.divider()
 
+# ── Timer section ─────────────────────────────────────────────────────────────
 subjects_list = t("subjects")
-if isinstance(subjects_list, str):
-    subjects_list = TRANSLATIONS[st.session_state.lang]["subjects"]
+if not isinstance(subjects_list, list):
+    subjects_list = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("subjects", [])
+
 ders = st.selectbox(t("select_subject"), subjects_list)
 arc_color = subject_color(ders)
 
@@ -574,6 +713,8 @@ with col3:
     dubare = st.button(t("reset_btn"), use_container_width=True, key="reset_btn")
 
 hezt = t("quotes")
+if not isinstance(hezt, list):
+    hezt = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("quotes", ["Keep going!"])
 
 if "dest_pe_bike" in locals() and dest_pe_bike:
     st.session_state.timer_running = True
@@ -632,7 +773,7 @@ if st.session_state.timer_running and st.session_state.end_time:
     remaining = st.session_state.end_time - time.time()
     if remaining > 0:
         mv, sv_ = divmod(int(remaining), 60)
-        prog = min(1.0, 1.0 - (remaining / st.session_state.total_seconds))
+        prog = min(1.0, 1.0 - (remaining / max(1, st.session_state.total_seconds)))
         render_circle(mv, sv_, prog, arc_color)
         st.success(t("timer_running", name=nav, minutes=deqe, subject=ders))
         st.info(f"💬 {random.choice(hezt)}")
@@ -686,7 +827,7 @@ if st.session_state.timer_running and st.session_state.end_time:
 
 elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
     mv, sv_ = divmod(int(st.session_state.remaining_at_pause), 60)
-    prog = min(1.0, 1.0 - (st.session_state.remaining_at_pause / st.session_state.total_seconds))
+    prog = min(1.0, 1.0 - (st.session_state.remaining_at_pause / max(1, st.session_state.total_seconds)))
     render_circle(mv, sv_, prog, "#FFA500")
     pause_lbl = {"badini": "⏸️ کاتژمێر وەستاوە", "english": "⏸️ Timer paused", "arabic": "⏸️ الموقت متوقف"}
     st.markdown(f'<div class="paused-banner">{pause_lbl.get(st.session_state.lang, "⏸️ Timer paused")}</div>',
