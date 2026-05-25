@@ -9,6 +9,10 @@ with open("translations.json", "r", encoding="utf-8") as f:
 if "lang" not in st.session_state:
     st.session_state.lang = "badini"
 
+if st.session_state.get("switch_to_main", False):
+    st.session_state.switch_to_main = False
+    st.switch_page("../main_سەرەکی")
+    
 def t(key, **kwargs):
     text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
     if kwargs:
@@ -328,8 +332,9 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                         "subject": entry["task"],
                         "minutes": diff_minutes
                     }
-                    st.switch_page("../main_سەرەکی")
-
+                    st.session_state.task_from_schedule = { ... }
+                    st.session_state.switch_to_main = True
+                    st.rerun()
             if entry["done"] != done:
                 entry["done"] = done
                 save_schedule()
