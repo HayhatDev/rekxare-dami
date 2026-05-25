@@ -9,10 +9,6 @@ with open("translations.json", "r", encoding="utf-8") as f:
 if "lang" not in st.session_state:
     st.session_state.lang = "badini"
 
-if st.session_state.get("switch_to_main", False):
-    st.session_state.switch_to_main = False
-    st.switch_page("../main_سەرەکی")
-    
 def t(key, **kwargs):
     text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
     if kwargs:
@@ -176,15 +172,6 @@ section[data-testid="stMain"],
 }}
 .btn-del button:hover {{ background: rgba(239,83,80,0.10) !important; border-color: #ef5350 !important; }}
 
-.btn-play button {{
-    background: transparent !important;
-    color: #4CAF50 !important;
-    border-color: #4CAF50 !important;
-    font-size: 14px !important;
-    padding: 6px 8px !important;
-}}
-.btn-play button:hover {{ background: rgba(76,175,80,0.10) !important; }}
-
 .today-badge {{
     display: inline-flex; align-items: center; gap: 5px;
     background: {TODAY_BG}; color: {TODAY_COLOR} !important;
@@ -269,15 +256,14 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             </div>
             """, unsafe_allow_html=True)
 
-        h1, h2, h3, h4, h5 = st.columns([2, 0.7, 4, 0.7, 0.8])
+        h1, h2, h3, h4 = st.columns([2, 0.7, 5, 0.7])
         with h1: st.caption("🕐 " + ("کات" if st.session_state.lang == "badini" else "Time" if st.session_state.lang == "english" else "الوقت"))
         with h2: st.caption("✅")
         with h3: st.caption("📝 " + ("چالاکی" if st.session_state.lang == "badini" else "Task" if st.session_state.lang == "english" else "المهمة"))
-        with h4: st.caption("")
-        with h5: st.caption("▶️")
+        with h4: st.caption("🗑️")
 
         for i, entry in enumerate(schedule):
-            c_time, c_done, c_task, c_del, c_play = st.columns([2, 0.7, 4, 0.7, 0.8])
+            c_time, c_done, c_task, c_del = st.columns([2, 0.7, 5, 0.7])
 
             with c_time:
                 start_time = st.time_input("",
@@ -312,29 +298,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     help="Delete task")
                 st.markdown('</div>', unsafe_allow_html=True)
 
-            with c_play:
-                st.markdown('<div class="btn-play" style="padding-top:4px;">', unsafe_allow_html=True)
-                play_btn = st.button("▶️",
-                    key=f"{day_key}_play_{i}_{st.session_state[f'{day_key}_reset']}",
-                    help="Start timer with this task")
-                st.markdown('</div>', unsafe_allow_html=True)
-                if play_btn:
-                    try:
-                        start_dt = datetime.strptime(entry["start"], "%H:%M")
-                        end_dt = datetime.strptime(entry["end"], "%H:%M")
-                        diff_minutes = int((end_dt - start_dt).total_seconds() / 60)
-                        if diff_minutes <= 0:
-                            diff_minutes = 25
-                    except:
-                        diff_minutes = 25
-                    
-                    st.session_state.task_from_schedule = {
-                        "subject": entry["task"],
-                        "minutes": diff_minutes
-                    }
-                    st.session_state.task_from_schedule = { ... }
-                    st.session_state.switch_to_main = True
-                    st.rerun()
             if entry["done"] != done:
                 entry["done"] = done
                 save_schedule()
