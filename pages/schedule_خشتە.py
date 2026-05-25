@@ -51,6 +51,22 @@ def get_day_name(day_key):
                 return f"📖 {eng_name}"
     return day_key
 
+def get_time_label():
+    if st.session_state.lang == "badini":
+        return "دەستپێک", "دووماهی"
+    elif st.session_state.lang == "arabic":
+        return "بداية", "نهاية"
+    else:
+        return "Start", "End"
+
+def get_column_labels():
+    if st.session_state.lang == "badini":
+        return "کات", "چالاکی"
+    elif st.session_state.lang == "arabic":
+        return "الوقت", "المهمة"
+    else:
+        return "Time", "Task"
+
 SCHEDULE_FILE = "schedule_data.json"
 
 def load_schedule():
@@ -164,7 +180,6 @@ section[data-testid="stMain"],
 .stButton > button:hover:not(:disabled)  {{ opacity: 0.78 !important; transform: translateY(-1px) !important; }}
 .stButton > button:disabled              {{ opacity: 0.30 !important; }}
 
-/* Delete button - 4th column */
 [data-testid="column"]:nth-child(4) .stButton > button {{
     background: transparent !important;
     color: #ef5350 !important;
@@ -177,7 +192,6 @@ section[data-testid="stMain"],
     border-color: #ef5350 !important;
 }}
 
-/* Add task button */
 .add-task-anchor .stButton > button {{
     background: linear-gradient(135deg,#43a047,#66bb6a) !important;
     color: #fff !important;
@@ -229,6 +243,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+time_start_label, time_end_label = get_time_label()
+col_time_label, col_task_label = get_column_labels()
+
 def get_tab_label(day_key):
     day_name = get_day_name(day_key)
     tasks    = st.session_state.schedule.get(day_key, [])
@@ -236,7 +253,7 @@ def get_tab_label(day_key):
         return day_name
     done  = sum(1 for tk in tasks if tk.get("done", False))
     total = len(tasks)
-    badge = " ✅" if done == total else f" {done}/{total}"
+    badge = " ✅" if done == total and total > 0 else f" {done}/{total}"
     today = " 🔵" if day_key == today_key else ""
     return f"{day_name}{today}{badge}"
 
@@ -257,7 +274,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         done_tasks  = sum(1 for tk in schedule if tk.get("done", False))
         
         if total_tasks > 0:
-            pct       = int((done_tasks / total_tasks) * 100)
+            pct = int((done_tasks / total_tasks) * 100)
             bar_color = "#2196F3" if pct == 100 else "#4CAF50"
             st.markdown(f"""
             <div class="prog-wrap">
@@ -272,9 +289,9 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             """, unsafe_allow_html=True)
 
         h1, h2, h3, h4 = st.columns([2, 0.7, 5, 0.7])
-        with h1: st.caption("🕐 " + ("کات" if st.session_state.lang == "badini" else "Time" if st.session_state.lang == "english" else "الوقت"))
+        with h1: st.caption("🕐 " + col_time_label)
         with h2: st.caption("✅")
-        with h3: st.caption("📝 " + ("چالاکی" if st.session_state.lang == "badini" else "Task" if st.session_state.lang == "english" else "المهمة"))
+        with h3: st.caption("📝 " + col_task_label)
         with h4: st.caption("")
 
         changed = False
@@ -282,7 +299,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             c_time, c_done, c_task, c_del = st.columns([2, 0.7, 5, 0.7])
 
             with c_time:
-                # استخدام label ثابت مع إظهار الوقت في المربع
                 try:
                     start_val = datetime.strptime(entry["start"], "%H:%M").time()
                 except:
@@ -293,12 +309,12 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     end_val = datetime.strptime("08:00", "%H:%M").time()
                 
                 start_time = st.time_input(
-                    "دەستپێک",
+                    time_start_label,
                     value=start_val,
                     key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}"
                 )
                 end_time = st.time_input(
-                    "دووماهی",
+                    time_end_label,
                     value=end_val,
                     key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}"
                 )
