@@ -87,7 +87,7 @@ DEFAULTS = {
     "streak": 0, "last_study_date": "", "daily_seconds": 0,
     "daily_goal_seconds": 7200, "timer_running": False,
     "end_time": None, "total_seconds": 0, "paused": False,
-    "remaining_at_pause": 0, "schedule_triggered": False,
+    "remaining_at_pause": 0,
 }
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
@@ -472,39 +472,11 @@ st.divider()
 subjects_list = t("subjects")
 if isinstance(subjects_list, str):
     subjects_list = TRANSLATIONS[st.session_state.lang]["subjects"]
-
-# --- استقبال مهمة من الجدول الأسبوعي ---
-if "task_from_schedule" in st.session_state and st.session_state.task_from_schedule:
-    task_data = st.session_state.task_from_schedule
-    st.success(f"📅 {t('welcome')}: **{task_data['subject']}** ({task_data['minutes']} {t('minutes_unit')})")
-    schedule_minutes = task_data["minutes"]
-    schedule_subject = task_data["subject"]
-    # محاولة إيجاد المادة في قائمة المواد
-    try:
-        ders_index = subjects_list.index(schedule_subject)
-    except ValueError:
-        ders_index = 0
-    ders = subjects_list[ders_index]
-    deqe = schedule_minutes
-    total_seconds = deqe * 60
-    # بدء المؤقت تلقائياً
-    st.session_state.timer_running = True
-    st.session_state.paused = False
-    st.session_state.end_time = time.time() + (schedule_minutes * 60)
-    st.session_state.total_seconds = schedule_minutes * 60
-    st.session_state.schedule_triggered = True
-    # مسح البيانات المؤقتة
-    st.session_state.task_from_schedule = None
-    st.rerun()
-
-if not st.session_state.get("schedule_triggered", False):
-    ders = st.selectbox(t("select_subject"), subjects_list)
-    deqe = st.slider(t("minutes_question"), 1, 240, 25)
-    total_seconds = deqe * 60
-else:
-    st.session_state.schedule_triggered = False
-
+ders = st.selectbox(t("select_subject"), subjects_list)
 arc_color = subject_color(ders)
+
+deqe = st.slider(t("minutes_question"), 1, 240, 25)
+total_seconds = deqe * 60
 
 col1, col2, col3 = st.columns(3)
 
