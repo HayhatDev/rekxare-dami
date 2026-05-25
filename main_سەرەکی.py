@@ -494,28 +494,28 @@ col1, col2, col3 = st.columns(3)
 with col1:
     if not st.session_state.timer_running and not st.session_state.paused:
         st.markdown('<div class="btn-start">', unsafe_allow_html=True)
-        dest_pe_bike = st.button(t("start_btn"), use_container_width=True, key="start")
+        dest_pe_bike = st.button(t("start_btn"), use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
     elif st.session_state.paused:
         st.markdown('<div class="btn-resume">', unsafe_allow_html=True)
-        resume = st.button(t("resume_btn"), use_container_width=True, key="resume")
+        resume = st.button(t("resume_btn"), use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
     else:
-        st.button(t("start_btn"), disabled=True, use_container_width=True)
-
+        st.button(t("start_btn"), disabled=True, use_container_width=True, key="start_disabled")
+        
 with col2:
     if st.session_state.timer_running:
         st.markdown('<div class="btn-pause">', unsafe_allow_html=True)
-        stop_timer = st.button(t("pause_btn"), use_container_width=True, key="pause")
+        stop_timer = st.button(t("pause_btn"), use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
     else:
-        st.button(t("pause_btn"), disabled=True, use_container_width=True)
+        st.button(t("pause_btn"), disabled=True, use_container_width=True, key="pause_disabled")
 
 with col3:
     st.markdown('<div class="btn-reset">', unsafe_allow_html=True)
-    dubare = st.button(t("reset_btn"), use_container_width=True, key="reset")
+    dubare = st.button(t("reset_btn"), use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
-
+    
 hezt = t("quotes")
 
 if "dest_pe_bike" in locals() and dest_pe_bike:
