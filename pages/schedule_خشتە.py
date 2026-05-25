@@ -144,13 +144,13 @@ section[data-testid="stMain"],
 
 .stApp *, [data-testid="stSidebar"] * {{ color: {TEXT_PRIMARY} !important; }}
 
-.stTextInput input,
-.stTimeInput input          {{
+.stTextInput input          {{
     background-color: {INPUT_BG} !important;
     border: 1px solid {CARD_BORDER} !important;
     border-radius: 8px !important;
     font-size: 13px !important;
     padding: 6px 8px !important;
+    margin-bottom: 4px !important;
 }}
 .stTextInput input:focus    {{ border-color: #4CAF50 !important; }}
 
@@ -228,7 +228,6 @@ hr {{ border-color: {DIVIDER} !important; margin: 16px 0 !important; }}
 }}
 
 @media (max-width: 640px) {{
-    .stTimeInput input {{ font-size: 12px !important; }}
     .stTextInput input {{ font-size: 12px !important; }}
 }}
 </style>
@@ -259,7 +258,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         schedule = st.session_state.schedule[day_key]
 
         if not schedule:
-            schedule.append({"start": "07:00", "end": "08:00", "task": "", "done": False})
+            schedule.append({"start": "08:00", "end": "09:00", "task": "", "done": False})
 
         if day_key == today_key:
             st.markdown(f'<div class="today-badge">🔵 {t("today_badge")}</div>', unsafe_allow_html=True)
@@ -272,7 +271,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         if total_tasks > 0 and done_tasks == total_tasks:
             st.markdown(f'<div class="celebrate-banner">🎉 {t("tasks_completed")}! — هەمی ئەرکێن خوە تەواو کرن!</div>', unsafe_allow_html=True)
             
-            # The Actual Surprise
+            # Trigger balloons only once when fully completed
             if not st.session_state.get(celeb_state_key, False):
                 st.balloons()
                 st.session_state[celeb_state_key] = True
@@ -295,7 +294,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             </div>
             """, unsafe_allow_html=True)
 
-        h1, h2, h3, h4 = st.columns([2, 0.7, 5, 0.7])
+        h1, h2, h3, h4 = st.columns([2.5, 0.8, 5.5, 0.8])
         with h1: st.caption("🕐 " + ("کات" if st.session_state.lang == "badini" else "Time" if st.session_state.lang == "english" else "الوقت"))
         with h2: st.caption("✅")
         with h3: st.caption("📝 " + ("چالاکی" if st.session_state.lang == "badini" else "Task" if st.session_state.lang == "english" else "المهمة"))
@@ -303,22 +302,23 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
 
         changed = False
         for i, entry in enumerate(schedule):
-            # Adjusted ratio to give task text slightly more room
             c_time, c_done, c_task, c_del = st.columns([2.5, 0.8, 5.5, 0.8])
 
             with c_time:
-                start_time = st.time_input(
-                    entry["start"],
-                    value=datetime.strptime(entry["start"], "%H:%M").time(),
+                # Reverted back to text input to fix browser clock UI glitches
+                start_time = st.text_input("",
+                    value=entry.get("start", ""),
                     key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}",
-                    label_visibility="collapsed"
+                    label_visibility="collapsed",
+                    placeholder="08:00"
                 )
-                end_time = st.time_input(
-                    entry["end"],
-                    value=datetime.strptime(entry["end"], "%H:%M").time(),
+                end_time = st.text_input("",
+                    value=entry.get("end", ""),
                     key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}",
-                    label_visibility="collapsed"
+                    label_visibility="collapsed",
+                    placeholder="09:00"
                 )
+            
             with c_done:
                 st.markdown('<div style="padding-top:18px;">', unsafe_allow_html=True)
                 done = st.checkbox("",
@@ -330,7 +330,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             with c_task:
                 st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
                 task_text = st.text_input("",
-                    value=entry["task"],
+                    value=entry.get("task", ""),
                     key=f"{day_key}_task_{i}_{st.session_state[f'{day_key}_reset']}",
                     disabled=done,
                     label_visibility="collapsed",
@@ -343,22 +343,21 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     key=f"{day_key}_del_{i}_{st.session_state[f'{day_key}_reset']}")
                 st.markdown('</div>', unsafe_allow_html=True)
 
-            if entry["done"] != done:
+            # Check for changes
+            if entry.get("done", False) != done:
                 entry["done"] = done
                 changed = True
 
-            if entry["task"] != task_text:
+            if entry.get("task", "") != task_text:
                 entry["task"] = task_text
                 changed = True
 
-            new_start = start_time.strftime("%H:%M")
-            if entry["start"] != new_start:
-                entry["start"] = new_start
+            if entry.get("start", "") != start_time:
+                entry["start"] = start_time
                 changed = True
 
-            new_end = end_time.strftime("%H:%M")
-            if entry["end"] != new_end:
-                entry["end"] = new_end
+            if entry.get("end", "") != end_time:
+                entry["end"] = end_time
                 changed = True
 
             if delete_btn:
@@ -373,7 +372,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
 
         st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
         
-        # New Action Buttons Layout
         btn_col1, btn_col2, btn_col3 = st.columns([2, 1, 1])
         
         with btn_col1:
@@ -387,7 +385,14 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             
         with btn_col2:
             if st.button("↕️ Sort", key=f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}", use_container_width=True):
-                schedule.sort(key=lambda x: datetime.strptime(x["start"], "%H:%M"))
+                # Custom sort logic to handle manual text entries safely
+                def parse_time_for_sort(t_str):
+                    try:
+                        return datetime.strptime(t_str.strip(), "%H:%M")
+                    except Exception:
+                        return datetime.max # Puts invalid formats at the bottom
+                
+                schedule.sort(key=lambda x: parse_time_for_sort(x.get("start", "")))
                 st.session_state.schedule[day_key] = schedule
                 save_schedule()
                 st.rerun()
