@@ -374,4 +374,3 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             save_schedule()
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
-    
