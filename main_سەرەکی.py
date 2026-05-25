@@ -6,6 +6,17 @@ import json
 import os
 import streamlit.components.v1 as components
 
+# --- PWA Manifest ---
+st.markdown("""
+<link rel="manifest" href="/manifest.json">
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js');
+    }
+</script>
+""", unsafe_allow_html=True)
+
+
 st.set_page_config(
     page_title="Rekxare Dami",
     page_icon="📚",
