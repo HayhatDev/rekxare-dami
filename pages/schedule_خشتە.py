@@ -73,14 +73,6 @@ def get_column_labels():
     else:
         return "Time", "Task"
 
-def get_duration_label():
-    if st.session_state.lang == "badini":
-        return "ماوە"
-    elif st.session_state.lang == "arabic":
-        return "المدة"
-    else:
-        return "Duration"
-
 def format_duration(start_str, end_str):
     try:
         s = datetime.strptime(start_str, "%H:%M")
@@ -141,7 +133,6 @@ if is_dark:
     APP_BG        = "#1a1a2e"
     SB_BG         = "#16213e"
     INPUT_BG      = "#252542"
-    CARD_BG       = "rgba(255,255,255,0.06)"
     CARD_BORDER   = "rgba(255,255,255,0.09)"
     TEXT_PRIMARY  = "#e2e2e2"
     TEXT_MUTED    = "#8a8fa8"
@@ -152,7 +143,6 @@ if is_dark:
     DIVIDER       = "rgba(255,255,255,0.08)"
     TODAY_BG      = "rgba(76,175,80,0.15)"
     TODAY_COLOR   = "#81c784"
-    DONE_BG       = "rgba(76,175,80,0.08)"
     OVERVIEW_BG   = "rgba(255,255,255,0.04)"
     OVERVIEW_BDR  = "rgba(255,255,255,0.09)"
     DURATION_COLOR= "#8a8fa8"
@@ -160,7 +150,6 @@ else:
     APP_BG        = "#e8edf5"
     SB_BG         = "#f4f7fb"
     INPUT_BG      = "#ffffff"
-    CARD_BG       = "#ffffff"
     CARD_BORDER   = "#dde3ed"
     TEXT_PRIMARY  = "#1a1a2e"
     TEXT_MUTED    = "#6b7280"
@@ -171,7 +160,6 @@ else:
     DIVIDER       = "#dde3ed"
     TODAY_BG      = "rgba(76,175,80,0.10)"
     TODAY_COLOR   = "#2e7d32"
-    DONE_BG       = "rgba(76,175,80,0.06)"
     OVERVIEW_BG   = "#ffffff"
     OVERVIEW_BDR  = "#dde3ed"
     DURATION_COLOR= "#9ca3af"
@@ -266,13 +254,11 @@ section[data-testid="stMain"],
     border-radius: 99px;
     height: 8px;
     overflow: hidden;
-    position: relative;
 }}
 .prog-fill      {{
     height: 8px;
     border-radius: 99px;
     transition: width 0.4s ease;
-    min-width: 0;
 }}
 
 .all-done-banner {{
@@ -297,60 +283,6 @@ section[data-testid="stMain"],
     margin-top: 2px;
 }}
 
-.week-overview {{
-    background: {OVERVIEW_BG};
-    border: 1px solid {OVERVIEW_BDR};
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 20px;
-}}
-.week-overview-title {{
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    color: {TEXT_MUTED} !important;
-    margin-bottom: 12px;
-}}
-.week-grid {{
-    display: flex;
-    gap: 6px;
-    justify-content: space-between;
-}}
-.week-day {{
-    flex: 1;
-    text-align: center;
-}}
-.week-day-label {{
-    font-size: 10px;
-    font-weight: 700;
-    color: {TEXT_MUTED} !important;
-    margin-bottom: 5px;
-    display: block;
-}}
-.week-day-mini-track {{
-    background: {PROG_TRACK};
-    border-radius: 99px;
-    height: 5px;
-    overflow: hidden;
-    margin-bottom: 4px;
-}}
-.week-day-mini-fill {{
-    height: 5px;
-    border-radius: 99px;
-}}
-.week-day-count {{
-    font-size: 10px;
-    color: {TEXT_MUTED} !important;
-}}
-.week-today-dot {{
-    display: inline-block;
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: #4CAF50;
-    margin-bottom: 3px;
-}}
-
 hr {{ border-color: {DIVIDER} !important; margin: 16px 0 !important; }}
 
 [data-testid="stTabs"] [data-baseweb="tab"] {{
@@ -364,71 +296,77 @@ hr {{ border-color: {DIVIDER} !important; margin: 16px 0 !important; }}
     border-bottom-color: #4CAF50 !important;
 }}
 
+/* hide default st.progress label text */
+[data-testid="stProgressBar"] p {{ display: none !important; }}
+
 @media (max-width: 640px) {{
     .stTimeInput input {{ font-size: 12px !important; }}
     .stTextInput input {{ font-size: 12px !important; }}
-    .week-grid {{ gap: 3px; }}
 }}
 </style>
 """, unsafe_allow_html=True)
 
-# ── Page header ───────────────────────────────────────────────────────────────
+# ── Page header ────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div style="padding:8px 0 16px;">
     <div style="font-size:26px;font-weight:900;letter-spacing:-0.5px;">📅 {t("schedule_title")}</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Dark mode toggle (top right) ──────────────────────────────────────────────
+# ── Dark mode toggle ───────────────────────────────────────────────────────────
 dm_col1, dm_col2 = st.columns([8, 1])
 with dm_col2:
-    dark_toggle = st.checkbox("🌙", value=is_dark,
-                               key="dm_toggle_sched",
-                               help="Dark mode" if st.session_state.lang == "english" else "")
+    dark_toggle = st.checkbox(
+        "🌙", value=is_dark, key="dm_toggle_sched",
+        help="Dark mode" if st.session_state.lang == "english" else ""
+    )
     if dark_toggle != is_dark:
         st.session_state.dark_mode = dark_toggle
         save_schedule()
         st.rerun()
 
-# ── Week overview (native Streamlit — avoids HTML rendering issues) ───────────
+# ── Week overview (native Streamlit components — reliable across all versions) ─
 st.markdown(f"""
-<div style="
-    background:{OVERVIEW_BG};
-    border:1px solid {OVERVIEW_BDR};
-    border-radius:16px;
-    padding:14px 16px 10px;
-    margin-bottom:20px;
-">
-<div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:{TEXT_MUTED};margin-bottom:10px;">
+<div style="background:{OVERVIEW_BG};border:1px solid {OVERVIEW_BDR};
+            border-radius:16px;padding:14px 16px 6px;margin-bottom:20px;">
+  <div style="font-size:11px;font-weight:700;letter-spacing:0.8px;
+              text-transform:uppercase;color:{TEXT_MUTED};margin-bottom:10px;">
     📊 Weekly Progress
-</div>
+  </div>
 </div>
 """, unsafe_allow_html=True)
 
 week_cols = st.columns(7)
 for col, (dk, _, eng) in zip(week_cols, DAYS):
-    tasks  = st.session_state.schedule.get(dk, [])
-    total  = len(tasks)
-    done   = sum(1 for tk in tasks if tk.get("done", False))
-    pct    = done / total if total > 0 else 0
+    tasks    = st.session_state.schedule.get(dk, [])
+    total    = len(tasks)
+    done     = sum(1 for tk in tasks if tk.get("done", False))
+    pct      = done / total if total > 0 else 0.0
     is_today = dk == today_key
-    short  = eng[:3].upper()
-    dot    = "🟢" if is_today else ""
-    count  = f"{done}/{total}" if total else "—"
+    short    = eng[:3].upper()
+    dot      = "🟢" if is_today else ""
+    count    = f"{done}/{total}" if total else "—"
     with col:
         if dot:
-            st.markdown(f"<div style='text-align:center;font-size:8px;margin-bottom:1px;'>{dot}</div>",
-                        unsafe_allow_html=True)
-        st.markdown(f"<div style='text-align:center;font-size:10px;font-weight:700;color:{TEXT_MUTED};'>{short}</div>",
-                    unsafe_allow_html=True)
+            st.markdown(
+                f"<div style='text-align:center;font-size:9px;margin-bottom:1px;'>{dot}</div>",
+                unsafe_allow_html=True
+            )
+        st.markdown(
+            f"<div style='text-align:center;font-size:10px;font-weight:700;"
+            f"color:{TEXT_MUTED};margin-bottom:2px;'>{short}</div>",
+            unsafe_allow_html=True
+        )
         st.progress(pct)
-        st.markdown(f"<div style='text-align:center;font-size:10px;color:{TEXT_MUTED};margin-top:-8px;'>{count}</div>",
-                    unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='text-align:center;font-size:10px;color:{TEXT_MUTED};"
+            f"margin-top:-6px;'>{count}</div>",
+            unsafe_allow_html=True
+        )
 
-# ── Labels ────────────────────────────────────────────────────────────────────
+# ── Labels ─────────────────────────────────────────────────────────────────────
 time_start_label, time_end_label = get_time_label()
-col_time_label, col_task_label = get_column_labels()
-dur_label = get_duration_label()
+col_time_label, col_task_label   = get_column_labels()
 
 def get_tab_label(day_key):
     day_name = get_day_name(day_key)
@@ -452,21 +390,51 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             schedule.append({"start": "07:00", "end": "08:00", "task": "", "done": False})
 
         if day_key == today_key:
-            st.markdown(f'<div class="today-badge">🔵 {t("today_badge")}</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="today-badge">🔵 {t("today_badge")}</div>',
+                unsafe_allow_html=True
+            )
 
-        # ── Progress bar placeholder — filled AFTER widget processing ─────────
-        # This is the fix: st.empty() lets us write the bar AFTER we know the
-        # real current-run done state, not the stale pre-widget-render state.
-        prog_placeholder = st.empty()
+        # ── Progress bar ───────────────────────────────────────────────────────
+        # Calculated from session state — always accurate because every checkbox
+        # interaction triggers an automatic Streamlit rerun, so by the time this
+        # line executes the session state already has the latest done values.
+        total_tasks = len(schedule)
+        done_tasks  = sum(1 for tk in schedule if tk.get("done", False))
 
+        if total_tasks > 0:
+            pct       = int((done_tasks / total_tasks) * 100)
+            all_done  = done_tasks == total_tasks
+            bar_color = "#2196F3" if all_done else "#4CAF50"
+
+            if all_done:
+                st.markdown(
+                    f'<div class="all-done-banner">✅ {done_tasks}/{total_tasks} — 100%&nbsp;&nbsp;🎉</div>',
+                    unsafe_allow_html=True
+                )
+            else:
+                st.markdown(f"""
+                <div class="prog-wrap">
+                    <div class="prog-header">
+                        <span class="prog-label">{t("tasks_completed")}</span>
+                        <span class="prog-pct">{done_tasks}/{total_tasks} — {pct}%</span>
+                    </div>
+                    <div class="prog-track">
+                        <div class="prog-fill" style="width:{pct}%;background:{bar_color};"></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        # ── Column headers ─────────────────────────────────────────────────────
         h1, h2, h3, h4 = st.columns([2.8, 0.7, 4.8, 0.7])
         with h1: st.caption("🕐 " + col_time_label)
         with h2: st.caption("✅")
         with h3: st.caption("📝 " + col_task_label)
         with h4: st.caption("")
 
-        changed = False
-        current_done_states = []
+        # ── Task rows ──────────────────────────────────────────────────────────
+        changed      = False
+        done_changed = False   # track if a checkbox flipped
 
         for i, entry in enumerate(schedule):
             c_time, c_done, c_task, c_del = st.columns([2.8, 0.7, 4.8, 0.7])
@@ -498,7 +466,10 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     end_time.strftime("%H:%M")
                 )
                 if dur:
-                    st.markdown(f'<span class="duration-badge">⏱ {dur}</span>', unsafe_allow_html=True)
+                    st.markdown(
+                        f'<span class="duration-badge">⏱ {dur}</span>',
+                        unsafe_allow_html=True
+                    )
 
             with c_done:
                 st.markdown('<div style="padding-top:6px;">', unsafe_allow_html=True)
@@ -527,12 +498,11 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     key=f"{day_key}_del_{i}_{st.session_state[f'{day_key}_reset']}"
                 )
 
-            # Track the current-run done state for progress bar
-            current_done_states.append(done)
-
-            if entry["done"] != done:
+            # Update session state from widget values
+            if entry.get("done", False) != done:
                 entry["done"] = done
-                changed = True
+                changed      = True
+                done_changed = True     # checkbox flipped → needs rerun for progress bar
 
             if entry["task"] != task_text:
                 entry["task"] = task_text
@@ -556,41 +526,16 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.rerun()
 
         if changed:
+            st.session_state.schedule[day_key] = schedule
             save_schedule()
-
-        # ── NOW fill the progress bar with CURRENT-RUN data ──────────────────
-        total_tasks = len(schedule)
-        # Use current_done_states (captured from widgets this run) for accuracy
-        done_tasks = sum(1 for d in current_done_states if d)
-
-        with prog_placeholder:
-            if total_tasks > 0:
-                pct = int((done_tasks / total_tasks) * 100)
-                all_done = done_tasks == total_tasks
-                bar_color = "#2196F3" if all_done else "#4CAF50"
-
-                if all_done:
-                    st.markdown(f"""
-                    <div class="all-done-banner">
-                        ✅ {done_tasks}/{total_tasks} — 100%&nbsp;&nbsp;🎉
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"""
-                    <div class="prog-wrap">
-                        <div class="prog-header">
-                            <span class="prog-label">{t("tasks_completed")}</span>
-                            <span class="prog-pct">{done_tasks}/{total_tasks} — {pct}%</span>
-                        </div>
-                        <div class="prog-track">
-                            <div class="prog-fill" style="width:{pct}%;background:{bar_color};"></div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+            # Only force a rerun when a checkbox flipped, so the progress bar
+            # at the top of the tab updates immediately and reliably.
+            if done_changed:
+                st.rerun()
 
         st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
 
-        # ── Action buttons row ────────────────────────────────────────────────
+        # ── Action buttons ─────────────────────────────────────────────────────
         btn_col1, btn_col2 = st.columns(2)
 
         with btn_col1:
@@ -607,9 +552,17 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             st.markdown('</div>', unsafe_allow_html=True)
 
         with btn_col2:
-            has_incomplete = any(not e.get("done", False) for e in schedule if e.get("task", "").strip())
+            has_incomplete = any(
+                not e.get("done", False)
+                for e in schedule
+                if e.get("task", "").strip()
+            )
+            mark_lbl = {
+                "badini": "✅ هەموو تەواو",
+                "english": "✅ Mark All Done",
+                "arabic": "✅ إتمام الكل"
+            }
             st.markdown('<div class="mark-all-anchor">', unsafe_allow_html=True)
-            mark_lbl = {"badini": "✅ هەموو تەواو", "english": "✅ Mark All Done", "arabic": "✅ إتمام الكل"}
             if st.button(
                 mark_lbl.get(st.session_state.lang, "✅ Mark All Done"),
                 key=f"{day_key}_markall_{st.session_state[f'{day_key}_reset']}",
