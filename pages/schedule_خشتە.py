@@ -112,12 +112,10 @@ is_dark   = st.session_state.dark_mode
 if is_dark:
     APP_BG       = "#1a1a2e"
     SB_BG        = "#16213e"
-    CARD_BG      = "rgba(255,255,255,0.06)"
+    INPUT_BG     = "#252542"
     CARD_BORDER  = "rgba(255,255,255,0.09)"
     TEXT_PRIMARY = "#e2e2e2"
     TEXT_MUTED   = "#8a8fa8"
-    SECTION_LBL  = "#555c72"
-    INPUT_BG     = "#252542"
     BTN_BG       = "#252542"
     BTN_COLOR    = "#e2e2e2"
     BTN_BORDER   = "#3a3a5c"
@@ -128,12 +126,10 @@ if is_dark:
 else:
     APP_BG       = "#e8edf5"
     SB_BG        = "#f4f7fb"
-    CARD_BG      = "#ffffff"
+    INPUT_BG     = "#ffffff"
     CARD_BORDER  = "#dde3ed"
     TEXT_PRIMARY = "#1a1a2e"
     TEXT_MUTED   = "#6b7280"
-    SECTION_LBL  = "#9ca3af"
-    INPUT_BG     = "#ffffff"
     BTN_BG       = "#dde5f0"
     BTN_COLOR    = "#1a1a2e"
     BTN_BORDER   = "#c0cce0"
@@ -275,7 +271,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         
         if total_tasks > 0:
             pct = int((done_tasks / total_tasks) * 100)
-            bar_color = "#2196F3" if pct == 100 else "#4CAF50"
+            bar_color = "#2196F3" if done_tasks == total_tasks else "#4CAF50"
             st.markdown(f"""
             <div class="prog-wrap">
                 <div class="prog-header">
@@ -378,3 +374,4 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             save_schedule()
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
+    
