@@ -91,6 +91,9 @@ if "data_loaded" not in st.session_state:
     load_data()
     st.session_state.data_loaded = True
 
+if "confirm_clear" not in st.session_state:
+    st.session_state.confirm_clear = False
+
 DEFAULTS = {
     "total_study_seconds": 0, "completed_sessions": 0,
     "last_subject": "—", "study_history": [], "dark_mode": False,
@@ -118,6 +121,13 @@ daily_pct      = min(100, int(st.session_state.daily_seconds /
                                max(1, st.session_state.daily_goal_seconds) * 100))
 daily_done_min = st.session_state.daily_seconds // 60
 daily_goal_min = st.session_state.daily_goal_seconds // 60
+
+today_h = st.session_state.daily_seconds // 3600
+today_m = (st.session_state.daily_seconds % 3600) // 60
+
+# FIX: translated "days" unit — replaces hardcoded "رۆژ"
+_days_map = {"badini": "رۆژ", "english": "days", "arabic": "يوم"}
+days_lbl  = _days_map.get(st.session_state.lang, "رۆژ")
 
 if is_dark:
     APP_BG         = "#1a1a2e"
@@ -148,6 +158,14 @@ if is_dark:
     LANG_ACTIVE_C  = "#81c784"
     LANG_IDLE_BG   = "rgba(255,255,255,0.06)"
     LANG_IDLE_C    = "#8a8fa8"
+    TODAY_CARD_BG  = "rgba(76,175,80,0.10)"
+    TODAY_CARD_BDR = "rgba(76,175,80,0.20)"
+    WARN_BG        = "rgba(255,152,0,0.12)"
+    WARN_BDR       = "rgba(255,152,0,0.25)"
+    WARN_COLOR     = "#ffb74d"
+    DANGER_BG      = "rgba(239,83,80,0.12)"
+    DANGER_BDR     = "rgba(239,83,80,0.25)"
+    DANGER_COLOR   = "#ef9a9a"
 else:
     APP_BG         = "#e8edf5"
     SB_BG          = "#f4f7fb"
@@ -177,6 +195,14 @@ else:
     LANG_ACTIVE_C  = "#2e7d32"
     LANG_IDLE_BG   = "#edf0f7"
     LANG_IDLE_C    = "#6b7280"
+    TODAY_CARD_BG  = "rgba(76,175,80,0.07)"
+    TODAY_CARD_BDR = "rgba(76,175,80,0.18)"
+    WARN_BG        = "#fff8e1"
+    WARN_BDR       = "#ffe082"
+    WARN_COLOR     = "#e65100"
+    DANGER_BG      = "#ffebee"
+    DANGER_BDR     = "#ef9a9a"
+    DANGER_COLOR   = "#c62828"
 
 st.markdown(f"""
 <style>
@@ -239,7 +265,6 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 .stButton > button:active:not(:disabled) {{ transform: translateY(0px) !important; }}
 .stButton > button:disabled              {{ opacity: 0.35 !important; cursor: not-allowed !important; }}
 
-/* ── Timer button colours (anchor-based, no wrapper divs) ── */
 .tcb-anchor {{ display: none !important; }}
 
 .element-container:has(.tcb-anchor) + div
@@ -258,17 +283,21 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 }}
 
 .timer-card {{
-    background:    {TIMER_CARD_BG};
-    border:        1px solid {TIMER_CARD_BDR};
-    border-radius: 24px;
-    padding:       28px 16px 20px;
-    margin:        12px 0 20px;
-    text-align:    center;
-    box-shadow:    0 2px 16px rgba(0,0,0,0.06);
+    background: {TIMER_CARD_BG}; border: 1px solid {TIMER_CARD_BDR};
+    border-radius: 24px; padding: 28px 16px 20px;
+    margin: 12px 0 20px; text-align: center;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
 }}
 .timer-card svg {{
-    width:  min(260px, 82vw) !important;
+    width: min(260px, 82vw) !important;
     height: min(260px, 82vw) !important;
+}}
+
+.paused-banner {{
+    background: {WARN_BG}; border: 1px solid {WARN_BDR};
+    border-radius: 12px; padding: 12px 16px; text-align: center;
+    font-size: 14px; font-weight: 600; color: {WARN_COLOR} !important;
+    margin-bottom: 8px;
 }}
 
 .sb-lbl {{
@@ -277,7 +306,7 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
     margin: 20px 0 8px 2px; display: block;
 }}
 
-.stat-row  {{ display: flex; gap: 10px; margin-bottom: 4px; }}
+.stat-row  {{ display: flex; gap: 10px; margin-bottom: 8px; }}
 .stat-card {{
     flex: 1; background: {CARD_BG}; border: 1px solid {CARD_BORDER};
     border-radius: 14px; padding: 14px 10px; text-align: center;
@@ -286,6 +315,15 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 .stat-icon {{ font-size: 20px; margin-bottom: 5px; line-height: 1; }}
 .stat-val  {{ font-size: 16px; font-weight: 800; line-height: 1.2; }}
 .stat-lbl  {{ font-size: 10px; color: {TEXT_MUTED} !important; margin-top: 3px; }}
+
+.today-stat {{
+    background: {TODAY_CARD_BG}; border: 1px solid {TODAY_CARD_BDR};
+    border-radius: 14px; padding: 10px 14px; margin-bottom: 4px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.03);
+}}
+.today-stat-label {{ font-size: 12px; font-weight: 600; }}
+.today-stat-val   {{ font-size: 15px; font-weight: 800; color: #4CAF50 !important; }}
 
 .streak-card {{
     background: {CARD_BG}; border: 1px solid {CARD_BORDER};
@@ -322,6 +360,13 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 .settings-box {{
     background: {SETTINGS_BG}; border: 1px solid {SETTINGS_BDR};
     border-radius: 14px; padding: 14px;
+}}
+
+.danger-box {{
+    background: {DANGER_BG}; border: 1px solid {DANGER_BDR};
+    border-radius: 12px; padding: 10px 12px; margin-bottom: 6px;
+    font-size: 12px; font-weight: 600; color: {DANGER_COLOR} !important;
+    text-align: center;
 }}
 
 .greet-card {{
@@ -384,6 +429,10 @@ with st.sidebar:
             <div class="stat-lbl">{t("sessions")}</div>
         </div>
     </div>
+    <div class="today-stat">
+        <span class="today-stat-label">📅 {t("today_goal")}</span>
+        <span class="today-stat-val">{today_h}{t("hours_unit")} {today_m}{t("minutes_unit")}</span>
+    </div>
     """, unsafe_allow_html=True)
 
     st.markdown(f'<span class="sb-lbl">{t("streak_section")}</span>', unsafe_allow_html=True)
@@ -397,7 +446,7 @@ with st.sidebar:
         <div style="font-size:30px;line-height:1;">🔥</div>
         <div>
             <div class="streak-num">{sv}
-                <span style="font-size:14px;font-weight:400;color:{TEXT_MUTED};">رۆژ</span>
+                <span style="font-size:14px;font-weight:400;color:{TEXT_MUTED};">{days_lbl}</span>
             </div>
             <div class="streak-sub">{smsg}</div>
         </div>
@@ -449,16 +498,30 @@ with st.sidebar:
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
-    if st.button(t("clear_stats"), use_container_width=True):
-        for k, v in [("total_study_seconds", 0), ("completed_sessions", 0),
-                     ("last_subject", "—"), ("study_history", []),
-                     ("streak", 0), ("daily_seconds", 0), ("last_study_date", "")]:
-            st.session_state[k] = v
-        save_data()
-        st.rerun()
+
+    # Two-step clear — prevents accidental data loss
+    if not st.session_state.confirm_clear:
+        if st.button(t("clear_stats"), use_container_width=True):
+            st.session_state.confirm_clear = True
+            st.rerun()
+    else:
+        st.markdown(f'<div class="danger-box">⚠️ {t("clear_stats")}?</div>', unsafe_allow_html=True)
+        cc1, cc2 = st.columns(2)
+        with cc1:
+            if st.button("✓", use_container_width=True, key="confirm_yes"):
+                for k, v in [("total_study_seconds", 0), ("completed_sessions", 0),
+                             ("last_subject", "—"), ("study_history", []),
+                             ("streak", 0), ("daily_seconds", 0), ("last_study_date", "")]:
+                    st.session_state[k] = v
+                st.session_state.confirm_clear = False
+                save_data()
+                st.rerun()
+        with cc2:
+            if st.button("✗", use_container_width=True, key="confirm_no"):
+                st.session_state.confirm_clear = False
+                st.rerun()
 
 # ── Main page ──────────────────────────────────────────────────────────────────
-
 nav = st.text_input(t("enter_name"), t("default_name"), label_visibility="collapsed")
 
 kurd_greet, eng_greet = get_greeting()
@@ -489,7 +552,6 @@ arc_color = subject_color(ders)
 deqe = st.slider(t("minutes_question"), 1, 240, 25)
 total_seconds = deqe * 60
 
-# Invisible anchor — lets CSS colour col1/col2 buttons without wrapper divs
 st.markdown('<div class="tcb-anchor"></div>', unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
@@ -626,6 +688,9 @@ elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
     mv, sv_ = divmod(int(st.session_state.remaining_at_pause), 60)
     prog = min(1.0, 1.0 - (st.session_state.remaining_at_pause / st.session_state.total_seconds))
     render_circle(mv, sv_, prog, "#FFA500")
+    pause_lbl = {"badini": "⏸️ کاتژمێر وەستاوە", "english": "⏸️ Timer paused", "arabic": "⏸️ الموقت متوقف"}
+    st.markdown(f'<div class="paused-banner">{pause_lbl.get(st.session_state.lang, "⏸️ Timer paused")}</div>',
+                unsafe_allow_html=True)
 
 else:
     render_circle(deqe, 0, 0.0, arc_color)
