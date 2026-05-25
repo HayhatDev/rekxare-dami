@@ -21,7 +21,7 @@ if "lang" not in st.session_state:
     st.session_state.lang = "badini"
 
 def t(key, **kwargs):
-    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS.get("badini", {})).get(key, key)
     if kwargs:
         text = text.format(**kwargs)
     return text
@@ -182,13 +182,11 @@ section[data-testid="stMain"],
     border-color: #ef5350 !important;
 }}
 
-/* Add task button */
-.add-task-anchor .stButton > button {{
+/* Add task button specific styling */
+.btn-primary .stButton > button {{
     background: linear-gradient(135deg,#43a047,#66bb6a) !important;
     color: #fff !important;
     border-color: #388e3c !important;
-    font-size: 14px !important;
-    padding: 10px !important;
 }}
 
 .today-badge {{
@@ -269,9 +267,18 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         total_tasks = len(schedule)
         done_tasks  = sum(1 for tk in schedule if tk.get("done", False))
         
-                # 🎉 باقة الاحتفال عند إنجاز كل المهام
+        # 🎉 Dynamic Celebration Logic
+        celeb_state_key = f"celebrated_{day_key}"
         if total_tasks > 0 and done_tasks == total_tasks:
             st.markdown(f'<div class="celebrate-banner">🎉 {t("tasks_completed")}! — هەمی ئەرکێن خوە تەواو کرن!</div>', unsafe_allow_html=True)
+            
+            # The Actual Surprise
+            if not st.session_state.get(celeb_state_key, False):
+                st.balloons()
+                st.session_state[celeb_state_key] = True
+        else:
+            # Reset surprise if a task is unchecked
+            st.session_state[celeb_state_key] = False
         
         if total_tasks > 0:
             pct       = int((done_tasks / total_tasks) * 100) if total_tasks > 0 else 0
@@ -296,21 +303,24 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
 
         changed = False
         for i, entry in enumerate(schedule):
-            c_time, c_done, c_task, c_del = st.columns([2, 0.7, 5, 0.7])
+            # Adjusted ratio to give task text slightly more room
+            c_time, c_done, c_task, c_del = st.columns([2.5, 0.8, 5.5, 0.8])
 
             with c_time:
                 start_time = st.time_input(
                     entry["start"],
                     value=datetime.strptime(entry["start"], "%H:%M").time(),
-                    key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}"
+                    key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}",
+                    label_visibility="collapsed"
                 )
                 end_time = st.time_input(
                     entry["end"],
                     value=datetime.strptime(entry["end"], "%H:%M").time(),
-                    key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}"
+                    key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}",
+                    label_visibility="collapsed"
                 )
             with c_done:
-                st.markdown('<div style="padding-top:6px;">', unsafe_allow_html=True)
+                st.markdown('<div style="padding-top:18px;">', unsafe_allow_html=True)
                 done = st.checkbox("",
                     value=entry.get("done", False),
                     key=f"{day_key}_done_{i}_{st.session_state[f'{day_key}_reset']}",
@@ -318,17 +328,20 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.markdown('</div>', unsafe_allow_html=True)
 
             with c_task:
+                st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
                 task_text = st.text_input("",
                     value=entry["task"],
                     key=f"{day_key}_task_{i}_{st.session_state[f'{day_key}_reset']}",
                     disabled=done,
                     label_visibility="collapsed",
                     placeholder=t("activity_placeholder"))
+                st.markdown('</div>', unsafe_allow_html=True)
 
             with c_del:
-                st.write("")
+                st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
                 delete_btn = st.button("✕",
                     key=f"{day_key}_del_{i}_{st.session_state[f'{day_key}_reset']}")
+                st.markdown('</div>', unsafe_allow_html=True)
 
             if entry["done"] != done:
                 entry["done"] = done
@@ -359,12 +372,29 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             save_schedule()
 
         st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="add-task-anchor">', unsafe_allow_html=True)
-        if st.button(t("add_task"),
-                     key=f"{day_key}_add_{st.session_state[f'{day_key}_reset']}",
-                     use_container_width=True):
-            schedule.append({"start": "08:00", "end": "09:00", "task": "", "done": False})
-            st.session_state.schedule[day_key] = schedule
-            save_schedule()
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # New Action Buttons Layout
+        btn_col1, btn_col2, btn_col3 = st.columns([2, 1, 1])
+        
+        with btn_col1:
+            st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
+            if st.button(f"➕ {t('add_task')}", key=f"{day_key}_add_{st.session_state[f'{day_key}_reset']}", use_container_width=True):
+                schedule.append({"start": "08:00", "end": "09:00", "task": "", "done": False})
+                st.session_state.schedule[day_key] = schedule
+                save_schedule()
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        with btn_col2:
+            if st.button("↕️ Sort", key=f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}", use_container_width=True):
+                schedule.sort(key=lambda x: datetime.strptime(x["start"], "%H:%M"))
+                st.session_state.schedule[day_key] = schedule
+                save_schedule()
+                st.rerun()
+                
+        with btn_col3:
+            if st.button("🗑️ Clear", key=f"{day_key}_clear_{st.session_state[f'{day_key}_reset']}", use_container_width=True):
+                schedule.clear()
+                st.session_state.schedule[day_key] = schedule
+                save_schedule()
+                st.rerun()
