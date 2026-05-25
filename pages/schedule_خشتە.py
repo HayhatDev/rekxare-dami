@@ -282,14 +282,24 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             c_time, c_done, c_task, c_del = st.columns([2, 0.7, 5, 0.7])
 
             with c_time:
+                # استخدام label ثابت مع إظهار الوقت في المربع
+                try:
+                    start_val = datetime.strptime(entry["start"], "%H:%M").time()
+                except:
+                    start_val = datetime.strptime("07:00", "%H:%M").time()
+                try:
+                    end_val = datetime.strptime(entry["end"], "%H:%M").time()
+                except:
+                    end_val = datetime.strptime("08:00", "%H:%M").time()
+                
                 start_time = st.time_input(
-                    entry["start"],
-                    value=datetime.strptime(entry["start"], "%H:%M").time(),
+                    "دەستپێک",
+                    value=start_val,
                     key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}"
                 )
                 end_time = st.time_input(
-                    entry["end"],
-                    value=datetime.strptime(entry["end"], "%H:%M").time(),
+                    "دووماهی",
+                    value=end_val,
                     key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}"
                 )
 
