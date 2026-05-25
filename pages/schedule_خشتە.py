@@ -3,16 +3,6 @@ from datetime import datetime
 import json
 import os
 
-# --- PWA Manifest ---
-st.markdown("""
-<link rel="manifest" href="/manifest.json">
-<script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js');
-    }
-</script>
-""", unsafe_allow_html=True)
-
 with open("translations.json", "r", encoding="utf-8") as f:
     TRANSLATIONS = json.load(f)
 
@@ -107,9 +97,10 @@ if is_dark:
     BTN_BORDER   = "#3a3a5c"
     PROG_TRACK   = "rgba(255,255,255,0.08)"
     DIVIDER      = "rgba(255,255,255,0.08)"
-    HEADER_BG    = "rgba(255,255,255,0.04)"
     TODAY_BG     = "rgba(76,175,80,0.15)"
     TODAY_COLOR  = "#81c784"
+    CELEBRATE_BG = "rgba(76,175,80,0.12)"
+    CELEBRATE_C  = "#81c784"
 else:
     APP_BG       = "#e8edf5"
     SB_BG        = "#f4f7fb"
@@ -124,9 +115,10 @@ else:
     BTN_BORDER   = "#c0cce0"
     PROG_TRACK   = "#dde3ed"
     DIVIDER      = "#dde3ed"
-    HEADER_BG    = "#f0f4fa"
     TODAY_BG     = "rgba(76,175,80,0.10)"
     TODAY_COLOR  = "#2e7d32"
+    CELEBRATE_BG = "rgba(76,175,80,0.08)"
+    CELEBRATE_C  = "#2e7d32"
 
 st.markdown(f"""
 <style>
@@ -161,11 +153,26 @@ section[data-testid="stMain"],
     font-weight:      600 !important;
     font-size:        13px !important;
     transition:       all 0.18s ease !important;
+    padding:          6px 8px !important;
 }}
 .stButton > button:hover:not(:disabled)  {{ opacity: 0.78 !important; transform: translateY(-1px) !important; }}
 .stButton > button:disabled              {{ opacity: 0.30 !important; }}
 
-.btn-add button {{
+/* Delete button - 4th column */
+[data-testid="column"]:nth-child(4) .stButton > button {{
+    background: transparent !important;
+    color: #ef5350 !important;
+    border-color: transparent !important;
+    font-size: 16px !important;
+    padding: 6px 8px !important;
+}}
+[data-testid="column"]:nth-child(4) .stButton > button:hover {{
+    background: rgba(239,83,80,0.10) !important;
+    border-color: #ef5350 !important;
+}}
+
+/* Add task button */
+.add-task-anchor .stButton > button {{
     background: linear-gradient(135deg,#43a047,#66bb6a) !important;
     color: #fff !important;
     border-color: #388e3c !important;
@@ -173,21 +180,20 @@ section[data-testid="stMain"],
     padding: 10px !important;
 }}
 
-.btn-del button {{
-    background: transparent !important;
-    color: #ef5350 !important;
-    border-color: transparent !important;
-    font-size: 16px !important;
-    padding: 6px 8px !important;
-}}
-.btn-del button:hover {{ background: rgba(239,83,80,0.10) !important; border-color: #ef5350 !important; }}
-
 .today-badge {{
     display: inline-flex; align-items: center; gap: 5px;
     background: {TODAY_BG}; color: {TODAY_COLOR} !important;
     border: 1px solid {TODAY_COLOR}44;
     font-size: 12px; font-weight: 700;
     padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;
+}}
+
+.celebrate-banner {{
+    background: {CELEBRATE_BG}; color: {CELEBRATE_C} !important;
+    border: 1px solid {CELEBRATE_C}44;
+    border-radius: 12px; padding: 14px 18px;
+    text-align: center; font-weight: 700; font-size: 15px;
+    margin-bottom: 16px;
 }}
 
 .prog-wrap      {{ margin-bottom: 16px; }}
@@ -251,8 +257,13 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
 
         total_tasks = len(schedule)
         done_tasks  = sum(1 for tk in schedule if tk.get("done", False))
+        
+        # 🎉 باقة الاحتفال عند إنجاز كل المهام
+        if total_tasks > 0 and done_tasks == total_tasks:
+            st.markdown(f'<div class="celebrate-banner">🎉 {t("tasks_completed")}! — هەمی ئەرکێن خوە تەواو کرن!</div>', unsafe_allow_html=True)
+        
         if total_tasks > 0:
-            pct       = int((done_tasks / total_tasks) * 100)
+            pct       = int((done_tasks / total_tasks) * 100) if total_tasks > 0 else 0
             bar_color = "#2196F3" if pct == 100 else "#4CAF50"
             st.markdown(f"""
             <div class="prog-wrap">
@@ -270,22 +281,22 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         with h1: st.caption("🕐 " + ("کات" if st.session_state.lang == "badini" else "Time" if st.session_state.lang == "english" else "الوقت"))
         with h2: st.caption("✅")
         with h3: st.caption("📝 " + ("چالاکی" if st.session_state.lang == "badini" else "Task" if st.session_state.lang == "english" else "المهمة"))
-        with h4: st.caption("🗑️")
+        with h4: st.caption("")
 
+        changed = False
         for i, entry in enumerate(schedule):
             c_time, c_done, c_task, c_del = st.columns([2, 0.7, 5, 0.7])
 
             with c_time:
-                start_time = st.time_input(
-                    entry["start"],
+                start_time = st.time_input("",
                     value=datetime.strptime(entry["start"], "%H:%M").time(),
-                    key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}"
-                )
-                end_time = st.time_input(
-                    entry["end"],
+                    key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}",
+                    label_visibility="collapsed")
+                end_time = st.time_input("",
                     value=datetime.strptime(entry["end"], "%H:%M").time(),
-                    key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}"
-                )
+                    key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}",
+                    label_visibility="collapsed")
+
             with c_done:
                 st.markdown('<div style="padding-top:6px;">', unsafe_allow_html=True)
                 done = st.checkbox("",
@@ -303,20 +314,27 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     placeholder=t("activity_placeholder"))
 
             with c_del:
-                st.markdown('<div class="btn-del" style="padding-top:4px;">', unsafe_allow_html=True)
+                st.write("")
                 delete_btn = st.button("✕",
-                    key=f"{day_key}_del_{i}_{st.session_state[f'{day_key}_reset']}",
-                    help="Delete task")
-                st.markdown('</div>', unsafe_allow_html=True)
+                    key=f"{day_key}_del_{i}_{st.session_state[f'{day_key}_reset']}")
 
             if entry["done"] != done:
                 entry["done"] = done
-                save_schedule()
-                st.rerun()
+                changed = True
 
-            entry["task"]  = task_text
-            entry["start"] = start_time.strftime("%H:%M")
-            entry["end"]   = end_time.strftime("%H:%M")
+            if entry["task"] != task_text:
+                entry["task"] = task_text
+                changed = True
+
+            new_start = start_time.strftime("%H:%M")
+            if entry["start"] != new_start:
+                entry["start"] = new_start
+                changed = True
+
+            new_end = end_time.strftime("%H:%M")
+            if entry["end"] != new_end:
+                entry["end"] = new_end
+                changed = True
 
             if delete_btn:
                 schedule.pop(i)
@@ -325,8 +343,11 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 save_schedule()
                 st.rerun()
 
+        if changed:
+            save_schedule()
+
         st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="btn-add">', unsafe_allow_html=True)
+        st.markdown('<div class="add-task-anchor">', unsafe_allow_html=True)
         if st.button(t("add_task"),
                      key=f"{day_key}_add_{st.session_state[f'{day_key}_reset']}",
                      use_container_width=True):
