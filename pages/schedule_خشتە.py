@@ -390,35 +390,40 @@ with dm_col2:
         save_schedule()
         st.rerun()
 
-# ── Week overview ─────────────────────────────────────────────────────────────
-week_items = []
-for dk, _, eng in DAYS:
-    tasks = st.session_state.schedule.get(dk, [])
-    total = len(tasks)
-    done  = sum(1 for tk in tasks if tk.get("done", False))
-    pct   = int((done / total) * 100) if total > 0 else 0
-    color = "#2196F3" if (done == total and total > 0) else "#4CAF50" if pct > 0 else PROG_TRACK
-    is_today = dk == today_key
-    short_label = eng[:3].upper()
-    today_dot = '<div class="week-today-dot"></div>' if is_today else '<div style="height:8px;"></div>'
-    week_items.append(f"""
-    <div class="week-day">
-        {today_dot}
-        <span class="week-day-label">{short_label}</span>
-        <div class="week-day-mini-track">
-            <div class="week-day-mini-fill" style="width:{pct}%;background:{color};"></div>
-        </div>
-        <span class="week-day-count">{done}/{total if total else "—"}</span>
-    </div>
-    """)
-
-week_html = "".join(week_items)
+# ── Week overview (native Streamlit — avoids HTML rendering issues) ───────────
 st.markdown(f"""
-<div class="week-overview">
-    <div class="week-overview-title">📊 Weekly Progress</div>
-    <div class="week-grid">{week_html}</div>
+<div style="
+    background:{OVERVIEW_BG};
+    border:1px solid {OVERVIEW_BDR};
+    border-radius:16px;
+    padding:14px 16px 10px;
+    margin-bottom:20px;
+">
+<div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:{TEXT_MUTED};margin-bottom:10px;">
+    📊 Weekly Progress
+</div>
 </div>
 """, unsafe_allow_html=True)
+
+week_cols = st.columns(7)
+for col, (dk, _, eng) in zip(week_cols, DAYS):
+    tasks  = st.session_state.schedule.get(dk, [])
+    total  = len(tasks)
+    done   = sum(1 for tk in tasks if tk.get("done", False))
+    pct    = done / total if total > 0 else 0
+    is_today = dk == today_key
+    short  = eng[:3].upper()
+    dot    = "🟢" if is_today else ""
+    count  = f"{done}/{total}" if total else "—"
+    with col:
+        if dot:
+            st.markdown(f"<div style='text-align:center;font-size:8px;margin-bottom:1px;'>{dot}</div>",
+                        unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align:center;font-size:10px;font-weight:700;color:{TEXT_MUTED};'>{short}</div>",
+                    unsafe_allow_html=True)
+        st.progress(pct)
+        st.markdown(f"<div style='text-align:center;font-size:10px;color:{TEXT_MUTED};margin-top:-8px;'>{count}</div>",
+                    unsafe_allow_html=True)
 
 # ── Labels ────────────────────────────────────────────────────────────────────
 time_start_label, time_end_label = get_time_label()
