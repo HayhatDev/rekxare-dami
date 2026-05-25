@@ -16,7 +16,6 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-
 st.set_page_config(
     page_title="Rekxare Dami",
     page_icon="📚",
@@ -240,10 +239,23 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 .stButton > button:active:not(:disabled) {{ transform: translateY(0px) !important; }}
 .stButton > button:disabled              {{ opacity: 0.35 !important; cursor: not-allowed !important; }}
 
-.btn-start  button {{ background: linear-gradient(135deg,#43a047,#66bb6a) !important; color:#fff !important; border-color:#388e3c !important; }}
-.btn-resume button {{ background: linear-gradient(135deg,#43a047,#66bb6a) !important; color:#fff !important; border-color:#388e3c !important; }}
-.btn-pause  button {{ background: linear-gradient(135deg,#ef6c00,#ffa726) !important; color:#fff !important; border-color:#e65100 !important; }}
-.btn-reset  button {{ background: {BTN_BG} !important; color:{BTN_COLOR} !important; }}
+/* ── Timer button colours (anchor-based, no wrapper divs) ── */
+.tcb-anchor {{ display: none !important; }}
+
+.element-container:has(.tcb-anchor) + div
+    [data-testid="stHorizontalBlock"]
+    > div:nth-child(1) .stButton button:not(:disabled) {{
+    background: linear-gradient(135deg, #43a047, #66bb6a) !important;
+    color: #ffffff !important;
+    border-color: #388e3c !important;
+}}
+.element-container:has(.tcb-anchor) + div
+    [data-testid="stHorizontalBlock"]
+    > div:nth-child(2) .stButton button:not(:disabled) {{
+    background: linear-gradient(135deg, #ef6c00, #ffa726) !important;
+    color: #ffffff !important;
+    border-color: #e65100 !important;
+}}
 
 .timer-card {{
     background:    {TIMER_CARD_BG};
@@ -260,24 +272,20 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 }}
 
 .sb-lbl {{
-    font-size:      10px;
-    font-weight:    700;
-    letter-spacing: 1.4px;
-    text-transform: uppercase;
-    color:          {SECTION_LBL} !important;
-    margin:         20px 0 8px 2px;
-    display:        block;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.4px;
+    text-transform: uppercase; color: {SECTION_LBL} !important;
+    margin: 20px 0 8px 2px; display: block;
 }}
 
-.stat-row   {{ display: flex; gap: 10px; margin-bottom: 4px; }}
-.stat-card  {{
+.stat-row  {{ display: flex; gap: 10px; margin-bottom: 4px; }}
+.stat-card {{
     flex: 1; background: {CARD_BG}; border: 1px solid {CARD_BORDER};
     border-radius: 14px; padding: 14px 10px; text-align: center;
     box-shadow: 0 1px 6px rgba(0,0,0,0.04);
 }}
-.stat-icon  {{ font-size: 20px; margin-bottom: 5px; line-height: 1; }}
-.stat-val   {{ font-size: 16px; font-weight: 800; line-height: 1.2; }}
-.stat-lbl   {{ font-size: 10px; color: {TEXT_MUTED} !important; margin-top: 3px; letter-spacing: 0.2px; }}
+.stat-icon {{ font-size: 20px; margin-bottom: 5px; line-height: 1; }}
+.stat-val  {{ font-size: 16px; font-weight: 800; line-height: 1.2; }}
+.stat-lbl  {{ font-size: 10px; color: {TEXT_MUTED} !important; margin-top: 3px; }}
 
 .streak-card {{
     background: {CARD_BG}; border: 1px solid {CARD_BORDER};
@@ -307,10 +315,7 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 }}
 
 .act-list  {{ background: {ACTIVITY_BG}; border-radius: 12px; padding: 4px; overflow: hidden; }}
-.act-item  {{
-    display: flex; align-items: center; gap: 9px;
-    padding: 7px 10px; border-radius: 9px; font-size: 12px;
-}}
+.act-item  {{ display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 9px; font-size: 12px; }}
 .act-dot   {{ width:7px;height:7px;border-radius:50%;background:#4CAF50;flex-shrink:0; }}
 .act-empty {{ font-size:12px;color:{TEXT_MUTED} !important;padding:12px;text-align:center; }}
 
@@ -333,15 +338,15 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 hr {{ border-color: {DIVIDER} !important; margin: 18px 0 !important; }}
 
 @media (max-width: 640px) {{
-    .greet-card     {{ padding: 16px 18px; gap: 14px; }}
-    .greet-emoji    {{ font-size: 34px; }}
-    .greet-name     {{ font-size: 17px; }}
-    .stat-card      {{ padding: 10px 6px; }}
-    .stat-val       {{ font-size: 14px; }}
-    .timer-card     {{ padding: 16px 8px 14px; border-radius: 18px; }}
+    .greet-card  {{ padding: 16px 18px; gap: 14px; }}
+    .greet-emoji {{ font-size: 34px; }}
+    .greet-name  {{ font-size: 17px; }}
+    .stat-card   {{ padding: 10px 6px; }}
+    .stat-val    {{ font-size: 14px; }}
+    .timer-card  {{ padding: 16px 8px 14px; border-radius: 18px; }}
     .stButton > button {{ font-size: 13px !important; padding: 9px 10px !important; }}
-    .streak-card    {{ padding: 10px 12px; gap: 10px; }}
-    .goal-wrap      {{ padding: 10px 12px; }}
+    .streak-card {{ padding: 10px 12px; gap: 10px; }}
+    .goal-wrap   {{ padding: 10px 12px; }}
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -365,7 +370,6 @@ with st.sidebar:
         st.rerun()
 
     st.markdown('<div style="height:4px;"></div>', unsafe_allow_html=True)
-
     st.markdown(f'<span class="sb-lbl">{t("sidebar_title")}</span>', unsafe_allow_html=True)
     st.markdown(f"""
     <div class="stat-row">
@@ -420,20 +424,15 @@ with st.sidebar:
     st.markdown(f'<span class="sb-lbl">{t("recent_activity")}</span>', unsafe_allow_html=True)
     hist = st.session_state.study_history[-4:][::-1]
     if hist:
-        rows = "".join(
-            f'<div class="act-item"><div class="act-dot"></div><span>{e}</span></div>'
-            for e in hist
-        )
+        rows = "".join(f'<div class="act-item"><div class="act-dot"></div><span>{e}</span></div>' for e in hist)
         st.markdown(f'<div class="act-list">{rows}</div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div class="act-list"><div class="act-empty">{t("no_activity")}</div></div>', unsafe_allow_html=True)
 
     st.markdown(f'<span class="sb-lbl">{t("settings")}</span>', unsafe_allow_html=True)
     st.markdown('<div class="settings-box">', unsafe_allow_html=True)
-    goal_mins = st.slider(
-        f'🎯 {t("today_goal")} ({t("minutes_unit")})',
-        30, 480, st.session_state.daily_goal_seconds // 60, step=15
-    )
+    goal_mins = st.slider(f'🎯 {t("today_goal")} ({t("minutes_unit")})',
+                          30, 480, st.session_state.daily_goal_seconds // 60, step=15)
     if goal_mins * 60 != st.session_state.daily_goal_seconds:
         st.session_state.daily_goal_seconds = goal_mins * 60
         save_data()
@@ -458,12 +457,13 @@ with st.sidebar:
         save_data()
         st.rerun()
 
+# ── Main page ──────────────────────────────────────────────────────────────────
+
 nav = st.text_input(t("enter_name"), t("default_name"), label_visibility="collapsed")
 
 kurd_greet, eng_greet = get_greeting()
 h_now = datetime.now().hour
-greet_emoji = ("🌅" if 5 <= h_now < 12 else
-               "☀️" if 12 <= h_now < 17 else
+greet_emoji = ("🌅" if 5 <= h_now < 12 else "☀️" if 12 <= h_now < 17 else
                "🌆" if 17 <= h_now < 21 else "🌙")
 now_str = datetime.now().strftime("%A, %d %B %Y  •  %H:%M")
 
@@ -489,33 +489,28 @@ arc_color = subject_color(ders)
 deqe = st.slider(t("minutes_question"), 1, 240, 25)
 total_seconds = deqe * 60
 
+# Invisible anchor — lets CSS colour col1/col2 buttons without wrapper divs
+st.markdown('<div class="tcb-anchor"></div>', unsafe_allow_html=True)
+
 col1, col2, col3 = st.columns(3)
 
 with col1:
     if not st.session_state.timer_running and not st.session_state.paused:
-        st.markdown('<div class="btn-start">', unsafe_allow_html=True)
-        dest_pe_bike = st.button(t("start_btn"), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        dest_pe_bike = st.button(t("start_btn"), use_container_width=True, key="start_btn")
     elif st.session_state.paused:
-        st.markdown('<div class="btn-resume">', unsafe_allow_html=True)
-        resume = st.button(t("resume_btn"), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        resume = st.button(t("resume_btn"), use_container_width=True, key="resume_btn")
     else:
         st.button(t("start_btn"), disabled=True, use_container_width=True, key="start_disabled")
-        
+
 with col2:
     if st.session_state.timer_running:
-        st.markdown('<div class="btn-pause">', unsafe_allow_html=True)
-        stop_timer = st.button(t("pause_btn"), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        stop_timer = st.button(t("pause_btn"), use_container_width=True, key="pause_btn")
     else:
         st.button(t("pause_btn"), disabled=True, use_container_width=True, key="pause_disabled")
 
 with col3:
-    st.markdown('<div class="btn-reset">', unsafe_allow_html=True)
-    dubare = st.button(t("reset_btn"), use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-    
+    dubare = st.button(t("reset_btn"), use_container_width=True, key="reset_btn")
+
 hezt = t("quotes")
 
 if "dest_pe_bike" in locals() and dest_pe_bike:
