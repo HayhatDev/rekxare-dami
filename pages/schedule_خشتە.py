@@ -328,7 +328,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                         "subject": entry["task"],
                         "minutes": diff_minutes
                     }
-                    st.switch_page("main_سەرەکی")
+                    st.switch_page("../main_سەرەکی")
 
             if entry["done"] != done:
                 entry["done"] = done
