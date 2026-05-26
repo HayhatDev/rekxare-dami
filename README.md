@@ -20,7 +20,7 @@
 - 📋 سجل بآخر الجلسات مع الوقت والتاريخ.
 - 💾 حفظ دائم للبيانات (حتى بعد إغلاق المتصفح).
 - 🌓 الوضع الليلي (Dark Mode).
-- 💬 رسائل تحفيزية عشوائية بالبادينية.
+- 💬 رسائل تحفيزية عشوائية.
 - 📱 واجهة متجاوبة تعمل على الجوال والحاسوب.
 
 </div>
@@ -37,7 +37,7 @@
 - 📋 Session history with time and date.
 - 💾 Persistent data storage (survives browser close).
 - 🌓 Dark Mode toggle.
-- 💬 Random motivational quotes in Badini Kurdish.
+- 💬 Random motivational quotes.
 - 📱 Responsive design for mobile and desktop.
 
 ---
