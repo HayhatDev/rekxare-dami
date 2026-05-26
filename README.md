@@ -22,7 +22,7 @@
 - 🌓 الوضع الليلي (Dark Mode).
 - 💬 رسائل تحفيزية عشوائية.
 - 📱 واجهة متجاوبة تعمل على الجوال والحاسوب.
-
+- 🔗 رابط للتجربه: https://rekxare-dami-yue9biguwjtc4jpyueymz9.streamlit.app/
 </div>
 
 ### English
@@ -39,6 +39,7 @@
 - 🌓 Dark Mode toggle.
 - 💬 Random motivational quotes.
 - 📱 Responsive design for mobile and desktop.
+- 🔗 Link: https://rekxare-dami-yue9biguwjtc4jpyueymz9.streamlit.app/
 
 ---
 
