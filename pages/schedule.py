@@ -101,13 +101,12 @@ def format_duration(start_str, end_str):
         return ""
 
 def total_day_minutes(day_entries):
-    """Sum durations of all named tasks for a day."""
     total = 0
     for e in day_entries:
         if not e.get("task", "").strip():
             continue
         try:
-            s = datetime.strptime(e.get("start", "00:00"), "%H:%M")
+            s   = datetime.strptime(e.get("start", "00:00"), "%H:%M")
             end = datetime.strptime(e.get("end",   "00:00"), "%H:%M")
             diff = int((end - s).total_seconds() // 60)
             if diff > 0:
@@ -186,8 +185,6 @@ if is_dark:
     PILL_BG       = "rgba(76,175,80,0.15)"
     PILL_COLOR    = "#81c784"
     PILL_BORDER   = "rgba(76,175,80,0.25)"
-    TASK_ROW_BG   = "rgba(255,255,255,0.03)"
-    TASK_ROW_DONE = "rgba(76,175,80,0.07)"
     TOTAL_BG      = "rgba(33,150,243,0.12)"
     TOTAL_COLOR   = "#64b5f6"
     TOTAL_BDR     = "rgba(33,150,243,0.25)"
@@ -213,8 +210,6 @@ else:
     PILL_BG       = "rgba(76,175,80,0.08)"
     PILL_COLOR    = "#2e7d32"
     PILL_BORDER   = "rgba(76,175,80,0.20)"
-    TASK_ROW_BG   = "#f9fafb"
-    TASK_ROW_DONE = "rgba(76,175,80,0.06)"
     TOTAL_BG      = "rgba(33,150,243,0.07)"
     TOTAL_COLOR   = "#1565c0"
     TOTAL_BDR     = "rgba(33,150,243,0.18)"
@@ -240,7 +235,10 @@ section[data-testid="stMain"],
     font-size: 13px !important;
     padding: 6px 8px !important;
 }}
-.stTextInput input:focus   {{ border-color: #4CAF50 !important; box-shadow: 0 0 0 2px rgba(76,175,80,0.15) !important; }}
+.stTextInput input:focus {{
+    border-color: #4CAF50 !important;
+    box-shadow: 0 0 0 2px rgba(76,175,80,0.15) !important;
+}}
 .stTextInput input:disabled {{
     text-decoration: line-through !important;
     opacity: 0.50 !important;
@@ -266,7 +264,6 @@ section[data-testid="stMain"],
 }}
 .stButton > button:disabled {{ opacity: 0.28 !important; }}
 
-/* Delete button — 4th column */
 [data-testid="column"]:nth-child(4) .stButton > button {{
     background: transparent !important;
     color: #ef5350 !important;
@@ -279,9 +276,7 @@ section[data-testid="stMain"],
     border-color: #ef5350 !important;
 }}
 
-/* ── Action row buttons via anchor — zero wrapper divs ── */
 .action-row-anchor {{ display: none !important; }}
-
 .element-container:has(.action-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(1) .stButton > button {{
     background: linear-gradient(135deg,#43a047,#66bb6a) !important;
@@ -316,7 +311,6 @@ section[data-testid="stMain"],
     border-color: #ef5350 !important;
 }}
 
-/* ── Confirm row — YES button red ── */
 .confirm-row-anchor {{ display: none !important; }}
 .element-container:has(.confirm-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(1) .stButton > button {{
@@ -324,7 +318,6 @@ section[data-testid="stMain"],
     color: #fff !important; border-color: #b71c1c !important;
 }}
 
-/* ── Live time-range pill (replaces old st.caption) ── */
 .time-pill {{
     display: inline-flex; align-items: center; gap: 4px;
     background: {PILL_BG};
@@ -336,14 +329,12 @@ section[data-testid="stMain"],
     font-variant-numeric: tabular-nums;
 }}
 
-/* ── Duration badge ── */
 .duration-badge {{
     font-size: 10px; color: {DURATION_CLR} !important;
     display: block; text-align: center; margin-top: 3px;
     font-weight: 600;
 }}
 
-/* ── Per-day total time strip ── */
 .day-total-strip {{
     display: flex; align-items: center; justify-content: space-between;
     background: {TOTAL_BG};
@@ -354,7 +345,6 @@ section[data-testid="stMain"],
 }}
 .day-total-strip span {{ color: {TOTAL_COLOR} !important; }}
 
-/* ── Week overview card ── */
 .week-card {{
     background: {OVERVIEW_BG};
     border: 1px solid {OVERVIEW_BDR};
@@ -372,7 +362,6 @@ section[data-testid="stMain"],
 [data-testid="stProgressBar"] p {{ display: none !important; }}
 [data-testid="stProgressBar"] > div {{ height: 5px !important; border-radius: 99px !important; }}
 
-/* ── Today badge ── */
 .today-badge {{
     display: inline-flex; align-items: center; gap: 6px;
     background: {TODAY_BG}; color: {TODAY_COLOR} !important;
@@ -382,7 +371,6 @@ section[data-testid="stMain"],
 }}
 .today-badge span {{ color: {TODAY_COLOR} !important; }}
 
-/* ── Progress bar (per-day) ── */
 .prog-wrap   {{ margin-bottom: 16px; }}
 .prog-header {{ display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 6px; }}
 .prog-label  {{ font-weight: 600; color: {TEXT_PRIMARY} !important; }}
@@ -390,22 +378,18 @@ section[data-testid="stMain"],
 .prog-track  {{ background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden; }}
 .prog-fill   {{ height: 8px; border-radius: 99px; transition: width 0.4s ease; }}
 
-/* ── All-done banner ── */
 .all-done-banner {{
     background: rgba(76,175,80,0.12);
     border: 1px solid rgba(76,175,80,0.35);
     border-radius: 12px; padding: 14px 16px; text-align: center;
     font-size: 15px; font-weight: 700;
     color: #4CAF50 !important; margin-bottom: 14px;
-    letter-spacing: 0.2px;
 }}
 
-/* ── Empty state ── */
 .empty-day      {{ text-align: center; padding: 36px 16px; color: {EMPTY_CLR} !important; font-size: 13px; }}
 .empty-day-icon {{ font-size: 40px; margin-bottom: 10px; }}
 .empty-day-hint {{ font-size: 11px; margin-top: 6px; opacity: 0.7; }}
 
-/* ── Danger confirm ── */
 .danger-confirm {{
     background: rgba(239,83,80,0.10);
     border: 1px solid rgba(239,83,80,0.30);
@@ -425,12 +409,7 @@ hr {{ border-color: {DIVIDER} !important; margin: 16px 0 !important; }}
     border-bottom-color: #4CAF50 !important;
 }}
 
-/* ── Column header captions ── */
-.col-header {{
-    font-size: 10px; font-weight: 700; letter-spacing: 0.7px;
-    text-transform: uppercase; color: {TEXT_MUTED} !important;
-    padding-bottom: 4px;
-}}
+.col-header {{ font-size: 10px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: {TEXT_MUTED} !important; padding-bottom: 4px; }}
 .col-header span {{ color: {TEXT_MUTED} !important; }}
 
 @media (max-width: 640px) {{
@@ -486,8 +465,7 @@ for col, (dk, _, eng) in zip(week_cols, DAYS):
     with col:
         dot_html = (
             "<div style='text-align:center;font-size:9px;color:#4CAF50;margin-bottom:1px;'>●</div>"
-            if is_today_d else
-            "<div style='height:13px;'></div>"
+            if is_today_d else "<div style='height:13px;'></div>"
         )
         st.markdown(dot_html, unsafe_allow_html=True)
         day_color = "#4CAF50" if is_today_d else TEXT_MUTED
@@ -535,7 +513,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
     with tab:
         schedule = st.session_state.schedule[day_key]
 
-        # Today badge — shows task count + total scheduled time
         if day_key == today_key:
             named_today = [tk for tk in schedule if tk.get("task", "").strip()]
             done_today  = sum(1 for tk in named_today if tk.get("done", False))
@@ -552,7 +529,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 unsafe_allow_html=True
             )
 
-        # ── Clear-day confirmation ─────────────────────────────────────────────
         if st.session_state[f"{day_key}_clear_confirm"]:
             st.markdown(
                 '<div class="danger-confirm">⚠️ '
@@ -586,7 +562,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     st.session_state[f"{day_key}_clear_confirm"] = False
                     st.rerun()
 
-        # ── Progress bar ───────────────────────────────────────────────────────
         named   = [tk for tk in schedule if tk.get("task", "").strip()]
         n_total = len(named)
         n_done  = sum(1 for tk in named if tk.get("done", False))
@@ -613,7 +588,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 </div>
                 """, unsafe_allow_html=True)
 
-        # ── Per-day total scheduled time strip ────────────────────────────────
         day_total_min = total_day_minutes(schedule)
         if day_total_min > 0:
             total_lbl = {
@@ -635,7 +609,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 unsafe_allow_html=True
             )
 
-        # ── Empty state ────────────────────────────────────────────────────────
         if not schedule:
             no_tasks_msg = {
                 "badini":  "هیچ کارێک نییە.",
@@ -655,7 +628,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             </div>
             """, unsafe_allow_html=True)
         else:
-            # Column headers
             h1, h2, h3, h4 = st.columns([2.8, 0.7, 4.8, 0.7])
             with h1:
                 st.markdown(f'<div class="col-header"><span>🕐 {col_time_label}</span></div>', unsafe_allow_html=True)
@@ -682,10 +654,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     except Exception:
                         end_val = datetime.strptime("08:00", "%H:%M").time()
 
-                    # ── BUG FIX: read live widget value from session_state ──────
-                    # Streamlit pre-populates session_state with current widget
-                    # values BEFORE the script runs, so this is always up-to-date,
-                    # unlike entry['start'] which is one run behind.
                     _sk = f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}"
                     _ek = f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}"
                     _live_s = st.session_state.get(_sk, start_val)
@@ -695,33 +663,22 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     _cap_e  = (_live_e.strftime("%H:%M") if hasattr(_live_e, "strftime")
                                else entry.get("end", "--:--"))
 
-                    # Styled live time-range pill (replaces stale st.caption)
                     st.markdown(
                         f'<div class="time-pill">🕐 {_cap_s} → {_cap_e}</div>',
                         unsafe_allow_html=True
                     )
 
                     start_time = st.time_input(
-                        time_start_label,
-                        value=start_val,
-                        key=_sk,
+                        time_start_label, value=start_val, key=_sk,
                         label_visibility="collapsed"
                     )
                     end_time = st.time_input(
-                        time_end_label,
-                        value=end_val,
-                        key=_ek,
+                        time_end_label, value=end_val, key=_ek,
                         label_visibility="collapsed"
                     )
-                    dur = format_duration(
-                        start_time.strftime("%H:%M"),
-                        end_time.strftime("%H:%M")
-                    )
+                    dur = format_duration(start_time.strftime("%H:%M"), end_time.strftime("%H:%M"))
                     if dur:
-                        st.markdown(
-                            f'<span class="duration-badge">⏱ {dur}</span>',
-                            unsafe_allow_html=True
-                        )
+                        st.markdown(f'<span class="duration-badge">⏱ {dur}</span>', unsafe_allow_html=True)
 
                 with c_done:
                     done = st.checkbox(
@@ -744,25 +701,20 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                         key=f"{day_key}_del_{i}_{st.session_state[f'{day_key}_reset']}"
                     )
 
-                # Write widget values back to schedule
                 if entry.get("done", False) != done:
                     entry["done"] = done
                     changed = done_changed = True
-
                 if entry.get("task", "") != task_text:
                     entry["task"] = task_text
                     changed = True
-
                 ns = start_time.strftime("%H:%M")
                 if entry.get("start") != ns:
                     entry["start"] = ns
                     changed = True
-
                 ne = end_time.strftime("%H:%M")
                 if entry.get("end") != ne:
                     entry["end"] = ne
                     changed = True
-
                 if delete_btn:
                     schedule.pop(i)
                     st.session_state.schedule[day_key] = schedule
@@ -778,14 +730,11 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
 
         st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
 
-        # ── Action buttons ─────────────────────────────────────────────────────
         st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
         b1, b2, b3, b4 = st.columns(4)
 
         with b1:
-            add_lbl = {
-                "badini": "➕ زیادکردن", "english": "➕ Add Task", "arabic": "➕ إضافة",
-            }
+            add_lbl = {"badini": "➕ زیادکردن", "english": "➕ Add Task", "arabic": "➕ إضافة"}
             if st.button(
                 add_lbl.get(st.session_state.lang, "➕ Add Task"),
                 key=f"{day_key}_add_{st.session_state[f'{day_key}_reset']}",
@@ -797,13 +746,8 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.rerun()
 
         with b2:
-            has_incomplete = any(
-                not e.get("done", False)
-                for e in schedule if e.get("task", "").strip()
-            )
-            mark_lbl = {
-                "badini": "✅ هەموو", "english": "✅ All Done", "arabic": "✅ إتمام الكل",
-            }
+            has_incomplete = any(not e.get("done", False) for e in schedule)
+            mark_lbl = {"badini": "✅ هەموو", "english": "✅ All Done", "arabic": "✅ إتمام الكل"}
             if st.button(
                 mark_lbl.get(st.session_state.lang, "✅ All Done"),
                 key=f"{day_key}_markall_{st.session_state[f'{day_key}_reset']}",
@@ -816,14 +760,11 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.rerun()
 
         with b3:
-            sort_lbl = {
-                "badini": "🔃 ڕیزکردن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
-            }
+            sort_lbl = {"badini": "🔃 ڕیزکردن", "english": "🔃 Sort", "arabic": "🔃 ترتيب"}
             if st.button(
                 sort_lbl.get(st.session_state.lang, "🔃 Sort"),
                 key=f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}",
-                use_container_width=True, disabled=len(schedule) <= 1,
-                help="Sort tasks by start time"
+                use_container_width=True, disabled=len(schedule) <= 1
             ):
                 schedule.sort(key=lambda e: parse_time(e.get("start", "00:00")))
                 st.session_state.schedule[day_key] = schedule
@@ -832,9 +773,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.rerun()
 
         with b4:
-            clear_lbl = {
-                "badini": "🗑️ ژێبرن", "english": "🗑️ Clear", "arabic": "🗑️ مسح",
-            }
+            clear_lbl = {"badini": "🗑️ سڕینەوە", "english": "🗑️ Clear", "arabic": "🗑️ مسح"}
             if st.button(
                 clear_lbl.get(st.session_state.lang, "🗑️ Clear"),
                 key=f"{day_key}_clear_{st.session_state[f'{day_key}_reset']}",
