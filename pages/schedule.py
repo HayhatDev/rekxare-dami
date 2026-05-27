@@ -127,7 +127,6 @@ if "schedule" not in st.session_state:
         base.update(loaded)
     st.session_state.schedule = base
 
-# Ensure every day key exists even if the saved file was partial
 for dk, _, _ in DAYS:
     if dk not in st.session_state.schedule:
         st.session_state.schedule[dk] = []
@@ -140,7 +139,7 @@ today_map = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat
 today_key = today_map[datetime.now().weekday()]
 is_dark   = st.session_state.dark_mode
 
-# ── Theme ──────────────────────────────────────────────────────────────────────
+# ── Theme tokens ───────────────────────────────────────────────────────────────
 if is_dark:
     APP_BG        = "#1a1a2e"
     SB_BG         = "#16213e"
@@ -206,6 +205,8 @@ section[data-testid="stMain"],
 }}
 
 [data-testid="stCheckbox"] svg {{ stroke: #4CAF50 !important; }}
+/* Remove the extra padding we previously added via wrapper div */
+[data-testid="stCheckbox"]     {{ margin-top: 6px !important; }}
 
 .stButton > button {{
     background-color: {BTN_BG} !important;
@@ -223,7 +224,7 @@ section[data-testid="stMain"],
 }}
 .stButton > button:disabled {{ opacity: 0.30 !important; }}
 
-/* Delete column button */
+/* Delete button — 4th column, no wrapper div needed */
 [data-testid="column"]:nth-child(4) .stButton > button {{
     background: transparent !important;
     color: #ef5350 !important;
@@ -236,38 +237,55 @@ section[data-testid="stMain"],
     border-color: #ef5350 !important;
 }}
 
-/* Themed action buttons */
-.add-task-anchor   .stButton > button {{
+/* ── Action buttons via invisible anchor — NO wrapper divs ── */
+/* Anchor is placed immediately before the 4-column row */
+.action-row-anchor {{ display: none !important; }}
+
+/* Add task — col 1: green */
+.element-container:has(.action-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(1) .stButton > button {{
     background: linear-gradient(135deg,#43a047,#66bb6a) !important;
     color: #fff !important; border-color: #388e3c !important;
     font-size: 14px !important; padding: 10px !important;
 }}
-.mark-all-anchor   .stButton > button {{
+/* Mark all — col 2: blue */
+.element-container:has(.action-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton > button:not(:disabled) {{
     background: linear-gradient(135deg,#1565c0,#1e88e5) !important;
     color: #fff !important; border-color: #0d47a1 !important;
     font-size: 13px !important;
 }}
-.sort-anchor       .stButton > button {{
+/* Sort — col 3: purple */
+.element-container:has(.action-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button:not(:disabled) {{
     background: linear-gradient(135deg,#6a1b9a,#ab47bc) !important;
     color: #fff !important; border-color: #4a148c !important;
     font-size: 13px !important;
 }}
-.clear-anchor      .stButton > button {{
+/* Clear — col 4: transparent red */
+.element-container:has(.action-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(4) .stButton > button {{
     background: transparent !important;
     color: #ef5350 !important;
     border-color: #ef535044 !important;
     font-size: 13px !important;
 }}
-.clear-anchor      .stButton > button:hover {{
+.element-container:has(.action-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(4) .stButton > button:hover {{
     background: rgba(239,83,80,0.10) !important;
     border-color: #ef5350 !important;
 }}
-.clear-confirm-yes .stButton > button {{
+
+/* ── Confirm row via anchor — YES button is red ── */
+.confirm-row-anchor {{ display: none !important; }}
+
+.element-container:has(.confirm-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(1) .stButton > button {{
     background: linear-gradient(135deg,#c62828,#ef5350) !important;
     color: #fff !important; border-color: #b71c1c !important;
 }}
 
-/* Week overview card wrapper */
+/* Week overview card */
 .week-card {{
     background: {OVERVIEW_BG};
     border: 1px solid {OVERVIEW_BDR};
@@ -295,7 +313,7 @@ section[data-testid="stMain"],
     padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;
 }}
 
-/* Progress bar (per-day) */
+/* Per-day progress bar */
 .prog-wrap   {{ margin-bottom: 16px; }}
 .prog-header {{
     display: flex; justify-content: space-between; align-items: center;
@@ -373,10 +391,14 @@ with dm_col:
         st.rerun()
 
 # ── Week overview ──────────────────────────────────────────────────────────────
-# Use native st.columns + st.progress — avoids Streamlit's markdown-parser
-# stripping dynamically-built HTML strings.
+_weekly_title = {
+    "badini":  "📊 پیشکەوتنی هەفتانە",
+    "english": "📊 Weekly Progress",
+    "arabic":  "📊 التقدم الأسبوعي",
+}.get(st.session_state.lang, "📊 Weekly Progress")
+
 st.markdown('<div class="week-card">', unsafe_allow_html=True)
-st.markdown('<div class="week-card-title">📊 Weekly Progress</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="week-card-title">{_weekly_title}</div>', unsafe_allow_html=True)
 
 week_cols = st.columns(7)
 for col, (dk, _, eng) in zip(week_cols, DAYS):
@@ -388,9 +410,8 @@ for col, (dk, _, eng) in zip(week_cols, DAYS):
     short      = eng[:3].upper()
     count      = f"{done}/{total}" if total else "—"
     with col:
-        # Today dot
         dot_html = (
-            f"<div style='text-align:center;font-size:8px;color:#4CAF50;'>●</div>"
+            "<div style='text-align:center;font-size:8px;color:#4CAF50;'>●</div>"
             if is_today_d else
             "<div style='height:14px;'></div>"
         )
@@ -443,35 +464,44 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         # ── Clear-day confirmation flow ────────────────────────────────────────
         if st.session_state[f"{day_key}_clear_confirm"]:
             st.markdown(
-                '<div class="danger-confirm">⚠️ Clear all tasks for this day?</div>',
+                '<div class="danger-confirm">⚠️ '
+                + {
+                    "badini":  "هەموو کارەکان بسڕێنەوە؟",
+                    "english": "Clear all tasks for this day?",
+                    "arabic":  "مسح جميع المهام لهذا اليوم؟",
+                  }.get(st.session_state.lang, "Clear all tasks for this day?")
+                + '</div>',
                 unsafe_allow_html=True
             )
+            # FIX: anchor before columns — no wrapper divs around buttons
+            st.markdown('<div class="confirm-row-anchor"></div>', unsafe_allow_html=True)
             cc1, cc2 = st.columns(2)
             with cc1:
-                st.markdown('<div class="clear-confirm-yes">', unsafe_allow_html=True)
-                if st.button("✓ Yes, clear",
-                             key=f"{day_key}_clear_yes", use_container_width=True):
+                if st.button(
+                    "✓ " + {"badini": "بەڵێ", "english": "Yes, clear", "arabic": "نعم، امسح"}.get(st.session_state.lang, "Yes"),
+                    key=f"{day_key}_clear_yes", use_container_width=True
+                ):
                     st.session_state.schedule[day_key] = []
                     st.session_state[f"{day_key}_reset"] += 1
                     st.session_state[f"{day_key}_clear_confirm"] = False
                     save_schedule()
                     st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
             with cc2:
-                if st.button("✗ Cancel",
-                             key=f"{day_key}_clear_no", use_container_width=True):
+                if st.button(
+                    "✗ " + {"badini": "نەخێر", "english": "Cancel", "arabic": "إلغاء"}.get(st.session_state.lang, "Cancel"),
+                    key=f"{day_key}_clear_no", use_container_width=True
+                ):
                     st.session_state[f"{day_key}_clear_confirm"] = False
                     st.rerun()
 
         # ── Progress bar ───────────────────────────────────────────────────────
-        # Only count tasks that have a name — consistent with tab badge
         named   = [tk for tk in schedule if tk.get("task", "").strip()]
         n_total = len(named)
         n_done  = sum(1 for tk in named if tk.get("done", False))
 
         if n_total > 0:
-            pct       = int((n_done / n_total) * 100)
-            all_done  = n_done == n_total
+            pct      = int((n_done / n_total) * 100)
+            all_done = n_done == n_total
             bar_color = "#2196F3" if all_done else "#4CAF50"
             if all_done:
                 st.markdown(
@@ -505,7 +535,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             </div>
             """, unsafe_allow_html=True)
         else:
-            # ── Column headers ─────────────────────────────────────────────────
+            # Column headers
             h1, h2, h3, h4 = st.columns([2.8, 0.7, 4.8, 0.7])
             with h1: st.caption("🕐 " + col_time_label)
             with h2: st.caption("✅")
@@ -521,14 +551,13 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 with c_time:
                     try:
                         start_val = datetime.strptime(entry["start"], "%H:%M").time()
-                    except:
+                    except Exception:
                         start_val = datetime.strptime("07:00", "%H:%M").time()
                     try:
                         end_val = datetime.strptime(entry["end"], "%H:%M").time()
-                    except:
+                    except Exception:
                         end_val = datetime.strptime("08:00", "%H:%M").time()
 
-                    # عرض الوقت الحالي كنص صغير
                     st.caption(f"{entry['start']} — {entry['end']}")
 
                     start_time = st.time_input(
@@ -554,13 +583,12 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                         )
 
                 with c_done:
-                    st.markdown('<div style="padding-top:6px;">', unsafe_allow_html=True)
+                    # FIX: removed wrapper div — padding now applied via CSS margin-top
                     done = st.checkbox(
                         "", value=entry.get("done", False),
                         key=f"{day_key}_done_{i}_{st.session_state[f'{day_key}_reset']}",
                         label_visibility="collapsed"
                     )
-                    st.markdown('</div>', unsafe_allow_html=True)
 
                 with c_task:
                     task_text = st.text_input(
@@ -571,13 +599,13 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     )
 
                 with c_del:
-                    st.write("")
+                    # FIX: removed st.write("") — extra blank element gone
                     delete_btn = st.button(
                         "✕",
                         key=f"{day_key}_del_{i}_{st.session_state[f'{day_key}_reset']}"
                     )
 
-                # Apply widget values to session state
+                # Apply widget values back to schedule
                 if entry.get("done", False) != done:
                     entry["done"] = done
                     changed = done_changed = True
@@ -607,15 +635,17 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.session_state.schedule[day_key] = schedule
                 save_schedule()
                 if done_changed:
-                    st.rerun()   # refresh progress bar immediately on checkbox flip
+                    st.rerun()
 
         st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
 
         # ── Action buttons ─────────────────────────────────────────────────────
+        # FIX: anchor before columns — CSS targets each button by nth-child
+        # No wrapper divs around st.button() calls (those cause double elements)
+        st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
         b1, b2, b3, b4 = st.columns(4)
 
         with b1:
-            st.markdown('<div class="add-task-anchor">', unsafe_allow_html=True)
             if st.button(
                 t("add_task"),
                 key=f"{day_key}_add_{st.session_state[f'{day_key}_reset']}",
@@ -625,7 +655,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.session_state.schedule[day_key] = schedule
                 save_schedule()
                 st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
 
         with b2:
             has_incomplete = any(
@@ -633,9 +662,8 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 for e in schedule if e.get("task", "").strip()
             )
             mark_lbl = {
-                "badini":  "✅ هەموو", "english": "✅ All Done", "arabic": "✅ إتمام الكل",
+                "badini": "✅ هەموو", "english": "✅ All Done", "arabic": "✅ إتمام الكل",
             }
-            st.markdown('<div class="mark-all-anchor">', unsafe_allow_html=True)
             if st.button(
                 mark_lbl.get(st.session_state.lang, "✅ All Done"),
                 key=f"{day_key}_markall_{st.session_state[f'{day_key}_reset']}",
@@ -646,13 +674,11 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.session_state.schedule[day_key] = schedule
                 save_schedule()
                 st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
 
         with b3:
             sort_lbl = {
                 "badini": "🔃 ڕیزکردن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
             }
-            st.markdown('<div class="sort-anchor">', unsafe_allow_html=True)
             if st.button(
                 sort_lbl.get(st.session_state.lang, "🔃 Sort"),
                 key=f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}",
@@ -664,13 +690,11 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.session_state[f"{day_key}_reset"] += 1
                 save_schedule()
                 st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
 
         with b4:
             clear_lbl = {
                 "badini": "🗑️ سڕینەوە", "english": "🗑️ Clear", "arabic": "🗑️ مسح",
             }
-            st.markdown('<div class="clear-anchor">', unsafe_allow_html=True)
             if st.button(
                 clear_lbl.get(st.session_state.lang, "🗑️ Clear"),
                 key=f"{day_key}_clear_{st.session_state[f'{day_key}_reset']}",
@@ -678,4 +702,3 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             ):
                 st.session_state[f"{day_key}_clear_confirm"] = True
                 st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
