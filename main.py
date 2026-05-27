@@ -91,7 +91,6 @@ def save_data():
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def load_today_schedule():
-    """Load today's tasks from the schedule file, returns list of task dicts."""
     today_map = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat"}
     today_key = today_map[datetime.now().weekday()]
     if os.path.exists(SCHEDULE_FILE):
@@ -137,13 +136,13 @@ daily_pct      = min(100, int(st.session_state.daily_seconds /
                                max(1, st.session_state.daily_goal_seconds) * 100))
 daily_done_min = st.session_state.daily_seconds // 60
 daily_goal_min = st.session_state.daily_goal_seconds // 60
-
-today_h = st.session_state.daily_seconds // 3600
-today_m = (st.session_state.daily_seconds % 3600) // 60
+today_h        = st.session_state.daily_seconds // 3600
+today_m        = (st.session_state.daily_seconds % 3600) // 60
 
 _days_map = {"badini": "رۆژ", "english": "days", "arabic": "يوم"}
 days_lbl  = _days_map.get(st.session_state.lang, "رۆژ")
 
+# ── Colour tokens ──────────────────────────────────────────────────────────────
 if is_dark:
     APP_BG         = "#1a1a2e"
     SB_BG          = "#16213e"
@@ -288,6 +287,7 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 .stButton > button:active:not(:disabled) {{ transform: translateY(0px) !important; }}
 .stButton > button:disabled              {{ opacity: 0.35 !important; cursor: not-allowed !important; }}
 
+/* Timer control buttons — coloured via invisible anchor, no wrapper divs */
 .tcb-anchor {{ display: none !important; }}
 
 .element-container:has(.tcb-anchor) + div
@@ -413,40 +413,15 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
     text-transform: uppercase; color: {TEXT_MUTED} !important;
     margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
 }}
-.sched-item {{
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px; border-radius: 10px; margin-bottom: 4px;
-    font-size: 13px;
-}}
-.sched-item-done {{
-    background: {SCHED_DONE_BG};
-    opacity: 0.65;
-}}
-.sched-item-todo {{
-    background: {SCHED_TODO_BG};
-}}
-.sched-time {{
-    font-size: 11px; font-weight: 600;
-    color: {TEXT_MUTED} !important;
-    min-width: 80px; flex-shrink: 0;
-}}
-.sched-task {{ font-weight: 500; flex: 1; }}
+.sched-item      {{ display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; margin-bottom: 4px; font-size: 13px; }}
+.sched-item-done {{ background: {SCHED_DONE_BG}; opacity: 0.65; }}
+.sched-item-todo {{ background: {SCHED_TODO_BG}; }}
+.sched-time      {{ font-size: 11px; font-weight: 600; color: {TEXT_MUTED} !important; min-width: 80px; flex-shrink: 0; }}
+.sched-task      {{ font-weight: 500; flex: 1; }}
 .sched-task-done {{ text-decoration: line-through; color: {TEXT_MUTED} !important; }}
-.sched-check {{ flex-shrink: 0; }}
-.sched-empty {{
-    font-size: 13px; color: {TEXT_MUTED} !important;
-    text-align: center; padding: 12px; font-style: italic;
-}}
-.sched-prog-wrap {{
-    margin-top: 10px;
-    background: {PROG_TRACK};
-    border-radius: 99px;
-    height: 5px;
-    overflow: hidden;
-}}
-.sched-prog-fill {{
-    height: 5px; border-radius: 99px;
-}}
+.sched-check     {{ flex-shrink: 0; }}
+.sched-prog-wrap {{ margin-top: 10px; background: {PROG_TRACK}; border-radius: 99px; height: 5px; overflow: hidden; }}
+.sched-prog-fill {{ height: 5px; border-radius: 99px; }}
 
 hr {{ border-color: {DIVIDER} !important; margin: 18px 0 !important; }}
 
@@ -465,7 +440,9 @@ hr {{ border-color: {DIVIDER} !important; margin: 18px 0 !important; }}
 </style>
 """, unsafe_allow_html=True)
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  SIDEBAR
+# ══════════════════════════════════════════════════════════════════════════════
 with st.sidebar:
     st.markdown(f"""
     <div style="padding:22px 4px 8px;">
@@ -590,20 +567,40 @@ with st.sidebar:
                 st.session_state.confirm_clear = False
                 st.rerun()
 
-# ── Main page ─────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  MAIN PAGE
+# ══════════════════════════════════════════════════════════════════════════════
 
-# Name input — persists in session state and is saved to disk
-_saved_name = st.session_state.get("student_name", "") or t("default_name")
+# ── Name input ─────────────────────────────────────────────────────────────────
+# FIX: Streamlit caches the widget value by key, so `value=` only applies on
+# first render. When the user changes language, the old language's default name
+# string is still stored in student_name (it's truthy), so the new placeholder
+# never appears.
+#
+# Solution: treat any default_name from any language as "not a real name".
+# If student_name is one of those, show an empty field — the placeholder
+# (which IS translated) will then be visible in the current language.
+_all_defaults = {
+    TRANSLATIONS.get(lng, {}).get("default_name", "")
+    for lng in ("badini", "english", "arabic")
+}
+_raw_name    = st.session_state.get("student_name", "")
+_display_val = "" if _raw_name in _all_defaults else _raw_name
+
 nav = st.text_input(
     t("enter_name"),
-    value=_saved_name,
+    value=_display_val,
     label_visibility="collapsed",
-    placeholder=t("default_name")
+    placeholder=t("default_name"),
 )
+# When the field is blank, fall back to the translated placeholder for display
+_effective_name = nav.strip() or t("default_name")
+
 if nav != st.session_state.get("student_name", ""):
     st.session_state.student_name = nav
     save_data()
 
+# ── Greeting card ──────────────────────────────────────────────────────────────
 kurd_greet, eng_greet = get_greeting()
 h_now = datetime.now().hour
 greet_emoji = ("🌅" if 5 <= h_now < 12 else "☀️" if 12 <= h_now < 17 else
@@ -614,14 +611,14 @@ st.markdown(f"""
 <div class="greet-card">
     <div class="greet-emoji">{greet_emoji}</div>
     <div style="min-width:0;">
-        <div class="greet-name">{kurd_greet}، {nav}!</div>
+        <div class="greet-name">{kurd_greet}، {_effective_name}!</div>
         <div class="greet-sub">{eng_greet} — {t('welcome')} 📚</div>
         <div class="greet-time">{now_str}</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Today's Schedule preview ──────────────────────────────────────────────────
+# ── Today's schedule preview ───────────────────────────────────────────────────
 _today_key, today_tasks = load_today_schedule()
 DAYS_SHORT = {
     "sun": ("Sunday", "☀️"), "mon": ("Monday", "📖"), "tue": ("Tuesday", "📖"),
@@ -630,48 +627,48 @@ DAYS_SHORT = {
 }
 _day_eng, _day_emoji = DAYS_SHORT.get(_today_key, ("Today", "📅"))
 
-today_tasks_with_task = [t_item for t_item in today_tasks if t_item.get("task", "").strip()]
+today_tasks_with_task = [ti for ti in today_tasks if ti.get("task", "").strip()]
 if today_tasks_with_task:
-    done_count  = sum(1 for t_item in today_tasks_with_task if t_item.get("done", False))
+    done_count  = sum(1 for ti in today_tasks_with_task if ti.get("done", False))
     total_count = len(today_tasks_with_task)
     pct_sched   = int((done_count / total_count) * 100) if total_count else 0
     prog_color  = "#2196F3" if done_count == total_count else "#4CAF50"
 
-    sched_title_map = {
-        "badini": f"📅 بەرنامەی ئەمرۆ — {_day_emoji} {_day_eng}",
+    sched_title = {
+        "badini":  f"📅 بەرنامەی ئەمرۆ — {_day_emoji} {_day_eng}",
         "english": f"📅 Today's Schedule — {_day_emoji} {_day_eng}",
-        "arabic": f"📅 جدول اليوم — {_day_emoji} {_day_eng}",
-    }
-    sched_title = sched_title_map.get(st.session_state.lang, f"📅 Today — {_day_eng}")
+        "arabic":  f"📅 جدول اليوم — {_day_emoji} {_day_eng}",
+    }.get(st.session_state.lang, f"📅 Today — {_day_eng}")
 
     rows_html = []
-    for t_item in today_tasks_with_task[:6]:
-        done_cls  = "sched-item-done" if t_item.get("done") else "sched-item-todo"
-        task_cls  = "sched-task-done" if t_item.get("done") else "sched-task"
-        check_ico = "✅" if t_item.get("done") else "⬜"
-        time_label = f"{t_item.get('start', '')} – {t_item.get('end', '')}"
-        task_name = t_item.get("task", "")
+    for ti in today_tasks_with_task[:6]:
+        done_cls  = "sched-item-done" if ti.get("done") else "sched-item-todo"
+        task_cls  = "sched-task-done" if ti.get("done") else "sched-task"
+        check_ico = "✅" if ti.get("done") else "⬜"
         rows_html.append(f"""
         <div class="sched-item {done_cls}">
-            <span class="sched-time">{time_label}</span>
-            <span class="{task_cls}">{task_name}</span>
+            <span class="sched-time">{ti.get('start','')} – {ti.get('end','')}</span>
+            <span class="{task_cls}">{ti.get('task','')}</span>
             <span class="sched-check">{check_ico}</span>
-        </div>
-        """)
+        </div>""")
 
     if len(today_tasks_with_task) > 6:
         extra = len(today_tasks_with_task) - 6
-        extra_lbl = f"+{extra} more" if st.session_state.lang == "english" else f"+{extra}"
-        rows_html.append(f'<div style="font-size:11px;color:{TEXT_MUTED};padding:4px 10px;">{extra_lbl}</div>')
-
-    rows_joined = "".join(rows_html)
+        extra_lbl = (f"+{extra} more"   if st.session_state.lang == "english" else
+                     f"+{extra} زیاتر"  if st.session_state.lang == "badini"  else
+                     f"+{extra} أكثر")
+        rows_html.append(
+            f'<div style="font-size:11px;color:{TEXT_MUTED};padding:4px 10px;">{extra_lbl}</div>'
+        )
 
     st.markdown(f"""
     <div class="sched-card">
         <div class="sched-title">{sched_title}
-            <span style="margin-left:auto;font-size:11px;color:{TEXT_MUTED};font-weight:500;letter-spacing:0;">{done_count}/{total_count} — {pct_sched}%</span>
+            <span style="margin-left:auto;font-size:11px;color:{TEXT_MUTED};font-weight:500;letter-spacing:0;">
+                {done_count}/{total_count} — {pct_sched}%
+            </span>
         </div>
-        {rows_joined}
+        {"".join(rows_html)}
         <div class="sched-prog-wrap">
             <div class="sched-prog-fill" style="width:{pct_sched}%;background:{prog_color};"></div>
         </div>
@@ -680,17 +677,18 @@ if today_tasks_with_task:
 
 st.divider()
 
-# ── Timer section ─────────────────────────────────────────────────────────────
+# ── Timer section ──────────────────────────────────────────────────────────────
 subjects_list = t("subjects")
 if not isinstance(subjects_list, list):
     subjects_list = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("subjects", [])
 
-ders = st.selectbox(t("select_subject"), subjects_list)
+ders      = st.selectbox(t("select_subject"), subjects_list)
 arc_color = subject_color(ders)
 
-deqe = st.slider(t("minutes_question"), 1, 240, 25)
+deqe          = st.slider(t("minutes_question"), 1, 240, 25)
 total_seconds = deqe * 60
 
+# Invisible anchor — CSS targets col-1 (green) and col-2 (orange) without wrapper divs
 st.markdown('<div class="tcb-anchor"></div>', unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
@@ -743,6 +741,7 @@ if dubare:
     st.session_state.remaining_at_pause = 0
     st.rerun()
 
+# ── SVG circle timer ───────────────────────────────────────────────────────────
 def render_circle(mins_val, secs_val, progress, color):
     dash = progress * 100.0
     glow = f"filter:drop-shadow(0 0 10px {color}aa);" if progress > 0 else ""
@@ -775,7 +774,7 @@ if st.session_state.timer_running and st.session_state.end_time:
         mv, sv_ = divmod(int(remaining), 60)
         prog = min(1.0, 1.0 - (remaining / max(1, st.session_state.total_seconds)))
         render_circle(mv, sv_, prog, arc_color)
-        st.success(t("timer_running", name=nav, minutes=deqe, subject=ders))
+        st.success(t("timer_running", name=_effective_name, minutes=deqe, subject=ders))
         st.info(f"💬 {random.choice(hezt)}")
         time.sleep(1)
         st.rerun()
