@@ -442,7 +442,7 @@ st.markdown(f"""
 
 # ── Week overview ──────────────────────────────────────────────────────────────
 _weekly_title = {
-    "badini":  "📊 پیشکەوتنی هەفتانە",
+    "badini":  "📊 پێشکەفتنا حەفتیانە",
     "english": "📊 Weekly Overview",
     "arabic":  "📊 التقدم الأسبوعي",
 }.get(st.session_state.lang, "📊 Weekly Overview")
@@ -533,7 +533,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             st.markdown(
                 '<div class="danger-confirm">⚠️ '
                 + {
-                    "badini":  "هەموو کارەکان بسڕێنەوە؟",
+                    "badini":  "هەمی کاران ژێببە؟",
                     "english": "Clear all tasks for this day?",
                     "arabic":  "مسح جميع المهام لهذا اليوم؟",
                   }.get(st.session_state.lang, "Clear all tasks for this day?")
@@ -544,7 +544,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             cc1, cc2 = st.columns(2)
             with cc1:
                 if st.button(
-                    "✓ " + {"badini": "بەڵێ، بسڕەوە", "english": "Yes, clear", "arabic": "نعم، امسح"}.get(
+                    "✓ " + {"badini": "بەلێ، ژێببە", "english": "Yes, clear", "arabic": "نعم، امسح"}.get(
                         st.session_state.lang, "Yes"),
                     key=f"{day_key}_clear_yes", use_container_width=True
                 ):
@@ -591,7 +591,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         day_total_min = total_day_minutes(schedule)
         if day_total_min > 0:
             total_lbl = {
-                "badini":  f"⏱ کۆی کات: {fmt_minutes(day_total_min)}",
+                "badini":  f"⏱ هەمی دەم: {fmt_minutes(day_total_min)}",
                 "english": f"⏱ Total scheduled: {fmt_minutes(day_total_min)}",
                 "arabic":  f"⏱ إجمالي الوقت: {fmt_minutes(day_total_min)}",
             }.get(st.session_state.lang, f"⏱ {fmt_minutes(day_total_min)}")
@@ -611,7 +611,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
 
         if not schedule:
             no_tasks_msg = {
-                "badini":  "هیچ کارێک نییە.",
+                "badini":  "هیچ كار نينە.",
                 "english": "No tasks yet.",
                 "arabic":  "لا توجد مهام بعد.",
             }
@@ -734,7 +734,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         b1, b2, b3, b4 = st.columns(4)
 
         with b1:
-            add_lbl = {"badini": "➕ زیادکردن", "english": "➕ Add Task", "arabic": "➕ إضافة"}
+            add_lbl = {"badini": "➕ زێدەکرن", "english": "➕ Add Task", "arabic": "➕ إضافة"}
             if st.button(
                 add_lbl.get(st.session_state.lang, "➕ Add Task"),
                 key=f"{day_key}_add_{st.session_state[f'{day_key}_reset']}",
@@ -773,7 +773,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.rerun()
 
         with b4:
-            clear_lbl = {"badini": "🗑️ سڕینەوە", "english": "🗑️ Clear", "arabic": "🗑️ مسح"}
+            clear_lbl = {"badini": "🗑️ ژێبرن", "english": "🗑️ Clear", "arabic": "🗑️ مسح"}
             if st.button(
                 clear_lbl.get(st.session_state.lang, "🗑️ Clear"),
                 key=f"{day_key}_clear_{st.session_state[f'{day_key}_reset']}",
