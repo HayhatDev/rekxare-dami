@@ -518,31 +518,31 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             for i, entry in enumerate(schedule):
                 c_time, c_done, c_task, c_del = st.columns([2.8, 0.7, 4.8, 0.7])
 
-            with c_time:
-                try:
-                    start_val = datetime.strptime(entry["start"], "%H:%M").time()
-                except:
-                    start_val = datetime.strptime("07:00", "%H:%M").time()
-                try:
-                    end_val = datetime.strptime(entry["end"], "%H:%M").time()
-                except:
-                    end_val = datetime.strptime("08:00", "%H:%M").time()
+                with c_time:
+                    try:
+                        start_val = datetime.strptime(entry["start"], "%H:%M").time()
+                    except:
+                        start_val = datetime.strptime("07:00", "%H:%M").time()
+                    try:
+                        end_val = datetime.strptime(entry["end"], "%H:%M").time()
+                    except:
+                        end_val = datetime.strptime("08:00", "%H:%M").time()
 
-                # عرض الوقت الحالي كنص صغير
-                st.caption(f"{entry['start']} — {entry['end']}")
+                    # عرض الوقت الحالي كنص صغير
+                    st.caption(f"{entry['start']} — {entry['end']}")
 
-                start_time = st.time_input(
-                    time_start_label,
-                    value=start_val,
-                    key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}",
-                    label_visibility="collapsed"
-                )
-                end_time = st.time_input(
-                    time_end_label,
-                    value=end_val,
-                    key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}",
-                    label_visibility="collapsed"
-                )
+                    start_time = st.time_input(
+                        time_start_label,
+                        value=start_val,
+                        key=f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}",
+                        label_visibility="collapsed"
+                    )
+                    end_time = st.time_input(
+                        time_end_label,
+                        value=end_val,
+                        key=f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}",
+                        label_visibility="collapsed"
+                    )
                     dur = format_duration(
                         start_time.strftime("%H:%M"),
                         end_time.strftime("%H:%M")
