@@ -109,6 +109,10 @@ if "data_loaded" not in st.session_state:
 if "confirm_clear" not in st.session_state:
     st.session_state.confirm_clear = False
 
+# Quote index persists within session so Refresh Quote button cycles through them
+if "quote_idx" not in st.session_state:
+    st.session_state.quote_idx = random.randint(0, 99)
+
 DEFAULTS = {
     "total_study_seconds": 0, "completed_sessions": 0,
     "last_subject": "—", "study_history": [], "dark_mode": False,
@@ -184,6 +188,15 @@ if is_dark:
     SCHED_BDR      = "rgba(255,255,255,0.10)"
     SCHED_DONE_BG  = "rgba(76,175,80,0.10)"
     SCHED_TODO_BG  = "rgba(255,255,255,0.03)"
+    QUOTE_BG       = "rgba(255,255,255,0.04)"
+    QUOTE_BDR      = "rgba(255,255,255,0.08)"
+    QUOTE_COLOR    = "#c5cae9"
+    SETUP_BG       = "rgba(255,255,255,0.04)"
+    SETUP_BDR      = "rgba(255,255,255,0.09)"
+    GOAL_WIN_BG    = "rgba(76,175,80,0.14)"
+    GOAL_WIN_BDR   = "rgba(76,175,80,0.30)"
+    PRESET_BG      = "rgba(255,255,255,0.06)"
+    PRESET_BDR     = "rgba(255,255,255,0.10)"
 else:
     APP_BG         = "#e8edf5"
     SB_BG          = "#f4f7fb"
@@ -225,6 +238,15 @@ else:
     SCHED_BDR      = "#dde3ed"
     SCHED_DONE_BG  = "rgba(76,175,80,0.07)"
     SCHED_TODO_BG  = "#f9fafb"
+    QUOTE_BG       = "#ffffff"
+    QUOTE_BDR      = "#dde3ed"
+    QUOTE_COLOR    = "#3949ab"
+    SETUP_BG       = "#ffffff"
+    SETUP_BDR      = "#dde3ed"
+    GOAL_WIN_BG    = "rgba(76,175,80,0.08)"
+    GOAL_WIN_BDR   = "rgba(76,175,80,0.22)"
+    PRESET_BG      = "#edf0f7"
+    PRESET_BDR     = "#c0cce0"
 
 st.markdown(f"""
 <style>
@@ -236,7 +258,6 @@ st.markdown(f"""
 section[data-testid="stMain"],
 .main .block-container          {{ background-color: {APP_BG} !important; }}
 [data-testid="stSidebar"]       {{ background-color: {SB_BG} !important; }}
-
 .stApp *,
 [data-testid="stSidebar"] *     {{ color: {TEXT_PRIMARY} !important; }}
 h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: -0.3px; }}
@@ -250,8 +271,7 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
     font-size: 14px !important;
     transition: border-color 0.2s ease !important;
 }}
-.stTextInput input:focus,
-.stSelectbox > div > div:focus  {{ border-color: #4CAF50 !important; }}
+.stTextInput input:focus {{ border-color: #4CAF50 !important; box-shadow: 0 0 0 2px rgba(76,175,80,0.15) !important; }}
 
 [data-testid="stRadio"] > div   {{ gap: 6px !important; }}
 [data-testid="stRadio"] label   {{
@@ -283,38 +303,83 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
     transition:       all 0.18s ease !important;
     width:            100% !important;
 }}
-.stButton > button:hover:not(:disabled)  {{ opacity: 0.80 !important; transform: translateY(-1px) !important; }}
+.stButton > button:hover:not(:disabled)  {{
+    opacity: 0.82 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.10) !important;
+}}
 .stButton > button:active:not(:disabled) {{ transform: translateY(0px) !important; }}
 .stButton > button:disabled              {{ opacity: 0.35 !important; cursor: not-allowed !important; }}
 
-/* Timer control buttons — coloured via invisible anchor, no wrapper divs */
+/* ── Timer control buttons — anchor approach, zero wrapper divs ── */
 .tcb-anchor {{ display: none !important; }}
-
 .element-container:has(.tcb-anchor) + div
     [data-testid="stHorizontalBlock"]
     > div:nth-child(1) .stButton button:not(:disabled) {{
     background: linear-gradient(135deg, #43a047, #66bb6a) !important;
-    color: #ffffff !important;
-    border-color: #388e3c !important;
+    color: #ffffff !important; border-color: #388e3c !important;
+    box-shadow: 0 3px 12px rgba(67,160,71,0.35) !important;
 }}
 .element-container:has(.tcb-anchor) + div
     [data-testid="stHorizontalBlock"]
     > div:nth-child(2) .stButton button:not(:disabled) {{
     background: linear-gradient(135deg, #ef6c00, #ffa726) !important;
-    color: #ffffff !important;
-    border-color: #e65100 !important;
+    color: #ffffff !important; border-color: #e65100 !important;
+    box-shadow: 0 3px 12px rgba(239,108,0,0.30) !important;
 }}
 
+/* ── Quick preset buttons anchor ── */
+.preset-anchor {{ display: none !important; }}
+.element-container:has(.preset-anchor) + div
+    [data-testid="stHorizontalBlock"] .stButton button {{
+    background: {PRESET_BG} !important;
+    color: {TEXT_PRIMARY} !important;
+    border: 1px solid {PRESET_BDR} !important;
+    border-radius: 20px !important;
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+    font-weight: 700 !important;
+}}
+.element-container:has(.preset-anchor) + div
+    [data-testid="stHorizontalBlock"] .stButton button:hover:not(:disabled) {{
+    border-color: #4CAF50 !important;
+    color: #4CAF50 !important;
+    background: {TAG_BG} !important;
+    box-shadow: none !important;
+    transform: translateY(-1px) !important;
+}}
+
+/* ── Cards ── */
 .timer-card {{
     background: {TIMER_CARD_BG}; border: 1px solid {TIMER_CARD_BDR};
     border-radius: 24px; padding: 28px 16px 20px;
-    margin: 12px 0 20px; text-align: center;
+    margin: 8px 0 16px; text-align: center;
     box-shadow: 0 2px 16px rgba(0,0,0,0.06);
 }}
 .timer-card svg {{
     width: min(260px, 82vw) !important;
     height: min(260px, 82vw) !important;
 }}
+.setup-card {{
+    background: {SETUP_BG}; border: 1px solid {SETUP_BDR};
+    border-radius: 18px; padding: 18px 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+}}
+.quote-card {{
+    background: {QUOTE_BG}; border: 1px solid {QUOTE_BDR};
+    border-radius: 16px; padding: 18px 20px;
+    margin: 4px 0 14px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+    position: relative;
+}}
+.quote-mark  {{ font-size: 36px; line-height: 1; opacity: 0.18; position: absolute; top: 12px; left: 16px; }}
+.quote-text  {{
+    font-size: 14px; font-weight: 500; font-style: italic;
+    color: {QUOTE_COLOR} !important; line-height: 1.6;
+    padding-left: 22px; padding-right: 8px;
+}}
+.quote-btn-row {{ display: flex; justify-content: flex-end; margin-top: 10px; }}
 
 .paused-banner {{
     background: {WARN_BG}; border: 1px solid {WARN_BDR};
@@ -323,12 +388,50 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
     margin-bottom: 8px;
 }}
 
+/* ── Goal achieved banner ── */
+.goal-win-banner {{
+    background: {GOAL_WIN_BG}; border: 1px solid {GOAL_WIN_BDR};
+    border-radius: 14px; padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(76,175,80,0.12);
+}}
+.goal-win-icon {{ font-size: 32px; line-height: 1; flex-shrink: 0; }}
+.goal-win-text {{ font-size: 14px; font-weight: 700; color: #4CAF50 !important; }}
+.goal-win-sub  {{ font-size: 12px; color: {TEXT_MUTED} !important; margin-top: 2px; font-weight: 400; }}
+
+/* ── Subject color dot ── */
+.subject-color-dot {{
+    display: inline-block; width: 10px; height: 10px;
+    border-radius: 50%; margin-right: 6px; flex-shrink: 0;
+    vertical-align: middle;
+}}
+.subject-pill {{
+    display: inline-flex; align-items: center;
+    background: {TAG_BG}; color: {TAG_COLOR} !important;
+    border-radius: 20px; padding: 4px 12px; font-size: 13px; font-weight: 700;
+    margin-bottom: 10px;
+}}
+
+/* ── Section headers ── */
+.section-hdr {{
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: {SECTION_LBL} !important;
+    margin: 20px 0 10px;
+}}
+.section-hdr span {{ color: {SECTION_LBL} !important; }}
+.section-line {{
+    flex: 1; height: 1px; background: {DIVIDER};
+}}
+
+/* ── Sidebar labels ── */
 .sb-lbl {{
     font-size: 10px; font-weight: 700; letter-spacing: 1.4px;
     text-transform: uppercase; color: {SECTION_LBL} !important;
     margin: 20px 0 8px 2px; display: block;
 }}
-
+/* ── Stat cards ── */
 .stat-row  {{ display: flex; gap: 10px; margin-bottom: 8px; }}
 .stat-card {{
     flex: 1; background: {CARD_BG}; border: 1px solid {CARD_BORDER};
@@ -338,7 +441,6 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 .stat-icon {{ font-size: 20px; margin-bottom: 5px; line-height: 1; }}
 .stat-val  {{ font-size: 16px; font-weight: 800; line-height: 1.2; }}
 .stat-lbl  {{ font-size: 10px; color: {TEXT_MUTED} !important; margin-top: 3px; }}
-
 .today-stat {{
     background: {TODAY_CARD_BG}; border: 1px solid {TODAY_CARD_BDR};
     border-radius: 14px; padding: 10px 14px; margin-bottom: 4px;
@@ -347,7 +449,7 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 }}
 .today-stat-label {{ font-size: 12px; font-weight: 600; }}
 .today-stat-val   {{ font-size: 15px; font-weight: 800; color: #4CAF50 !important; }}
-
+/* ── Streak ── */
 .streak-card {{
     background: {CARD_BG}; border: 1px solid {CARD_BORDER};
     border-radius: 14px; padding: 12px 14px;
@@ -356,7 +458,7 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 }}
 .streak-num {{ font-size: 24px; font-weight: 800; color: #FF9800 !important; line-height: 1; }}
 .streak-sub {{ font-size: 11px; color: {TEXT_MUTED} !important; margin-top: 3px; }}
-
+/* ── Goal bar ── */
 .goal-wrap {{
     background: {CARD_BG}; border: 1px solid {CARD_BORDER};
     border-radius: 14px; padding: 12px 14px; margin-bottom: 4px;
@@ -366,35 +468,29 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
     display: flex; justify-content: space-between; align-items: center;
     font-size: 12px; color: {TEXT_MUTED} !important; margin-bottom: 8px;
 }}
-.goal-title {{ font-weight: 700; color: {TEXT_PRIMARY} !important; font-size: 13px; }}
-.goal-track {{ background: {PROG_TRACK}; border-radius: 99px; height: 7px; overflow: hidden; }}
-.goal-fill  {{ height: 7px; border-radius: 99px; transition: width 0.5s ease; }}
-
+.goal-title  {{ font-weight: 700; color: {TEXT_PRIMARY} !important; font-size: 13px; }}
+.goal-track  {{ background: {PROG_TRACK}; border-radius: 99px; height: 7px; overflow: hidden; }}
+.goal-fill   {{ height: 7px; border-radius: 99px; transition: width 0.5s ease; }}
+/* ── Activity ── */
 .subject-tag {{
     display: inline-block; background: {TAG_BG}; color: {TAG_COLOR} !important;
     border-radius: 20px; padding: 5px 14px; font-size: 13px; font-weight: 700;
 }}
-
 .act-list  {{ background: {ACTIVITY_BG}; border-radius: 12px; padding: 4px; overflow: hidden; }}
 .act-item  {{ display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 9px; font-size: 12px; }}
 .act-dot   {{ width:7px;height:7px;border-radius:50%;background:#4CAF50;flex-shrink:0; }}
 .act-empty {{ font-size:12px;color:{TEXT_MUTED} !important;padding:12px;text-align:center; }}
-
-.settings-box {{
-    background: {SETTINGS_BG}; border: 1px solid {SETTINGS_BDR};
-    border-radius: 14px; padding: 14px;
-}}
-
+/* ── Settings / danger ── */
+.settings-box {{ background: {SETTINGS_BG}; border: 1px solid {SETTINGS_BDR}; border-radius: 14px; padding: 14px; }}
 .danger-box {{
     background: {DANGER_BG}; border: 1px solid {DANGER_BDR};
     border-radius: 12px; padding: 10px 12px; margin-bottom: 6px;
-    font-size: 12px; font-weight: 600; color: {DANGER_COLOR} !important;
-    text-align: center;
+    font-size: 12px; font-weight: 600; color: {DANGER_COLOR} !important; text-align: center;
 }}
-
+/* ── Greeting ── */
 .greet-card {{
     background: {GREET_BG}; border: 1px solid {GREET_BDR};
-    border-radius: 18px; padding: 22px 24px; margin-bottom: 20px;
+    border-radius: 18px; padding: 22px 24px; margin-bottom: 16px;
     display: flex; align-items: center; gap: 18px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }}
@@ -402,17 +498,9 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 .greet-name  {{ font-size: 21px; font-weight: 800; line-height: 1.2; }}
 .greet-sub   {{ font-size: 13px; color: {TEXT_MUTED} !important; margin-top: 4px; }}
 .greet-time  {{ font-size: 11px; color: {TEXT_MUTED} !important; margin-top: 3px; opacity: 0.8; }}
-
-.sched-card {{
-    background: {SCHED_BG}; border: 1px solid {SCHED_BDR};
-    border-radius: 16px; padding: 16px; margin-bottom: 18px;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
-}}
-.sched-title {{
-    font-size: 12px; font-weight: 700; letter-spacing: 0.8px;
-    text-transform: uppercase; color: {TEXT_MUTED} !important;
-    margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
-}}
+/* ── Schedule preview ── */
+.sched-card {{ background: {SCHED_BG}; border: 1px solid {SCHED_BDR}; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }}
+.sched-title {{ font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: {TEXT_MUTED} !important; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }}
 .sched-item      {{ display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; margin-bottom: 4px; font-size: 13px; }}
 .sched-item-done {{ background: {SCHED_DONE_BG}; opacity: 0.65; }}
 .sched-item-todo {{ background: {SCHED_TODO_BG}; }}
@@ -423,19 +511,18 @@ h1, h2, h3                      {{ font-weight: 800 !important; letter-spacing: 
 .sched-prog-wrap {{ margin-top: 10px; background: {PROG_TRACK}; border-radius: 99px; height: 5px; overflow: hidden; }}
 .sched-prog-fill {{ height: 5px; border-radius: 99px; }}
 
-hr {{ border-color: {DIVIDER} !important; margin: 18px 0 !important; }}
+hr {{ border-color: {DIVIDER} !important; margin: 16px 0 !important; }}
 
 @media (max-width: 640px) {{
-    .greet-card  {{ padding: 16px 18px; gap: 14px; }}
-    .greet-emoji {{ font-size: 34px; }}
+    .greet-card  {{ padding: 16px 18px; gap: 12px; }}
+    .greet-emoji {{ font-size: 32px; }}
     .greet-name  {{ font-size: 17px; }}
     .stat-card   {{ padding: 10px 6px; }}
     .stat-val    {{ font-size: 14px; }}
     .timer-card  {{ padding: 16px 8px 14px; border-radius: 18px; }}
     .stButton > button {{ font-size: 13px !important; padding: 9px 10px !important; }}
-    .streak-card {{ padding: 10px 12px; gap: 10px; }}
-    .goal-wrap   {{ padding: 10px 12px; }}
-    .sched-card  {{ padding: 12px; }}
+    .setup-card  {{ padding: 14px 14px; }}
+    .quote-card  {{ padding: 14px 14px; }}
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -515,20 +602,31 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown(f'<span class="sb-lbl">{t("last_subject")}</span>', unsafe_allow_html=True)
-    st.markdown(f'<div style="padding:2px 0 8px;"><span class="subject-tag">📖 {st.session_state.last_subject}</span></div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="padding:2px 0 8px;"><span class="subject-tag">📖 {st.session_state.last_subject}</span></div>',
+        unsafe_allow_html=True
+    )
 
     st.markdown(f'<span class="sb-lbl">{t("recent_activity")}</span>', unsafe_allow_html=True)
     hist = st.session_state.study_history[-4:][::-1]
     if hist:
-        rows = "".join(f'<div class="act-item"><div class="act-dot"></div><span>{e}</span></div>' for e in hist)
+        rows = "".join(
+            f'<div class="act-item"><div class="act-dot"></div><span>{e}</span></div>'
+            for e in hist
+        )
         st.markdown(f'<div class="act-list">{rows}</div>', unsafe_allow_html=True)
     else:
-        st.markdown(f'<div class="act-list"><div class="act-empty">{t("no_activity")}</div></div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="act-list"><div class="act-empty">{t("no_activity")}</div></div>',
+            unsafe_allow_html=True
+        )
 
     st.markdown(f'<span class="sb-lbl">{t("settings")}</span>', unsafe_allow_html=True)
     st.markdown('<div class="settings-box">', unsafe_allow_html=True)
-    goal_mins = st.slider(f'🎯 {t("today_goal")} ({t("minutes_unit")})',
-                          30, 480, st.session_state.daily_goal_seconds // 60, step=15)
+    goal_mins = st.slider(
+        f'🎯 {t("today_goal")} ({t("minutes_unit")})',
+        30, 480, st.session_state.daily_goal_seconds // 60, step=15
+    )
     if goal_mins * 60 != st.session_state.daily_goal_seconds:
         st.session_state.daily_goal_seconds = goal_mins * 60
         save_data()
@@ -536,7 +634,10 @@ with st.sidebar:
     st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
     dc, tc = st.columns([3, 1])
     with dc:
-        st.markdown(f'<div style="font-size:13px;padding-top:6px;font-weight:500;">{t("dark_mode")}</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="font-size:13px;padding-top:6px;font-weight:500;">{t("dark_mode")}</div>',
+            unsafe_allow_html=True
+        )
     with tc:
         dark_btn = st.checkbox("", value=is_dark, label_visibility="collapsed", key="dark_mode_sb")
     if dark_btn != is_dark:
@@ -572,14 +673,6 @@ with st.sidebar:
 # ══════════════════════════════════════════════════════════════════════════════
 
 # ── Name input ─────────────────────────────────────────────────────────────────
-# FIX: Streamlit caches the widget value by key, so `value=` only applies on
-# first render. When the user changes language, the old language's default name
-# string is still stored in student_name (it's truthy), so the new placeholder
-# never appears.
-#
-# Solution: treat any default_name from any language as "not a real name".
-# If student_name is one of those, show an empty field — the placeholder
-# (which IS translated) will then be visible in the current language.
 _all_defaults = {
     TRANSLATIONS.get(lng, {}).get("default_name", "")
     for lng in ("badini", "english", "arabic")
@@ -593,19 +686,17 @@ nav = st.text_input(
     label_visibility="collapsed",
     placeholder=t("default_name"),
 )
-# When the field is blank, fall back to the translated placeholder for display
 _effective_name = nav.strip() or t("default_name")
-
 if nav != st.session_state.get("student_name", ""):
     st.session_state.student_name = nav
     save_data()
 
 # ── Greeting card ──────────────────────────────────────────────────────────────
 kurd_greet, eng_greet = get_greeting()
-h_now = datetime.now().hour
+h_now       = datetime.now().hour
 greet_emoji = ("🌅" if 5 <= h_now < 12 else "☀️" if 12 <= h_now < 17 else
                "🌆" if 17 <= h_now < 21 else "🌙")
-now_str = datetime.now().strftime("%A, %d %B %Y  •  %H:%M")
+now_str     = datetime.now().strftime("%A, %d %B %Y  •  %H:%M")
 
 st.markdown(f"""
 <div class="greet-card">
@@ -618,6 +709,28 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# ── Daily goal achieved banner ─────────────────────────────────────────────────
+if daily_pct >= 100:
+    goal_win_msg = {
+        "badini":  f"ئامانجی ئەمرۆت تەواو کرد! {today_h}ک {today_m}خ خوێندیت.",
+        "english": f"Daily goal reached! You studied {today_h}h {today_m}m today.",
+        "arabic":  f"تم تحقيق هدف اليوم! درست {today_h}س {today_m}د اليوم.",
+    }.get(st.session_state.lang, "Goal reached!")
+    goal_win_sub = {
+        "badini":  "زۆر باشت کرد! بەردەوام بە 🔥",
+        "english": "Amazing work! Keep the momentum going 🔥",
+        "arabic":  "عمل رائع! استمر في الزخم 🔥",
+    }.get(st.session_state.lang, "Keep going! 🔥")
+    st.markdown(f"""
+    <div class="goal-win-banner">
+        <div class="goal-win-icon">🏆</div>
+        <div>
+            <div class="goal-win-text">{goal_win_msg}</div>
+            <div class="goal-win-sub">{goal_win_sub}</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
 # ── Today's schedule preview ───────────────────────────────────────────────────
 _today_key, today_tasks = load_today_schedule()
 DAYS_SHORT = {
@@ -627,10 +740,10 @@ DAYS_SHORT = {
 }
 _day_eng, _day_emoji = DAYS_SHORT.get(_today_key, ("Today", "📅"))
 
-today_tasks_with_task = [ti for ti in today_tasks if ti.get("task", "").strip()]
-if today_tasks_with_task:
-    done_count  = sum(1 for ti in today_tasks_with_task if ti.get("done", False))
-    total_count = len(today_tasks_with_task)
+today_tasks_named = [ti for ti in today_tasks if ti.get("task", "").strip()]
+if today_tasks_named:
+    done_count  = sum(1 for ti in today_tasks_named if ti.get("done", False))
+    total_count = len(today_tasks_named)
     pct_sched   = int((done_count / total_count) * 100) if total_count else 0
     prog_color  = "#2196F3" if done_count == total_count else "#4CAF50"
 
@@ -641,7 +754,7 @@ if today_tasks_with_task:
     }.get(st.session_state.lang, f"📅 Today — {_day_eng}")
 
     rows_html = []
-    for ti in today_tasks_with_task[:6]:
+    for ti in today_tasks_named[:6]:
         done_cls  = "sched-item-done" if ti.get("done") else "sched-item-todo"
         task_cls  = "sched-task-done" if ti.get("done") else "sched-task"
         check_ico = "✅" if ti.get("done") else "⬜"
@@ -652,10 +765,10 @@ if today_tasks_with_task:
             <span class="sched-check">{check_ico}</span>
         </div>""")
 
-    if len(today_tasks_with_task) > 6:
-        extra = len(today_tasks_with_task) - 6
-        extra_lbl = (f"+{extra} more"   if st.session_state.lang == "english" else
-                     f"+{extra} زیاتر"  if st.session_state.lang == "badini"  else
+    if len(today_tasks_named) > 6:
+        extra = len(today_tasks_named) - 6
+        extra_lbl = (f"+{extra} more"  if st.session_state.lang == "english" else
+                     f"+{extra} زیاتر" if st.session_state.lang == "badini"  else
                      f"+{extra} أكثر")
         rows_html.append(
             f'<div style="font-size:11px;color:{TEXT_MUTED};padding:4px 10px;">{extra_lbl}</div>'
@@ -675,22 +788,77 @@ if today_tasks_with_task:
     </div>
     """, unsafe_allow_html=True)
 
-st.divider()
+# ── Timer section header ───────────────────────────────────────────────────────
+timer_section_lbl = {
+    "badini": "⏱ کاتژمێری خوێندن", "english": "⏱ Study Timer", "arabic": "⏱ مؤقت الدراسة",
+}.get(st.session_state.lang, "⏱ Study Timer")
+st.markdown(f"""
+<div class="section-hdr">
+    <span>{timer_section_lbl}</span>
+    <div class="section-line"></div>
+</div>
+""", unsafe_allow_html=True)
 
-# ── Timer section ──────────────────────────────────────────────────────────────
+# ── Timer setup card ───────────────────────────────────────────────────────────
+st.markdown('<div class="setup-card">', unsafe_allow_html=True)
+
 subjects_list = t("subjects")
 if not isinstance(subjects_list, list):
     subjects_list = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("subjects", [])
 
-ders      = st.selectbox(t("select_subject"), subjects_list)
+ders      = st.selectbox(t("select_subject"), subjects_list, label_visibility="visible")
 arc_color = subject_color(ders)
 
-deqe          = st.slider(t("minutes_question"), 1, 240, 25)
+# Subject color indicator pill
+subj_name = ders.split(" ", 1)[1] if " " in ders else ders
+st.markdown(
+    f'<div class="subject-pill">'
+    f'<span class="subject-color-dot" style="background:{arc_color};"></span>'
+    f'{subj_name}</div>',
+    unsafe_allow_html=True
+)
+
+# Duration slider — key lets preset buttons write directly to its value
+SLIDER_KEY = "duration_slider_v2"
+if SLIDER_KEY not in st.session_state:
+    st.session_state[SLIDER_KEY] = 25
+
+duration_lbl = {
+    "badini": "⏱ کاتی خوێندن", "english": "⏱ Duration", "arabic": "⏱ المدة",
+}.get(st.session_state.lang, "⏱ Duration")
+st.markdown(f'<div style="font-size:12px;font-weight:600;color:{TEXT_MUTED};margin-bottom:4px;">{duration_lbl}</div>', unsafe_allow_html=True)
+
+# Quick preset buttons (above the slider)
+st.markdown('<div class="preset-anchor"></div>', unsafe_allow_html=True)
+p1, p2, p3, p4 = st.columns(4)
+with p1:
+    if st.button("🍅 25m", key="p25", use_container_width=True,
+                 help="Pomodoro — 25 min"):
+        st.session_state[SLIDER_KEY] = 25
+        st.rerun()
+with p2:
+    if st.button("⚡ 45m", key="p45", use_container_width=True,
+                 help="Deep work — 45 min"):
+        st.session_state[SLIDER_KEY] = 45
+        st.rerun()
+with p3:
+    if st.button("🎯 60m", key="p60", use_container_width=True,
+                 help="Focus block — 60 min"):
+        st.session_state[SLIDER_KEY] = 60
+        st.rerun()
+with p4:
+    if st.button("🔥 90m", key="p90", use_container_width=True,
+                 help="Power session — 90 min"):
+        st.session_state[SLIDER_KEY] = 90
+        st.rerun()
+
+deqe          = st.slider(t("minutes_question"), 1, 240, key=SLIDER_KEY)
 total_seconds = deqe * 60
 
-# Invisible anchor — CSS targets col-1 (green) and col-2 (orange) without wrapper divs
-st.markdown('<div class="tcb-anchor"></div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
+# ── Timer control buttons ──────────────────────────────────────────────────────
+st.markdown('<div class="tcb-anchor"></div>', unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -710,10 +878,30 @@ with col2:
 with col3:
     dubare = st.button(t("reset_btn"), use_container_width=True, key="reset_btn")
 
+# ── Quote card with refresh button ────────────────────────────────────────────
 hezt = t("quotes")
 if not isinstance(hezt, list):
     hezt = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("quotes", ["Keep going!"])
 
+current_quote = hezt[st.session_state.quote_idx % len(hezt)]
+
+refresh_lbl = {"badini": "نوێ", "english": "New quote", "arabic": "اقتباس جديد"}.get(
+    st.session_state.lang, "New quote"
+)
+_, qbtn_col = st.columns([5, 2])
+with qbtn_col:
+    if st.button(f"🔄 {refresh_lbl}", key="refresh_quote", use_container_width=True):
+        st.session_state.quote_idx = random.randint(0, len(hezt) - 1)
+        st.rerun()
+
+st.markdown(f"""
+<div class="quote-card">
+    <div class="quote-mark">"</div>
+    <div class="quote-text">{current_quote}</div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Button actions ─────────────────────────────────────────────────────────────
 if "dest_pe_bike" in locals() and dest_pe_bike:
     st.session_state.timer_running = True
     st.session_state.paused        = False
@@ -744,7 +932,7 @@ if dubare:
 # ── SVG circle timer ───────────────────────────────────────────────────────────
 def render_circle(mins_val, secs_val, progress, color):
     dash = progress * 100.0
-    glow = f"filter:drop-shadow(0 0 10px {color}aa);" if progress > 0 else ""
+    glow = f"filter:drop-shadow(0 0 12px {color}bb);" if progress > 0 else ""
     st.markdown(f"""
     <div class="timer-card">
         <div style="display:flex;justify-content:center;">
@@ -758,7 +946,8 @@ def render_circle(mins_val, secs_val, progress, color):
                       stroke-linecap="round"
                       stroke-dasharray="{dash:.2f}, 200"/>
                 <text x="18" y="17" text-anchor="middle"
-                      fill="{TIMER_TEXT}" font-size="6.5" font-weight="700">
+                      fill="{TIMER_TEXT}" font-size="6.5" font-weight="700"
+                      font-family="monospace">
                     {mins_val:02d}:{secs_val:02d}
                 </text>
                 <text x="18" y="22" text-anchor="middle"
@@ -768,6 +957,7 @@ def render_circle(mins_val, secs_val, progress, color):
     </div>
     """, unsafe_allow_html=True)
 
+# ── Timer display ──────────────────────────────────────────────────────────────
 if st.session_state.timer_running and st.session_state.end_time:
     remaining = st.session_state.end_time - time.time()
     if remaining > 0:
@@ -775,7 +965,7 @@ if st.session_state.timer_running and st.session_state.end_time:
         prog = min(1.0, 1.0 - (remaining / max(1, st.session_state.total_seconds)))
         render_circle(mv, sv_, prog, arc_color)
         st.success(t("timer_running", name=_effective_name, minutes=deqe, subject=ders))
-        st.info(f"💬 {random.choice(hezt)}")
+        st.info(f"💬 {current_quote}")
         time.sleep(1)
         st.rerun()
     else:
@@ -828,9 +1018,15 @@ elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
     mv, sv_ = divmod(int(st.session_state.remaining_at_pause), 60)
     prog = min(1.0, 1.0 - (st.session_state.remaining_at_pause / max(1, st.session_state.total_seconds)))
     render_circle(mv, sv_, prog, "#FFA500")
-    pause_lbl = {"badini": "⏸️ کاتژمێر وەستاوە", "english": "⏸️ Timer paused", "arabic": "⏸️ الموقت متوقف"}
-    st.markdown(f'<div class="paused-banner">{pause_lbl.get(st.session_state.lang, "⏸️ Timer paused")}</div>',
-                unsafe_allow_html=True)
+    pause_lbl = {
+        "badini": "⏸️ دەمژمێر راوەستايە",
+        "english": "⏸️ Timer paused",
+        "arabic": "⏸️ الموقت متوقف",
+    }
+    st.markdown(
+        f'<div class="paused-banner">{pause_lbl.get(st.session_state.lang, "⏸️ Timer paused")}</div>',
+        unsafe_allow_html=True
+    )
 
 else:
     render_circle(deqe, 0, 0.0, arc_color)
