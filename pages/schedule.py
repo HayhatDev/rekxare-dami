@@ -746,10 +746,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.rerun()
 
         with b2:
-            has_incomplete = any(
-                not e.get("done", False) and e.get("task", "").strip()
-                for e in schedule
-            )
+            has_incomplete = any(not e.get("done", False) for e in schedule)
             mark_lbl = {"badini": "✅ هەموو", "english": "✅ All Done", "arabic": "✅ إتمام الكل"}
             if st.button(
                 mark_lbl.get(st.session_state.lang, "✅ All Done"),
