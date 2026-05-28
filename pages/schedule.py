@@ -635,7 +635,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 unsafe_allow_html=True
             )
 
-        # ── Empty state ────────────────────────────────────────────────────────
+        # ── Empty state
         if not schedule:
             no_tasks_msg = {
                 "badini":  "هیچ كار نينە.",
@@ -643,7 +643,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 "arabic":  "لا توجد مهام بعد.",
             }
             hint_msg = {
-                "badini":  "کلیک بکە + زیادکردنی کار بۆ دەستپێکردن",
+                "badini":  "زێدەکرنێ کلیک بکە بو دروستکرنا کارەکێ",
                 "english": "Click + Add Task below to get started",
                 "arabic":  "انقر على + إضافة مهمة أدناه للبدء",
             }
