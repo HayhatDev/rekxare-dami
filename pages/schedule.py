@@ -563,7 +563,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 unsafe_allow_html=True
             )
 
-        # ── Clear-day confirmation ─────────────────────────────────────────────
+        # ── Clear-day confirmation 
         if st.session_state[f"{day_key}_clear_confirm"]:
             st.markdown(
                 '<div class="danger-confirm">⚠️ '
