@@ -72,6 +72,18 @@
 | 🔊 صوت تنبيه | Alarm Sound | نغمة ثلاثية عند انتهاء المؤقت. | Three-tone chime when the timer ends. |
 | 🌓 وضع ليلي ثابت | Stable Dark Mode | الوضع الليلي يحفظ ولا يختفي أثناء المؤقت. | Dark mode is saved and persists during countdown. |
 | 💾 حفظ تلقائي | Auto Save | كل البيانات تحفظ تلقائياً في ملف JSON. | All data auto-saves to a JSON file. |
+## 🚀 آخر التحديثات | Latest Updates (May 2026)
+
+| الميزة | Feature | الوصف | Description |
+| :--- | :--- | :--- | :--- |
+| ⚡ أزرار سريعة | Quick Presets | 25، 45، 60، 90 دقيقة بضغطة زر | One-click duration presets |
+| 📊 نظرة أسبوعية | Weekly Overview | تقدم كل يوم مع أشرطة ووقت | Daily progress bars + total time |
+| 🎨 تصميم محسن | UI Overhaul | أزرار متدرجة، ظلال، حركات | Gradient buttons, shadows, animations |
+| 🖐️ اسم محفوظ | Saved Name | الاسم يبقى بعد الإغلاق | Name persists across sessions |
+| 📅 معاينة اليوم | Today Preview | مهام اليوم من الجدول في الرئيسية | Today's schedule on main page |
+| 🔃 ترتيب المهام | Sort Tasks | ترتيب المهام حسب الوقت | Sort tasks by time |
+| ✅ إتمام الكل | Mark All Done | إنجاز كل المهام بضغطة زر | Complete all tasks at once |
+| 🗑️ تأكيد الحذف | Delete Confirmation | تأكيد قبل مسح البيانات | Confirm before clearing |
 
 
 ## 🌍 تعدد اللغات | Multilingual Support
