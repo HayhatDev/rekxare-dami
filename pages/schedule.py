@@ -803,7 +803,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             }
             if st.button(
                 mark_lbl.get(st.session_state.lang, "✅ All Done"),
-                key=f"{day_key}_markall_{st.session_state[f'{day_key}']}",
+                key=f"{day_key}_markall_{st.session_state[f'{day_key}_reset']}",
                 use_container_width=True, disabled=not has_incomplete
             ):
                 for e in schedule:
