@@ -156,7 +156,7 @@ today_m        = (st.session_state.daily_seconds % 3600) // 60
 _days_map = {"badini": "رۆژ", "english": "days", "arabic": "يوم"}
 days_lbl  = _days_map.get(st.session_state.lang, "رۆژ")
 
-# ── Colour tokens ──────────────────────────────────────────────────────────────
+# ── Colour tokens 
 if is_dark:
     APP_BG         = "#1a1a2e"
     SB_BG          = "#16213e"
@@ -672,7 +672,7 @@ with st.sidebar:
 #  MAIN PAGE
 # ══════════════════════════════════════════════════════════════════════════════
 
-# ── Name input ─────────────────────────────────────────────────────────────────
+# ── Name input                                                                                    
 _all_defaults = {
     TRANSLATIONS.get(lng, {}).get("default_name", "")
     for lng in ("badini", "english", "arabic")
@@ -689,7 +689,7 @@ if nav != st.session_state.get("student_name", ""):
     st.session_state.student_name = nav
     save_data()
 
-# ── Greeting card ──────────────────────────────────────────────────────────────
+# ── Greeting card 
 kurd_greet, eng_greet = get_greeting()
 h_now       = datetime.now().hour
 greet_emoji = ("🌅" if 5 <= h_now < 12 else "☀️" if 12 <= h_now < 17 else
@@ -707,15 +707,15 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Daily goal achieved banner ─────────────────────────────────────────────────
+# ── Daily goal achieved banner 
 if daily_pct >= 100:
     goal_win_msg = {
-        "badini":  f"ئامانجی ئەمرۆت تەواو کرد! {today_h}ک {today_m}خ خوێندیت.",
+        "badini":  f"ئارمانجێن ئەڤرو تەواو بوون! {today_h}ک {today_m}خ خواندن.",
         "english": f"Daily goal reached! You studied {today_h}h {today_m}m today.",
         "arabic":  f"تم تحقيق هدف اليوم! درست {today_h}س {today_m}د اليوم.",
     }.get(st.session_state.lang, "Goal reached!")
     goal_win_sub = {
-        "badini":  "زۆر باشت کرد! بەردەوام بە 🔥",
+        "badini":  "زور باش تە کر! بەردەوام بە 🔥",
         "english": "Amazing work! Keep the momentum going 🔥",
         "arabic":  "عمل رائع! استمر في الزخم 🔥",
     }.get(st.session_state.lang, "Keep going! 🔥")
@@ -729,7 +729,7 @@ if daily_pct >= 100:
     </div>
     """, unsafe_allow_html=True)
 
-# ── Today's schedule preview ───────────────────────────────────────────────────
+# ── Today's schedule preview 
 _today_key, today_tasks = load_today_schedule()
 DAYS_SHORT = {
     "sun": ("Sunday","☀️"), "mon": ("Monday","📖"), "tue": ("Tuesday","📖"),
@@ -779,9 +779,9 @@ if today_tasks_named:
     </div>
     """, unsafe_allow_html=True)
 
-# ── Timer section ──────────────────────────────────────────────────────────────
+# ── Timer section 
 timer_section_lbl = {
-    "badini": "⏱ کاتژمێری خوێندن",
+    "badini": "⏱ دەمژمێرێ خواندنێ",
     "english": "⏱ Study Timer",
     "arabic": "⏱ مؤقت الدراسة",
 }.get(st.session_state.lang, "⏱ Study Timer")
@@ -808,7 +808,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-duration_lbl = {"badini":"⏱ کاتی خوێندن","english":"⏱ Duration","arabic":"⏱ المدة"}.get(st.session_state.lang,"⏱ Duration")
+duration_lbl = {"badini":"⏱ دەمێ خواندنێ","english":"⏱ Duration","arabic":"⏱ المدة"}.get(st.session_state.lang,"⏱ Duration")
 st.markdown(f'<div style="font-size:12px;font-weight:600;color:{TEXT_MUTED};margin-bottom:4px;">{duration_lbl}</div>', unsafe_allow_html=True)
 
 # Quick preset buttons
@@ -859,7 +859,7 @@ if not isinstance(hezt, list):
     hezt = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("quotes", ["Keep going!"])
 current_quote = hezt[st.session_state.quote_idx % len(hezt)]
 
-refresh_lbl = {"badini":"نوێ","english":"New quote","arabic":"اقتباس جديد"}.get(st.session_state.lang,"New quote")
+refresh_lbl = {"badini":"نوی","english":"New quote","arabic":"اقتباس جديد"}.get(st.session_state.lang,"New quote")
 _, qbtn_col = st.columns([5, 2])
 with qbtn_col:
     if st.button(f"🔄 {refresh_lbl}", key="refresh_quote", use_container_width=True):
@@ -872,7 +872,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Button actions ─────────────────────────────────────────────────────────────
+# ── Button actions 
 if "dest_pe_bike" in locals() and dest_pe_bike:
     st.session_state.timer_running = True
     st.session_state.paused        = False
@@ -900,7 +900,7 @@ if dubare:
     st.session_state.remaining_at_pause = 0
     st.rerun()
 
-# ── SVG circle timer ───────────────────────────────────────────────────────────
+# ── SVG circle timer 
 def render_circle(mins_val, secs_val, progress, color):
     dash = progress * 100.0
     glow = f"filter:drop-shadow(0 0 12px {color}bb);" if progress > 0 else ""
@@ -982,7 +982,7 @@ elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
     mv, sv_ = divmod(int(st.session_state.remaining_at_pause), 60)
     prog = min(1.0, 1.0 - (st.session_state.remaining_at_pause / max(1, st.session_state.total_seconds)))
     render_circle(mv, sv_, prog, "#FFA500")
-    pause_lbl = {"badini":"⏸️ کاتژمێر وەستاوە","english":"⏸️ Timer paused","arabic":"⏸️ الموقت متوقف"}
+    pause_lbl = {"badini":"⏸️ دەمژمێر راوەستیایە","english":"⏸️ Timer paused","arabic":"⏸️ الموقت متوقف"}
     st.markdown(f'<div class="paused-banner">{pause_lbl.get(st.session_state.lang,"⏸️ Timer paused")}</div>', unsafe_allow_html=True)
 
 else:
