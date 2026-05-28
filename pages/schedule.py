@@ -799,10 +799,9 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 key=f"{day_key}_markall_{st.session_state[f'{day_key}_reset']}",
                 use_container_width=True, disabled=not has_incomplete
             ):
-                reset_v = st.session_state[f"{day_key}_reset"]
-                for i, e in enumerate(schedule):
+                for e in schedule:
                     e["done"] = True
-                    st.session_state[f"{day_key}_done_{i}_{reset_v}"] = True
+                st.session_state[f"{day_key}_reset"] += 1
                 st.session_state.schedule[day_key] = schedule
                 save_schedule(); st.rerun()
 
