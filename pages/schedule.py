@@ -797,16 +797,13 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.rerun()
 
         with b2:
-            # FIX: was filtering by e.get("task","").strip() — that disabled
-            # the button whenever tasks had empty text, making it unclickable.
-            # Now checks ALL tasks regardless of whether text is filled in.
             has_incomplete = any(not e.get("done", False) for e in schedule)
             mark_lbl = {
                 "badini": "✅ هەموو", "english": "✅ All Done", "arabic": "✅ إتمام الكل",
             }
             if st.button(
                 mark_lbl.get(st.session_state.lang, "✅ All Done"),
-                key=f"{day_key}_markall_{st.session_state[f'{day_key}_reset']}",
+                key=f"{day_key}_markall_{st.session_state[f'{day_key}']}",
                 use_container_width=True, disabled=not has_incomplete
             ):
                 for e in schedule:
