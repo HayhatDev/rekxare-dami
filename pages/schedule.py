@@ -74,7 +74,7 @@ def get_time_label():
 
 def get_column_labels():
     if st.session_state.lang == "badini":
-        return "کات", "چالاکی"
+        return "دەم", "چالاکی"
     if st.session_state.lang == "arabic":
         return "الوقت", "المهمة"
     return "Time", "Task"
@@ -461,9 +461,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Week overview ──────────────────────────────────────────────────────────────
+# ── Week overview
 _weekly_title = {
-    "badini":  "📊 پیشکەوتنی هەفتانە",
+    "badini":  "📊 پێشکەفتنا حەفتیانە",
     "english": "📊 Weekly Overview",
     "arabic":  "📊 التقدم الأسبوعي",
 }.get(st.session_state.lang, "📊 Weekly Overview")
@@ -511,7 +511,7 @@ for col, (dk, _, eng) in zip(week_cols, DAYS):
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ── Label helpers ──────────────────────────────────────────────────────────────
+# ── Label helpers
 time_start_label, time_end_label = get_time_label()
 col_time_label, col_task_label   = get_column_labels()
 
@@ -530,12 +530,12 @@ def get_tab_label(day_key):
 tab_labels = [get_tab_label(dk) for dk, _, _ in DAYS]
 tabs       = st.tabs(tab_labels)
 
-# ── Per-day tab ────────────────────────────────────────────────────────────────
+# ── Per-day tab 
 for tab, (day_key, _, _) in zip(tabs, DAYS):
     with tab:
         schedule = st.session_state.schedule[day_key]
 
-        # Today badge — shows task count + total scheduled time
+        
         if day_key == today_key:
             named_today = [tk for tk in schedule if tk.get("task", "").strip()]
             done_today  = sum(1 for tk in named_today if tk.get("done", False))
@@ -557,7 +557,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             st.markdown(
                 '<div class="danger-confirm">⚠️ '
                 + {
-                    "badini":  "هەموو کارەکان بسڕێنەوە؟",
+                    "badini":  "هەمی کاران ژێببە؟",
                     "english": "Clear all tasks for this day?",
                     "arabic":  "مسح جميع المهام لهذا اليوم؟",
                   }.get(st.session_state.lang, "Clear all tasks for this day?")
@@ -568,7 +568,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
             cc1, cc2 = st.columns(2)
             with cc1:
                 if st.button(
-                    "✓ " + {"badini": "بەڵێ، بسڕەوە", "english": "Yes, clear", "arabic": "نعم، امسح"}.get(
+                    "✓ " + {"badini": "بەلێ، ژێببە", "english": "Yes, clear", "arabic": "نعم، امسح"}.get(
                         st.session_state.lang, "Yes"),
                     key=f"{day_key}_clear_yes", use_container_width=True
                 ):
@@ -617,7 +617,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         day_total_min = total_day_minutes(schedule)
         if day_total_min > 0:
             total_lbl = {
-                "badini":  f"⏱ کۆی کات: {fmt_minutes(day_total_min)}",
+                "badini":  f"⏱ هەمی دەم: {fmt_minutes(day_total_min)}",
                 "english": f"⏱ Total scheduled: {fmt_minutes(day_total_min)}",
                 "arabic":  f"⏱ إجمالي الوقت: {fmt_minutes(day_total_min)}",
             }.get(st.session_state.lang, f"⏱ {fmt_minutes(day_total_min)}")
@@ -638,7 +638,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
         # ── Empty state ────────────────────────────────────────────────────────
         if not schedule:
             no_tasks_msg = {
-                "badini":  "هیچ کارێک نییە.",
+                "badini":  "هیچ كار نينە.",
                 "english": "No tasks yet.",
                 "arabic":  "لا توجد مهام بعد.",
             }
@@ -682,10 +682,6 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     except Exception:
                         end_val = datetime.strptime("08:00", "%H:%M").time()
 
-                    # ── BUG FIX: read live widget value from session_state ──────
-                    # Streamlit pre-populates session_state with current widget
-                    # values BEFORE the script runs, so this is always up-to-date,
-                    # unlike entry['start'] which is one run behind.
                     _sk = f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}"
                     _ek = f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}"
                     _live_s = st.session_state.get(_sk, start_val)
@@ -695,7 +691,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                     _cap_e  = (_live_e.strftime("%H:%M") if hasattr(_live_e, "strftime")
                                else entry.get("end", "--:--"))
 
-                    # Styled live time-range pill (replaces stale st.caption)
+                    
                     st.markdown(
                         f'<div class="time-pill">🕐 {_cap_s} → {_cap_e}</div>',
                         unsafe_allow_html=True
@@ -784,7 +780,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
 
         with b1:
             add_lbl = {
-                "badini": "➕ زیادکردن", "english": "➕ Add Task", "arabic": "➕ إضافة",
+                "badini": "➕ زێدەکرن", "english": "➕ Add Task", "arabic": "➕ إضافة",
             }
             if st.button(
                 add_lbl.get(st.session_state.lang, "➕ Add Task"),
@@ -797,24 +793,22 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
                 st.rerun()
 
         with b2:
-            has_incomplete = any(not e.get("done", False) for e in schedule)
-            mark_lbl = {
-                "badini": "✅ هەموو", "english": "✅ All Done", "arabic": "✅ إتمام الكل",
-            }
+            has_incomplete = any(not e.get("done",False) for e in schedule)
             if st.button(
-                mark_lbl.get(st.session_state.lang, "✅ All Done"),
+                {"badini":"✅ هەموو","english":"✅ All Done","arabic":"✅ إتمام الكل"}.get(st.session_state.lang,"✅ All Done"),
                 key=f"{day_key}_markall_{st.session_state[f'{day_key}_reset']}",
                 use_container_width=True, disabled=not has_incomplete
             ):
-                for e in schedule:
+                reset_v = st.session_state[f"{day_key}_reset"]
+                for i, e in enumerate(schedule):
                     e["done"] = True
+                    st.session_state[f"{day_key}_done_{i}_{reset_v}"] = True
                 st.session_state.schedule[day_key] = schedule
-                save_schedule()
-                st.rerun()
+                save_schedule(); st.rerun()
 
         with b3:
             sort_lbl = {
-                "badini": "🔃 ڕیزکردن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
+                "badini": "🔃 ڕیزکرن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
             }
             if st.button(
                 sort_lbl.get(st.session_state.lang, "🔃 Sort"),
@@ -830,7 +824,7 @@ for tab, (day_key, _, _) in zip(tabs, DAYS):
 
         with b4:
             clear_lbl = {
-                "badini": "🗑️ سڕینەوە", "english": "🗑️ Clear", "arabic": "🗑️ مسح",
+                "badini": "🗑️ ژێبرن", "english": "🗑️ Clear", "arabic": "🗑️ مسح",
             }
             if st.button(
                 clear_lbl.get(st.session_state.lang, "🗑️ Clear"),
