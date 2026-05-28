@@ -3,7 +3,7 @@ from datetime import datetime, time as dtime
 import json
 import os
 
-# ── Translations first — no Streamlit UI calls yet ─────────────────────────────
+# ── Translations first
 with open("translations.json", "r", encoding="utf-8") as f:
     TRANSLATIONS = json.load(f)
 
@@ -16,7 +16,7 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
-# ── set_page_config — must be the FIRST Streamlit call ────────────────────────
+# ── set_page_config
 st.set_page_config(
     page_title=t("schedule_title"),
     page_icon="📅",
