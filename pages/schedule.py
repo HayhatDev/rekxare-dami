@@ -7,6 +7,17 @@ import os
 with open("translations.json", "r", encoding="utf-8") as f:
     TRANSLATIONS = json.load(f)
 
+
+# --- PWA Manifest 
+st.markdown("""
+<link rel="manifest" href="/manifest.json">
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js');
+    }
+</script>
+""", unsafe_allow_html=True)
+
 if "lang" not in st.session_state:
     st.session_state.lang = "badini"
 
