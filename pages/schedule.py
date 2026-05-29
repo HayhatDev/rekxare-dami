@@ -307,15 +307,16 @@ section[data-testid="stMain"],
     font-size: 12px !important;
     box-shadow: 0 2px 8px rgba(21,101,192,0.25) !important;
 }}
-/* Sort button - مفعل (بنفسجي) */
+/* Sort button - بنفسجي دائماً */
 .element-container:has(.action-row-anchor) + div
-    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button:not(:disabled) {{
-    background: linear-gradient(135deg,#6a1b9a,#ab47bc) !important;
+    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button {{
+    background: linear-gradient(135deg, #6a1b9a, #ab47bc) !important;
     color: #fff !important;
     border-color: #4a148c !important;
     font-size: 12px !important;
     padding: 9px 8px !important;
     box-shadow: 0 2px 8px rgba(106,27,154,0.25) !important;
+    opacity: 1 !important; /* يتجاوز opacity الافتراضي */
 }}
 /* Sort button - معطل (بنفسجي شفاف) */
 .element-container:has(.action-row-anchor) + div
@@ -851,45 +852,21 @@ for day_key, _, _ in DAYS:
             "badini": "🔃 ڕیزکرن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
         }.get(st.session_state.lang, "🔃 Sort")
         
-        # زر HTML بنفسجي دائماً، معطل إذا لزم
-        if sort_disabled:
-            sort_html = f"""
-            <button disabled style="
-                width: 100%; padding: 9px 8px;
-                background: linear-gradient(135deg, #6a1b9a, #ab47bc);
-                color: rgba(255,255,255,0.6);
-                border: 1px solid #4a148c88;
-                border-radius: 10px; font-weight: 600; font-size: 12px;
-                box-shadow: none; opacity: 0.6; cursor: not-allowed;
-            ">{sort_lbl}</button>
-            """
-            st.markdown(sort_html, unsafe_allow_html=True)
-        else:
-            # زر مفعل - نستخدم form للإرسال
-            sort_html = f"""
-            <form action="" method="get">
-                <input type="hidden" name="sort_{day_key}" value="true">
-                <button type="submit" style="
-                    width: 100%; padding: 9px 8px;
-                    background: linear-gradient(135deg, #6a1b9a, #ab47bc);
-                    color: #fff;
-                    border: 1px solid #4a148c;
-                    border-radius: 10px; font-weight: 600; font-size: 12px;
-                    cursor: pointer;
-                    box-shadow: 0 2px 8px rgba(106,27,154,0.25);
-                ">{sort_lbl}</button>
-            </form>
-            """
-            st.markdown(sort_html, unsafe_allow_html=True)
-            
-            # قراءة الضغط من الرابط
-            if st.query_params.get(f"sort_{day_key}") == "true":
-                schedule.sort(key=lambda e: parse_time(e.get("start", "00:00")))
-                st.session_state.schedule[day_key] = schedule
-                st.session_state[f"{day_key}_reset"] += 1
-                save_schedule()
-                st.query_params.clear()
-                st.rerun()
+        # مفتاح ديناميكي يتغير مع كل تحديث لليوم
+        sort_key = f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}"
+        
+        if st.button(
+            sort_lbl,
+            key=sort_key,
+            use_container_width=True,
+            disabled=sort_disabled,
+            help="Sort tasks by start time"
+        ):
+            schedule.sort(key=lambda e: parse_time(e.get("start", "00:00")))
+            st.session_state.schedule[day_key] = schedule
+            st.session_state[f"{day_key}_reset"] += 1
+            save_schedule()
+            st.rerun()
     with b4:
         clear_lbl = {
             "badini": "🗑️ ژێبرن", "english": "🗑️ Clear", "arabic": "🗑️ مسح",
