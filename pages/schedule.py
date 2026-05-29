@@ -538,14 +538,33 @@ def get_tab_label(day_key):
     dot   = " 🔵" if day_key == today_key else ""
     return f"{day_name}{dot}{badge}"
 
-tab_labels = [get_tab_label(dk) for dk, _, _ in DAYS]
-tabs       = st.tabs(tab_labels)
+# --- اختيار اليوم عبر Radio (يحافظ على الاختيار بعد rerun) ---
+if "active_day" not in st.session_state:
+    st.session_state.active_day = today_key
 
+day_labels = [get_tab_label(dk) for dk, _, _ in DAYS]
+day_keys   = [dk for dk, _, _ in DAYS]
+
+active_index = day_keys.index(st.session_state.active_day) if st.session_state.active_day in day_keys else 0
+
+selected_label = st.radio(
+    "",
+    day_labels,
+    index=active_index,
+    horizontal=True,
+    label_visibility="collapsed",
+    key="schedule_day_radio"
+)
+
+selected_index = day_labels.index(selected_label)
+st.session_state.active_day = day_keys[selected_index]
 # ── Per-day tab 
-for tab, (day_key, _, _) in zip(tabs, DAYS):
-    with tab:
-        schedule = st.session_state.schedule[day_key]
-
+# عرض محتوى اليوم النشط فقط
+active_day_key = st.session_state.active_day
+for day_key, _, _ in DAYS:
+    if day_key != active_day_key:
+        continue
+    schedule = st.session_state.schedule[day_key]
         
         if day_key == today_key:
             named_today = [tk for tk in schedule if tk.get("task", "").strip()]
