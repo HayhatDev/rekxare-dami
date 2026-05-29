@@ -325,6 +325,13 @@ section[data-testid="stMain"],
     opacity: 0.6 !important;
     cursor: not-allowed !important;
 }}
+/* الوضع الفاتح - تأكيد اللون البنفسجي */
+[data-testid="stApp"]:not(.dark) .element-container:has(.action-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button {{
+    background: linear-gradient(135deg, #6a1b9a, #ab47bc) !important;
+    color: #ffffff !important;
+    border-color: #4a148c !important;
+}}
 .element-container:has(.action-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(4) .stButton > button {{
     background: transparent !important;
