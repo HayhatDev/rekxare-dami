@@ -307,30 +307,12 @@ section[data-testid="stMain"],
     font-size: 12px !important;
     box-shadow: 0 2px 8px rgba(21,101,192,0.25) !important;
 }}
-/* Sort button - بنفسجي في كل الحالات */
 .element-container:has(.action-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button {{
-    background: linear-gradient(135deg, #6a1b9a, #ab47bc) !important;
-    color: #ffffff !important;
-    border-color: #4a148c !important;
-    font-size: 12px !important;
-    padding: 9px 8px !important;
-    box-shadow: 0 2px 8px rgba(106,27,154,0.25) !important;
-    opacity: 1 !important;
-    transition: all 0.18s ease !important;
-}}
-/* عند التعطيل */
-.element-container:has(.action-row-anchor) + div
-    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button:disabled {{
-    opacity: 0.6 !important;
-    cursor: not-allowed !important;
-}}
-/* الوضع الفاتح - تأكيد اللون البنفسجي */
-[data-testid="stApp"]:not(.dark) .element-container:has(.action-row-anchor) + div
-    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button {{
-    background: linear-gradient(135deg, #6a1b9a, #ab47bc) !important;
-    color: #ffffff !important;
-    border-color: #4a148c !important;
+    background: linear-gradient(135deg,#43a047,#66bb6a) !important;
+    color: #fff !important; border-color: #388e3c !important;
+    font-size: 12px !important; padding: 9px 8px !important;
+    box-shadow: 0 2px 8px rgba(67,160,71,0.30) !important;
 }}
 .element-container:has(.action-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(4) .stButton > button {{
