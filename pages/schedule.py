@@ -308,11 +308,20 @@ section[data-testid="stMain"],
     box-shadow: 0 2px 8px rgba(21,101,192,0.25) !important;
 }}
 .element-container:has(.action-row-anchor) + div
-    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button:not(:disabled) {{
+    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button {{
     background: linear-gradient(135deg,#6a1b9a,#ab47bc) !important;
-    color: #fff !important; border-color: #4a148c !important;
+    color: #fff !important;
+    border-color: #4a148c !important;
     font-size: 12px !important;
     box-shadow: 0 2px 8px rgba(106,27,154,0.25) !important;
+}}
+.element-container:has(.action-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button:disabled {{
+    background: linear-gradient(135deg,#6a1b9a,#ab47bc) !important;
+    color: #ffffff88 !important;
+    border-color: #4a148c88 !important;
+    box-shadow: none !important;
+    opacity: 0.6 !important;
 }}
 .element-container:has(.action-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(4) .stButton > button {{
