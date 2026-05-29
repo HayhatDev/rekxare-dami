@@ -565,300 +565,298 @@ for day_key, _, _ in DAYS:
     if day_key != active_day_key:
         continue
     schedule = st.session_state.schedule[day_key]
-        
-        if day_key == today_key:
-            named_today = [tk for tk in schedule if tk.get("task", "").strip()]
-            done_today  = sum(1 for tk in named_today if tk.get("done", False))
-            tot_today   = total_day_minutes(schedule)
-            extras      = []
-            if named_today:
-                extras.append(f"{done_today}/{len(named_today)}")
-            if tot_today:
-                extras.append(fmt_minutes(tot_today))
-            extra_str = f" · {' · '.join(extras)}" if extras else ""
+    
+    if day_key == today_key:
+        named_today = [tk for tk in schedule if tk.get("task", "").strip()]
+        done_today  = sum(1 for tk in named_today if tk.get("done", False))
+        tot_today   = total_day_minutes(schedule)
+        extras      = []
+        if named_today:
+            extras.append(f"{done_today}/{len(named_today)}")
+        if tot_today:
+            extras.append(fmt_minutes(tot_today))
+        extra_str = f" · {' · '.join(extras)}" if extras else ""
+        st.markdown(
+            f'<div class="today-badge"><span>🔵 {t("today_badge")}</span>'
+            f'<span style="font-weight:400;opacity:0.85;">{extra_str}</span></div>',
+            unsafe_allow_html=True
+        )
+
+    # ── Clear-day confirmation 
+    if st.session_state[f"{day_key}_clear_confirm"]:
+        st.markdown(
+            '<div class="danger-confirm">⚠️ '
+            + {
+                "badini":  "هەمی کاران ژێببە؟",
+                "english": "Clear all tasks for this day?",
+                "arabic":  "مسح جميع المهام لهذا اليوم؟",
+              }.get(st.session_state.lang, "Clear all tasks for this day?")
+            + '</div>',
+            unsafe_allow_html=True
+        )
+        st.markdown('<div class="confirm-row-anchor"></div>', unsafe_allow_html=True)
+        cc1, cc2 = st.columns(2)
+        with cc1:
+            if st.button(
+                "✓ " + {"badini": "بەلێ، ژێببە", "english": "Yes, clear", "arabic": "نعم، امسح"}.get(
+                    st.session_state.lang, "Yes"),
+                key=f"{day_key}_clear_yes", use_container_width=True
+            ):
+                st.session_state.schedule[day_key] = []
+                st.session_state[f"{day_key}_reset"] += 1
+                st.session_state[f"{day_key}_clear_confirm"] = False
+                save_schedule()
+                st.rerun()
+        with cc2:
+            if st.button(
+                "✗ " + {"badini": "نەخێر", "english": "Cancel", "arabic": "إلغاء"}.get(
+                    st.session_state.lang, "Cancel"),
+                key=f"{day_key}_clear_no", use_container_width=True
+            ):
+                st.session_state[f"{day_key}_clear_confirm"] = False
+                st.rerun()
+
+    # ── Progress bar ───────────────────────────────────────────────────────
+    named   = [tk for tk in schedule if tk.get("task", "").strip()]
+    n_total = len(named)
+    n_done  = sum(1 for tk in named if tk.get("done", False))
+
+    if n_total > 0:
+        pct       = int((n_done / n_total) * 100)
+        all_done  = n_done == n_total
+        bar_color = "#4CAF50" if not all_done else "#2196F3"
+        if all_done:
             st.markdown(
-                f'<div class="today-badge"><span>🔵 {t("today_badge")}</span>'
-                f'<span style="font-weight:400;opacity:0.85;">{extra_str}</span></div>',
+                f'<div class="all-done-banner">🎉 {n_done}/{n_total} — 100% {t("tasks_completed")}</div>',
                 unsafe_allow_html=True
             )
-
-        # ── Clear-day confirmation 
-        if st.session_state[f"{day_key}_clear_confirm"]:
-            st.markdown(
-                '<div class="danger-confirm">⚠️ '
-                + {
-                    "badini":  "هەمی کاران ژێببە؟",
-                    "english": "Clear all tasks for this day?",
-                    "arabic":  "مسح جميع المهام لهذا اليوم؟",
-                  }.get(st.session_state.lang, "Clear all tasks for this day?")
-                + '</div>',
-                unsafe_allow_html=True
-            )
-            st.markdown('<div class="confirm-row-anchor"></div>', unsafe_allow_html=True)
-            cc1, cc2 = st.columns(2)
-            with cc1:
-                if st.button(
-                    "✓ " + {"badini": "بەلێ، ژێببە", "english": "Yes, clear", "arabic": "نعم، امسح"}.get(
-                        st.session_state.lang, "Yes"),
-                    key=f"{day_key}_clear_yes", use_container_width=True
-                ):
-                    st.session_state.schedule[day_key] = []
-                    st.session_state[f"{day_key}_reset"] += 1
-                    st.session_state[f"{day_key}_clear_confirm"] = False
-                    save_schedule()
-                    st.rerun()
-            with cc2:
-                if st.button(
-                    "✗ " + {"badini": "نەخێر", "english": "Cancel", "arabic": "إلغاء"}.get(
-                        st.session_state.lang, "Cancel"),
-                    key=f"{day_key}_clear_no", use_container_width=True
-                ):
-                    st.session_state[f"{day_key}_clear_confirm"] = False
-                    st.rerun()
-
-        # ── Progress bar ───────────────────────────────────────────────────────
-        named   = [tk for tk in schedule if tk.get("task", "").strip()]
-        n_total = len(named)
-        n_done  = sum(1 for tk in named if tk.get("done", False))
-
-        if n_total > 0:
-            pct       = int((n_done / n_total) * 100)
-            all_done  = n_done == n_total
-            bar_color = "#4CAF50" if not all_done else "#2196F3"
-            if all_done:
-                st.markdown(
-                    f'<div class="all-done-banner">🎉 {n_done}/{n_total} — 100% {t("tasks_completed")}</div>',
-                    unsafe_allow_html=True
-                )
-            else:
-                st.markdown(f"""
-                <div class="prog-wrap">
-                    <div class="prog-header">
-                        <span class="prog-label">{t("tasks_completed")}</span>
-                        <span class="prog-pct">{n_done}/{n_total} — {pct}%</span>
-                    </div>
-                    <div class="prog-track">
-                        <div class="prog-fill" style="width:{pct}%;background:{bar_color};"></div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-        # ── Per-day total scheduled time strip ────────────────────────────────
-        day_total_min = total_day_minutes(schedule)
-        if day_total_min > 0:
-            total_lbl = {
-                "badini":  f"⏱ هەمی دەم: {fmt_minutes(day_total_min)}",
-                "english": f"⏱ Total scheduled: {fmt_minutes(day_total_min)}",
-                "arabic":  f"⏱ إجمالي الوقت: {fmt_minutes(day_total_min)}",
-            }.get(st.session_state.lang, f"⏱ {fmt_minutes(day_total_min)}")
-            done_min = sum(
-                int((datetime.strptime(e.get("end", "00:00"), "%H:%M") -
-                     datetime.strptime(e.get("start", "00:00"), "%H:%M")).total_seconds() // 60)
-                for e in schedule
-                if e.get("done") and e.get("task", "").strip()
-                and int((datetime.strptime(e.get("end", "00:00"), "%H:%M") -
-                         datetime.strptime(e.get("start", "00:00"), "%H:%M")).total_seconds() // 60) > 0
-            )
-            done_lbl = f" · ✅ {fmt_minutes(done_min)}" if done_min > 0 else ""
-            st.markdown(
-                f'<div class="day-total-strip"><span>{total_lbl}{done_lbl}</span></div>',
-                unsafe_allow_html=True
-            )
-
-        # ── Empty state
-        if not schedule:
-            no_tasks_msg = {
-                "badini":  "هیچ كار نينە.",
-                "english": "No tasks yet.",
-                "arabic":  "لا توجد مهام بعد.",
-            }
-            hint_msg = {
-                "badini":  "زێدەکرنێ کلیک بکە بو دروستکرنا کارەکێ",
-                "english": "Click + Add Task below to get started",
-                "arabic":  "انقر على + إضافة مهمة أدناه للبدء",
-            }
+        else:
             st.markdown(f"""
-            <div class="empty-day">
-                <div class="empty-day-icon">📭</div>
-                <div>{no_tasks_msg.get(st.session_state.lang, no_tasks_msg["english"])}</div>
-                <div class="empty-day-hint">{hint_msg.get(st.session_state.lang, hint_msg["english"])}</div>
+            <div class="prog-wrap">
+                <div class="prog-header">
+                    <span class="prog-label">{t("tasks_completed")}</span>
+                    <span class="prog-pct">{n_done}/{n_total} — {pct}%</span>
+                </div>
+                <div class="prog-track">
+                    <div class="prog-fill" style="width:{pct}%;background:{bar_color};"></div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
-        else:
-            # Column headers
-            h1, h2, h3, h4 = st.columns([2.8, 0.7, 4.8, 0.7])
-            with h1:
-                st.markdown(f'<div class="col-header"><span>🕐 {col_time_label}</span></div>', unsafe_allow_html=True)
-            with h2:
-                st.markdown('<div class="col-header"><span>✅</span></div>', unsafe_allow_html=True)
-            with h3:
-                st.markdown(f'<div class="col-header"><span>📝 {col_task_label}</span></div>', unsafe_allow_html=True)
-            with h4:
-                st.markdown('<div class="col-header"></div>', unsafe_allow_html=True)
 
-            changed      = False
-            done_changed = False
+    # ── Per-day total scheduled time strip ────────────────────────────────
+    day_total_min = total_day_minutes(schedule)
+    if day_total_min > 0:
+        total_lbl = {
+            "badini":  f"⏱ هەمی دەم: {fmt_minutes(day_total_min)}",
+            "english": f"⏱ Total scheduled: {fmt_minutes(day_total_min)}",
+            "arabic":  f"⏱ إجمالي الوقت: {fmt_minutes(day_total_min)}",
+        }.get(st.session_state.lang, f"⏱ {fmt_minutes(day_total_min)}")
+        done_min = sum(
+            int((datetime.strptime(e.get("end", "00:00"), "%H:%M") -
+                 datetime.strptime(e.get("start", "00:00"), "%H:%M")).total_seconds() // 60)
+            for e in schedule
+            if e.get("done") and e.get("task", "").strip()
+            and int((datetime.strptime(e.get("end", "00:00"), "%H:%M") -
+                     datetime.strptime(e.get("start", "00:00"), "%H:%M")).total_seconds() // 60) > 0
+        )
+        done_lbl = f" · ✅ {fmt_minutes(done_min)}" if done_min > 0 else ""
+        st.markdown(
+            f'<div class="day-total-strip"><span>{total_lbl}{done_lbl}</span></div>',
+            unsafe_allow_html=True
+        )
 
-            for i, entry in enumerate(schedule):
-                c_time, c_done, c_task, c_del = st.columns([2.8, 0.7, 4.8, 0.7])
+    # ── Empty state
+    if not schedule:
+        no_tasks_msg = {
+            "badini":  "هیچ كار نينە.",
+            "english": "No tasks yet.",
+            "arabic":  "لا توجد مهام بعد.",
+        }
+        hint_msg = {
+            "badini":  "زێدەکرنێ کلیک بکە بو دروستکرنا کارەکێ",
+            "english": "Click + Add Task below to get started",
+            "arabic":  "انقر على + إضافة مهمة أدناه للبدء",
+        }
+        st.markdown(f"""
+        <div class="empty-day">
+            <div class="empty-day-icon">📭</div>
+            <div>{no_tasks_msg.get(st.session_state.lang, no_tasks_msg["english"])}</div>
+            <div class="empty-day-hint">{hint_msg.get(st.session_state.lang, hint_msg["english"])}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Column headers
+        h1, h2, h3, h4 = st.columns([2.8, 0.7, 4.8, 0.7])
+        with h1:
+            st.markdown(f'<div class="col-header"><span>🕐 {col_time_label}</span></div>', unsafe_allow_html=True)
+        with h2:
+            st.markdown('<div class="col-header"><span>✅</span></div>', unsafe_allow_html=True)
+        with h3:
+            st.markdown(f'<div class="col-header"><span>📝 {col_task_label}</span></div>', unsafe_allow_html=True)
+        with h4:
+            st.markdown('<div class="col-header"></div>', unsafe_allow_html=True)
 
-                with c_time:
-                    try:
-                        start_val = datetime.strptime(entry["start"], "%H:%M").time()
-                    except Exception:
-                        start_val = datetime.strptime("07:00", "%H:%M").time()
-                    try:
-                        end_val = datetime.strptime(entry["end"], "%H:%M").time()
-                    except Exception:
-                        end_val = datetime.strptime("08:00", "%H:%M").time()
+        changed      = False
+        done_changed = False
 
-                    _sk = f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}"
-                    _ek = f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}"
-                    _live_s = st.session_state.get(_sk, start_val)
-                    _live_e = st.session_state.get(_ek, end_val)
-                    _cap_s  = (_live_s.strftime("%H:%M") if hasattr(_live_s, "strftime")
-                               else entry.get("start", "--:--"))
-                    _cap_e  = (_live_e.strftime("%H:%M") if hasattr(_live_e, "strftime")
-                               else entry.get("end", "--:--"))
+        for i, entry in enumerate(schedule):
+            c_time, c_done, c_task, c_del = st.columns([2.8, 0.7, 4.8, 0.7])
 
-                    
+            with c_time:
+                try:
+                    start_val = datetime.strptime(entry["start"], "%H:%M").time()
+                except Exception:
+                    start_val = datetime.strptime("07:00", "%H:%M").time()
+                try:
+                    end_val = datetime.strptime(entry["end"], "%H:%M").time()
+                except Exception:
+                    end_val = datetime.strptime("08:00", "%H:%M").time()
+
+                _sk = f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}"
+                _ek = f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}"
+                _live_s = st.session_state.get(_sk, start_val)
+                _live_e = st.session_state.get(_ek, end_val)
+                _cap_s  = (_live_s.strftime("%H:%M") if hasattr(_live_s, "strftime")
+                           else entry.get("start", "--:--"))
+                _cap_e  = (_live_e.strftime("%H:%M") if hasattr(_live_e, "strftime")
+                           else entry.get("end", "--:--"))
+
+                st.markdown(
+                    f'<div class="time-pill">🕐 {_cap_s} → {_cap_e}</div>',
+                    unsafe_allow_html=True
+                )
+
+                start_time = st.time_input(
+                    time_start_label,
+                    value=start_val,
+                    key=_sk,
+                    label_visibility="collapsed"
+                )
+                end_time = st.time_input(
+                    time_end_label,
+                    value=end_val,
+                    key=_ek,
+                    label_visibility="collapsed"
+                )
+                dur = format_duration(
+                    start_time.strftime("%H:%M"),
+                    end_time.strftime("%H:%M")
+                )
+                if dur:
                     st.markdown(
-                        f'<div class="time-pill">🕐 {_cap_s} → {_cap_e}</div>',
+                        f'<span class="duration-badge">⏱ {dur}</span>',
                         unsafe_allow_html=True
                     )
 
-                    start_time = st.time_input(
-                        time_start_label,
-                        value=start_val,
-                        key=_sk,
-                        label_visibility="collapsed"
-                    )
-                    end_time = st.time_input(
-                        time_end_label,
-                        value=end_val,
-                        key=_ek,
-                        label_visibility="collapsed"
-                    )
-                    dur = format_duration(
-                        start_time.strftime("%H:%M"),
-                        end_time.strftime("%H:%M")
-                    )
-                    if dur:
-                        st.markdown(
-                            f'<span class="duration-badge">⏱ {dur}</span>',
-                            unsafe_allow_html=True
-                        )
+            with c_done:
+                done = st.checkbox(
+                    "", value=entry.get("done", False),
+                    key=f"{day_key}_done_{i}_{st.session_state[f'{day_key}_reset']}",
+                    label_visibility="collapsed"
+                )
 
-                with c_done:
-                    done = st.checkbox(
-                        "", value=entry.get("done", False),
-                        key=f"{day_key}_done_{i}_{st.session_state[f'{day_key}_reset']}",
-                        label_visibility="collapsed"
-                    )
+            with c_task:
+                task_text = st.text_input(
+                    "", value=entry.get("task", ""),
+                    key=f"{day_key}_task_{i}_{st.session_state[f'{day_key}_reset']}",
+                    disabled=done, label_visibility="collapsed",
+                    placeholder=t("activity_placeholder")
+                )
 
-                with c_task:
-                    task_text = st.text_input(
-                        "", value=entry.get("task", ""),
-                        key=f"{day_key}_task_{i}_{st.session_state[f'{day_key}_reset']}",
-                        disabled=done, label_visibility="collapsed",
-                        placeholder=t("activity_placeholder")
-                    )
+            with c_del:
+                delete_btn = st.button(
+                    "✕",
+                    key=f"{day_key}_del_{i}_{st.session_state[f'{day_key}_reset']}"
+                )
 
-                with c_del:
-                    delete_btn = st.button(
-                        "✕",
-                        key=f"{day_key}_del_{i}_{st.session_state[f'{day_key}_reset']}"
-                    )
+            if entry.get("done", False) != done:
+                entry["done"] = done
+                changed = done_changed = True
 
-                # Write widget values back to schedule
-                if entry.get("done", False) != done:
-                    entry["done"] = done
-                    changed = done_changed = True
+            if entry.get("task", "") != task_text:
+                entry["task"] = task_text
+                changed = True
 
-                if entry.get("task", "") != task_text:
-                    entry["task"] = task_text
-                    changed = True
+            ns = start_time.strftime("%H:%M")
+            if entry.get("start") != ns:
+                entry["start"] = ns
+                changed = True
 
-                ns = start_time.strftime("%H:%M")
-                if entry.get("start") != ns:
-                    entry["start"] = ns
-                    changed = True
+            ne = end_time.strftime("%H:%M")
+            if entry.get("end") != ne:
+                entry["end"] = ne
+                changed = True
 
-                ne = end_time.strftime("%H:%M")
-                if entry.get("end") != ne:
-                    entry["end"] = ne
-                    changed = True
-
-                if delete_btn:
-                    schedule.pop(i)
-                    st.session_state.schedule[day_key] = schedule
-                    st.session_state[f"{day_key}_reset"] += 1
-                    save_schedule()
-                    st.rerun()
-
-            if changed:
-                st.session_state.schedule[day_key] = schedule
-                save_schedule()
-                if done_changed:
-                    st.rerun()
-
-        st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
-
-        # ── Action buttons ─────────────────────────────────────────────────────
-        st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
-        b1, b2, b3, b4 = st.columns(4)
-
-        with b1:
-            add_lbl = {
-                "badini": "➕ زێدەکرن", "english": "➕ Add Task", "arabic": "➕ إضافة",
-            }
-            if st.button(
-                add_lbl.get(st.session_state.lang, "➕ Add Task"),
-                key=f"{day_key}_add_{st.session_state[f'{day_key}_reset']}",
-                use_container_width=True
-            ):
-                schedule.append({"start": "08:00", "end": "09:00", "task": "", "done": False})
-                st.session_state.schedule[day_key] = schedule
-                save_schedule()
-                st.rerun()
-
-        with b2:
-            has_incomplete = any(not e.get("done",False) for e in schedule)
-            if st.button(
-                {"badini":"✅ هەموو","english":"✅ All Done","arabic":"✅ إتمام الكل"}.get(st.session_state.lang,"✅ All Done"),
-                key=f"{day_key}_markall_{st.session_state[f'{day_key}_reset']}",
-                use_container_width=True, disabled=not has_incomplete
-            ):
-                for e in schedule:
-                    e["done"] = True
-                st.session_state[f"{day_key}_reset"] += 1
-                st.session_state.schedule[day_key] = schedule
-                save_schedule(); st.rerun()
-
-        with b3:
-            sort_lbl = {
-                "badini": "🔃 ڕیزکرن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
-            }
-            if st.button(
-                sort_lbl.get(st.session_state.lang, "🔃 Sort"),
-                key=f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}",
-                use_container_width=True, disabled=len(schedule) <= 1,
-                help="Sort tasks by start time"
-            ):
-                schedule.sort(key=lambda e: parse_time(e.get("start", "00:00")))
+            if delete_btn:
+                schedule.pop(i)
                 st.session_state.schedule[day_key] = schedule
                 st.session_state[f"{day_key}_reset"] += 1
                 save_schedule()
                 st.rerun()
 
-        with b4:
-            clear_lbl = {
-                "badini": "🗑️ ژێبرن", "english": "🗑️ Clear", "arabic": "🗑️ مسح",
-            }
-            if st.button(
-                clear_lbl.get(st.session_state.lang, "🗑️ Clear"),
-                key=f"{day_key}_clear_{st.session_state[f'{day_key}_reset']}",
-                use_container_width=True, disabled=not schedule
-            ):
-                st.session_state[f"{day_key}_clear_confirm"] = True
+        if changed:
+            st.session_state.schedule[day_key] = schedule
+            save_schedule()
+            if done_changed:
                 st.rerun()
+
+    st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
+
+    # ── Action buttons ─────────────────────────────────────────────────────
+    st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
+    b1, b2, b3, b4 = st.columns(4)
+
+    with b1:
+        add_lbl = {
+            "badini": "➕ زێدەکرن", "english": "➕ Add Task", "arabic": "➕ إضافة",
+        }
+        if st.button(
+            add_lbl.get(st.session_state.lang, "➕ Add Task"),
+            key=f"{day_key}_add_{st.session_state[f'{day_key}_reset']}",
+            use_container_width=True
+        ):
+            schedule.append({"start": "08:00", "end": "09:00", "task": "", "done": False})
+            st.session_state.schedule[day_key] = schedule
+            save_schedule()
+            st.rerun()
+
+    with b2:
+        has_incomplete = any(not e.get("done",False) for e in schedule)
+        if st.button(
+            {"badini":"✅ هەموو","english":"✅ All Done","arabic":"✅ إتمام الكل"}.get(st.session_state.lang,"✅ All Done"),
+            key=f"{day_key}_markall_{st.session_state[f'{day_key}_reset']}",
+            use_container_width=True, disabled=not has_incomplete
+        ):
+            for e in schedule:
+                e["done"] = True
+            st.session_state[f"{day_key}_reset"] += 1
+            st.session_state.schedule[day_key] = schedule
+            save_schedule(); st.rerun()
+
+    with b3:
+        sort_lbl = {
+            "badini": "🔃 ڕیزکرن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
+        }
+        if st.button(
+            sort_lbl.get(st.session_state.lang, "🔃 Sort"),
+            key=f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}",
+            use_container_width=True, disabled=len(schedule) <= 1,
+            help="Sort tasks by start time"
+        ):
+            schedule.sort(key=lambda e: parse_time(e.get("start", "00:00")))
+            st.session_state.schedule[day_key] = schedule
+            st.session_state[f"{day_key}_reset"] += 1
+            save_schedule()
+            st.rerun()
+
+    with b4:
+        clear_lbl = {
+            "badini": "🗑️ ژێبرن", "english": "🗑️ Clear", "arabic": "🗑️ مسح",
+        }
+        if st.button(
+            clear_lbl.get(st.session_state.lang, "🗑️ Clear"),
+            key=f"{day_key}_clear_{st.session_state[f'{day_key}_reset']}",
+            use_container_width=True, disabled=not schedule
+        ):
+            st.session_state[f"{day_key}_clear_confirm"] = True
+            st.rerun()
