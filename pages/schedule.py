@@ -318,15 +318,6 @@ section[data-testid="stMain"],
     box-shadow: 0 2px 8px rgba(106,27,154,0.25) !important;
     opacity: 1 !important; /* يتجاوز opacity الافتراضي */
 }}
-/* Sort button - معطل (بنفسجي شفاف) */
-.element-container:has(.action-row-anchor) + div
-    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button:disabled {{
-    background: linear-gradient(135deg,#6a1b9a,#ab47bc) !important;
-    color: rgba(255,255,255,0.7) !important;
-    border-color: #4a148c88 !important;
-    box-shadow: none !important;
-    opacity: 0.7 !important;
-}}
 .element-container:has(.action-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(4) .stButton > button {{
     background: transparent !important;
