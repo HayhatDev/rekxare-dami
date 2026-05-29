@@ -1,2 +1,1 @@
-streamlit
-streamlit-google-auth
+streamlit_google_auth
