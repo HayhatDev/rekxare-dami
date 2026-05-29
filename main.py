@@ -6,17 +6,78 @@ import json
 import os
 import streamlit.components.v1 as components
 
+# --- PWA Manifest ---
+st.markdown("""
+<link rel="manifest" href="/manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js');
+    }
+</script>
+""", unsafe_allow_html=True)
+
+st.set_page_config(
+    page_title="Rekxare Dami",
+    page_icon="📚",
+    initial_sidebar_state="collapsed",
+    layout="centered"
+)
+
 with open("translations.json", "r", encoding="utf-8") as f:
     TRANSLATIONS = json.load(f)
 
-
-# --- Simple Login 
+# --- تهيئة القيم الافتراضية مبكراً ---
+if "lang" not in st.session_state:
+    st.session_state.lang = "badini"
+if "data_key" not in st.session_state:
+    st.session_state.data_key = "default"
 if "user_email" not in st.session_state:
     st.session_state.user_email = ""
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# إذا لم يسجل دخوله
+SCHEDULE_FILE = "schedule_data.json"
+
+def get_data_file():
+    key = st.session_state.get("data_key", "default")
+    return f"study_data_{key}.json"
+
+def load_data():
+    DATA_FILE = get_data_file()
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        st.session_state.total_study_seconds = data.get("total_seconds", 0)
+        st.session_state.completed_sessions  = data.get("sessions", 0)
+        st.session_state.last_subject        = data.get("last_subject", "—")
+        st.session_state.study_history       = data.get("history", [])
+        st.session_state.dark_mode           = data.get("dark_mode", False)
+        st.session_state.streak              = data.get("streak", 0)
+        st.session_state.last_study_date     = data.get("last_study_date", "")
+        st.session_state.daily_seconds       = data.get("daily_seconds", 0)
+        st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
+        st.session_state.lang                = data.get("lang", "badini")
+        st.session_state.student_name        = data.get("student_name", "")
+
+def save_data():
+    DATA_FILE = get_data_file()
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump({
+            "total_seconds":      st.session_state.total_study_seconds,
+            "sessions":           st.session_state.completed_sessions,
+            "last_subject":       st.session_state.last_subject,
+            "history":            st.session_state.study_history,
+            "dark_mode":          st.session_state.dark_mode,
+            "streak":             st.session_state.streak,
+            "last_study_date":    st.session_state.last_study_date,
+            "daily_seconds":      st.session_state.daily_seconds,
+            "daily_goal_seconds": st.session_state.daily_goal_seconds,
+            "lang":               st.session_state.lang,
+            "student_name":       st.session_state.get("student_name", ""),
+        }, f, ensure_ascii=False, indent=2)
+
+# --- Simple Login ---
 if not st.session_state.logged_in:
     st.title("📚 Rekxare Dami")
     st.markdown("### Welcome! Enter your email to continue.")
@@ -35,42 +96,13 @@ if not st.session_state.logged_in:
     st.stop()
 
 # إذا سجل دخوله، أكمل التطبيق
-# تهيئة القيم الافتراضية مبكراً
-if "lang" not in st.session_state:
-    st.session_state.lang = "badini"
-if "data_key" not in st.session_state:
-    st.session_state.data_key = "default"
 st.session_state.data_key = st.session_state.user_email.split("@")[0]
+
 def t(key, **kwargs):
     text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
     if kwargs:
         text = text.format(**kwargs)
     return text
-
-
-st.set_page_config(
-    page_title="Rekxare Dami",
-    page_icon="📚",
-    
-    initial_sidebar_state="collapsed",
-    layout="centered"
-)
-
-st.markdown("""
-<link rel="manifest" href="/manifest.json">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js');
-    }
-</script>
-""", unsafe_allow_html=True)
-
-SCHEDULE_FILE = "schedule_data.json"
-
-def get_data_file():
-    key = st.session_state.get("data_key", "default")
-    return f"study_data_{key}.json"
 
 SUBJECT_COLORS = TRANSLATIONS["badini"]["subjects_color"]
 
@@ -91,41 +123,6 @@ def get_greeting():
     else:
         return t("greeting_night"), t("greeting_night_en")
 
-def load_data():
-    DATA_FILE = get_data_file()
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        st.session_state.total_study_seconds = data.get("total_seconds", 0)
-        st.session_state.completed_sessions  = data.get("sessions", 0)
-        st.session_state.last_subject        = data.get("last_subject", "—")
-        st.session_state.study_history       = data.get("history", [])
-        st.session_state.dark_mode           = data.get("dark_mode", False)
-        st.session_state.streak              = data.get("streak", 0)
-        st.session_state.last_study_date     = data.get("last_study_date", "")
-        st.session_state.daily_seconds       = data.get("daily_seconds", 0)
-        st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
-        st.session_state.lang                = data.get("lang", "badini")
-        st.session_state.student_name        = data.get("student_name", "")
-
-
-def save_data():
-    DATA_FILE = get_data_file()
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump({
-            "total_seconds":      st.session_state.total_study_seconds,
-            "sessions":           st.session_state.completed_sessions,
-            "last_subject":       st.session_state.last_subject,
-            "history":            st.session_state.study_history,
-            "dark_mode":          st.session_state.dark_mode,
-            "streak":             st.session_state.streak,
-            "last_study_date":    st.session_state.last_study_date,
-            "daily_seconds":      st.session_state.daily_seconds,
-            "daily_goal_seconds": st.session_state.daily_goal_seconds,
-            "lang":               st.session_state.lang,
-            "student_name":       st.session_state.get("student_name", ""),
-        }, f, ensure_ascii=False, indent=2)
-
 def load_today_schedule():
     today_map = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat"}
     today_key = today_map[datetime.now().weekday()]
@@ -138,6 +135,7 @@ def load_today_schedule():
             return today_key, []
     return today_key, []
 
+# --- تحميل البيانات (بعد تعريف الدوال) ---
 if "data_loaded" not in st.session_state:
     load_data()
     st.session_state.data_loaded = True
