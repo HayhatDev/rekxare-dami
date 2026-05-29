@@ -65,8 +65,11 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-DATA_FILE     = "study_data.json"
 SCHEDULE_FILE = "schedule_data.json"
+
+def get_data_file():
+    key = st.session_state.get("data_key", "default")
+    return f"study_data_{key}.json"
 
 SUBJECT_COLORS = TRANSLATIONS["badini"]["subjects_color"]
 
@@ -88,6 +91,7 @@ def get_greeting():
         return t("greeting_night"), t("greeting_night_en")
 
 def load_data():
+    DATA_FILE = get_data_file()
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -104,6 +108,7 @@ def load_data():
         st.session_state.student_name        = data.get("student_name", "")
 
 def save_data():
+    DATA_FILE = get_data_file()
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump({
             "total_seconds":      st.session_state.total_study_seconds,
