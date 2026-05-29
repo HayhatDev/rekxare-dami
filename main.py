@@ -34,6 +34,11 @@ if not st.session_state.logged_in:
     st.stop()
 
 # إذا سجل دخوله، أكمل التطبيق
+# تهيئة القيم الافتراضية مبكراً
+if "lang" not in st.session_state:
+    st.session_state.lang = "badini"
+if "data_key" not in st.session_state:
+    st.session_state.data_key = "default"
 st.session_state.data_key = st.session_state.user_email.split("@")[0]
 def t(key, **kwargs):
     text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
