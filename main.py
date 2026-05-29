@@ -6,11 +6,25 @@ import json
 import os
 import streamlit.components.v1 as components
 
-with open("translations.json", "r", encoding="utf-8") as f:
-    TRANSLATIONS = json.load(f)
+# --- Google OAuth 
+from streamlit_google_auth import google_auth
 
-if "lang" not in st.session_state:
-    st.session_state.lang = "badini"
+
+user_info = google_auth(
+    client_id=st.secrets["google_oauth"]["client_id"],
+    client_secret=st.secrets["google_oauth"]["client_secret"],
+    redirect_uri=st.secrets["google_oauth"]["redirect_uri"],
+    cookie_name="rekxare_dami_session",
+)
+
+
+if user_info is None:
+    st.warning("Please login to access your data.")
+    st.stop()
+
+user_email = user_info.get("email", "default")
+st.session_state.data_key = user_email.split("@")[0]
+st.session_state.user_name = user_info.get("name", user_email)
 
 def t(key, **kwargs):
     text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
