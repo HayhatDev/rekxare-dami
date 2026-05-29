@@ -849,17 +849,40 @@ for day_key, _, _ in DAYS:
             "badini": "🔃 ڕیزکرن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
         }.get(st.session_state.lang, "🔃 Sort")
         
-        if st.button(
-            sort_lbl,
-            key=f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}_{int(time.time())}",
-            use_container_width=True,
-            disabled=sort_disabled,
-            help="Sort tasks by start time"
-        ):
+        sort_html = f"""
+        <form action="" method="get">
+            <button
+                type="submit"
+                name="sort_{day_key}"
+                value="true"
+                style="
+                    width: 100%;
+                    padding: 9px 8px;
+                    background: linear-gradient(135deg, #6a1b9a, #ab47bc);
+                    color: #fff;
+                    border: 1px solid #4a148c;
+                    border-radius: 10px;
+                    font-weight: 600;
+                    font-size: 12px;
+                    cursor: { 'not-allowed' if sort_disabled else 'pointer' };
+                    box-shadow: 0 2px 8px rgba(106,27,154,0.25);
+                    opacity: { '0.5' if sort_disabled else '1' };
+                "
+                { 'disabled' if sort_disabled else '' }
+            >
+                {sort_lbl}
+            </button>
+        </form>
+        """
+        st.markdown(sort_html, unsafe_allow_html=True)
+        
+        # التحقق من الضغط
+        if st.query_params.get(f"sort_{day_key}") == "true":
             schedule.sort(key=lambda e: parse_time(e.get("start", "00:00")))
             st.session_state.schedule[day_key] = schedule
             st.session_state[f"{day_key}_reset"] += 1
             save_schedule()
+            st.query_params.clear()
             st.rerun()
     with b4:
         clear_lbl = {
