@@ -7,7 +7,7 @@ import os
 import streamlit.components.v1 as components
 
 # --- Google OAuth 
-from streamlit_google_auth import google_auth
+from streamlit-google-auth import google_auth
 
 
 user_info = google_auth(
