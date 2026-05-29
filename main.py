@@ -781,41 +781,37 @@ if today_tasks_named:
     total_count = len(today_tasks_named)
     pct_sched   = int((done_count / total_count) * 100) if total_count else 0
     prog_color  = "#2196F3" if done_count == total_count else "#4CAF50"
-    sched_title = {
+    
+    sched_title_text = {
         "badini":  f"📅 بەرنامەی ئەمرۆ — {_day_emoji} {_day_eng}",
         "english": f"📅 Today's Schedule — {_day_emoji} {_day_eng}",
         "arabic":  f"📅 جدول اليوم — {_day_emoji} {_day_eng}",
     }.get(st.session_state.lang, f"📅 Today — {_day_eng}")
-    rows_html = []
+    
+    # بناء HTML في متغير بسيط
+    html_content = '<div class="sched-card">'
+    html_content += f'<div class="sched-title">{sched_title_text} <span style="margin-left:auto;font-size:11px;color:{TEXT_MUTED};font-weight:500;letter-spacing:0;">{done_count}/{total_count} — {pct_sched}%</span></div>'
+    
     for ti in today_tasks_named[:6]:
         done_cls  = "sched-item-done" if ti.get("done") else "sched-item-todo"
         task_cls  = "sched-task-done" if ti.get("done") else "sched-task"
         check_ico = "✅" if ti.get("done") else "⬜"
-        rows_html.append(f"""
-        <div class="sched-item {done_cls}">
-            <span class="sched-time">{ti.get('start','')}–{ti.get('end','')}</span>
-            <span class="{task_cls}">{ti.get('task','')}</span>
-            <span class="sched-check">{check_ico}</span>
-        </div>""")
+        html_content += f'<div class="sched-item {done_cls}"><span class="sched-time">{ti.get("start","")}–{ti.get("end","")}</span><span class="{task_cls}">{ti.get("task","")}</span><span class="sched-check">{check_ico}</span></div>'
+    
     if len(today_tasks_named) > 6:
         extra = len(today_tasks_named) - 6
-        extra_lbl = (f"+{extra} more" if st.session_state.lang == "english" else
-                     f"+{extra} زیاتر" if st.session_state.lang == "badini" else f"+{extra} أكثر")
-        rows_html.append(f'<div style="font-size:11px;color:{TEXT_MUTED};padding:4px 10px;">{extra_lbl}</div>')
-    st.markdown(f"""
-    <div class="sched-card">
-        <div class="sched-title">{sched_title}
-            <span style="margin-left:auto;font-size:11px;color:{TEXT_MUTED};font-weight:500;letter-spacing:0;">
-                {done_count}/{total_count} — {pct_sched}%
-            </span>
-        </div>
-        {"".join(rows_html)}
-        <div class="sched-prog-wrap">
-            <div class="sched-prog-fill" style="width:{pct_sched}%;background:{prog_color};"></div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
+        if st.session_state.lang == "english":
+            extra_lbl = f"+{extra} more"
+        elif st.session_state.lang == "badini":
+            extra_lbl = f"+{extra} زیاتر"
+        else:
+            extra_lbl = f"+{extra} أكثر"
+        html_content += f'<div style="font-size:11px;color:{TEXT_MUTED};padding:4px 10px;">{extra_lbl}</div>'
+    
+    html_content += f'<div class="sched-prog-wrap"><div class="sched-prog-fill" style="width:{pct_sched}%;background:{prog_color};"></div></div>'
+    html_content += '</div>'
+    
+    st.markdown(html_content, unsafe_allow_html=True)
 # ── Timer section ──────────────────────────────────────────────────────────────
 timer_section_lbl = {
     "badini": "⏱ کاتژمێری خوێندن",
