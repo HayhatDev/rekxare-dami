@@ -307,16 +307,23 @@ section[data-testid="stMain"],
     font-size: 12px !important;
     box-shadow: 0 2px 8px rgba(21,101,192,0.25) !important;
 }}
-/* Sort button - بنفسجي دائماً */
+/* Sort button - بنفسجي في كل الحالات */
 .element-container:has(.action-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button {{
     background: linear-gradient(135deg, #6a1b9a, #ab47bc) !important;
-    color: #fff !important;
+    color: #ffffff !important;
     border-color: #4a148c !important;
     font-size: 12px !important;
     padding: 9px 8px !important;
     box-shadow: 0 2px 8px rgba(106,27,154,0.25) !important;
-    opacity: 1 !important; /* يتجاوز opacity الافتراضي */
+    opacity: 1 !important;
+    transition: all 0.18s ease !important;
+}}
+/* عند التعطيل */
+.element-container:has(.action-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button:disabled {{
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
 }}
 .element-container:has(.action-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(4) .stButton > button {{
@@ -843,49 +850,20 @@ for day_key, _, _ in DAYS:
             "badini": "🔃 ڕیزکرن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
         }.get(st.session_state.lang, "🔃 Sort")
         
-        # زر HTML بنفسجي بتأثيرات متطابقة مع أزرار Streamlit
-        sort_html = f"""
-        <style>
-            .sort-btn-{day_key} {{
-                width: 100%;
-                padding: 9px 8px;
-                background: linear-gradient(135deg, #6a1b9a, #ab47bc);
-                color: #fff;
-                border: 1px solid #4a148c;
-                border-radius: 10px;
-                font-weight: 600;
-                font-size: 12px;
-                cursor: pointer;
-                box-shadow: 0 2px 8px rgba(106,27,154,0.25);
-                transition: all 0.18s ease;
-                opacity: { '0.6' if sort_disabled else '1' };
-                cursor: { 'not-allowed' if sort_disabled else 'pointer' };
-            }}
-            .sort-btn-{day_key}:hover:not(:disabled) {{
-                opacity: 0.80;
-                transform: translateY(-1px);
-                box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-            }}
-            .sort-btn-{day_key}:active:not(:disabled) {{
-                transform: translateY(0px);
-            }}
-        </style>
-        <form action="" method="get">
-            <input type="hidden" name="sort_{day_key}" value="true">
-            <button type="submit" class="sort-btn-{day_key}" {'disabled' if sort_disabled else ''}>
-                {sort_lbl}
-            </button>
-        </form>
-        """
-        st.markdown(sort_html, unsafe_allow_html=True)
+        # مفتاح ديناميكي
+        sort_key = f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}"
         
-        # تنفيذ الترتيب عند الضغط
-        if st.query_params.get(f"sort_{day_key}") == "true":
+        if st.button(
+            sort_lbl,
+            key=sort_key,
+            use_container_width=True,
+            disabled=sort_disabled,
+            help="Sort tasks by start time"
+        ):
             schedule.sort(key=lambda e: parse_time(e.get("start", "00:00")))
             st.session_state.schedule[day_key] = schedule
             st.session_state[f"{day_key}_reset"] += 1
             save_schedule()
-            st.query_params.clear()
             st.rerun()
             
     with b4:
