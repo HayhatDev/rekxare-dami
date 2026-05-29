@@ -79,12 +79,6 @@ def save_data():
 
 # --- Simple Login ---
 if not st.session_state.logged_in:
-    st.set_page_config(
-        page_title="Rekxare Dami",
-        page_icon="📚",
-        initial_sidebar_state="collapsed",
-        layout="centered"
-    )
     st.title("📚 Rekxare Dami")
     st.markdown("### Welcome! Enter your email to continue.")
     
@@ -101,6 +95,15 @@ if not st.session_state.logged_in:
             st.session_state.data_key = email.split("@")[0]
             load_data()
             st.rerun()
+    
+    # إخفاء الشريط الجانبي
+    st.markdown("""
+    <style>
+        [data-testid="stSidebar"] { display: none !important; }
+        [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+        [data-testid="collapsedControl"] { display: none !important; }
+    </style>
+    """, unsafe_allow_html=True)
     
     st.stop()
 
