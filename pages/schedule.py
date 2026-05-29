@@ -844,13 +844,16 @@ for day_key, _, _ in DAYS:
             save_schedule(); st.rerun()
 
     with b3:
+        sort_disabled = len(schedule) <= 1
         sort_lbl = {
             "badini": "🔃 ڕیزکرن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
-        }
+        }.get(st.session_state.lang, "🔃 Sort")
+        
         if st.button(
-            sort_lbl.get(st.session_state.lang, "🔃 Sort"),
-            key=f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}",
-            use_container_width=True, disabled=len(schedule) <= 1,
+            sort_lbl,
+            key=f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}_{int(time.time())}",
+            use_container_width=True,
+            disabled=sort_disabled,
             help="Sort tasks by start time"
         ):
             schedule.sort(key=lambda e: parse_time(e.get("start", "00:00")))
@@ -858,7 +861,6 @@ for day_key, _, _ in DAYS:
             st.session_state[f"{day_key}_reset"] += 1
             save_schedule()
             st.rerun()
-            
     with b4:
         clear_lbl = {
             "badini": "🗑️ ژێبرن", "english": "🗑️ Clear", "arabic": "🗑️ مسح",
