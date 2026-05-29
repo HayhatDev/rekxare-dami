@@ -851,41 +851,45 @@ for day_key, _, _ in DAYS:
             "badini": "🔃 ڕیزکرن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
         }.get(st.session_state.lang, "🔃 Sort")
         
-        sort_html = f"""
-        <form action="" method="get">
-            <button
-                type="submit"
-                name="sort_{day_key}"
-                value="true"
-                style="
-                    width: 100%;
-                    padding: 9px 8px;
+        # زر HTML بنفسجي دائماً، معطل إذا لزم
+        if sort_disabled:
+            sort_html = f"""
+            <button disabled style="
+                width: 100%; padding: 9px 8px;
+                background: linear-gradient(135deg, #6a1b9a, #ab47bc);
+                color: rgba(255,255,255,0.6);
+                border: 1px solid #4a148c88;
+                border-radius: 10px; font-weight: 600; font-size: 12px;
+                box-shadow: none; opacity: 0.6; cursor: not-allowed;
+            ">{sort_lbl}</button>
+            """
+            st.markdown(sort_html, unsafe_allow_html=True)
+        else:
+            # زر مفعل - نستخدم form للإرسال
+            sort_html = f"""
+            <form action="" method="get">
+                <input type="hidden" name="sort_{day_key}" value="true">
+                <button type="submit" style="
+                    width: 100%; padding: 9px 8px;
                     background: linear-gradient(135deg, #6a1b9a, #ab47bc);
                     color: #fff;
                     border: 1px solid #4a148c;
-                    border-radius: 10px;
-                    font-weight: 600;
-                    font-size: 12px;
-                    cursor: { 'not-allowed' if sort_disabled else 'pointer' };
+                    border-radius: 10px; font-weight: 600; font-size: 12px;
+                    cursor: pointer;
                     box-shadow: 0 2px 8px rgba(106,27,154,0.25);
-                    opacity: { '0.5' if sort_disabled else '1' };
-                "
-                { 'disabled' if sort_disabled else '' }
-            >
-                {sort_lbl}
-            </button>
-        </form>
-        """
-        st.markdown(sort_html, unsafe_allow_html=True)
-        
-        # التحقق من الضغط
-        if st.query_params.get(f"sort_{day_key}") == "true":
-            schedule.sort(key=lambda e: parse_time(e.get("start", "00:00")))
-            st.session_state.schedule[day_key] = schedule
-            st.session_state[f"{day_key}_reset"] += 1
-            save_schedule()
-            st.query_params.clear()
-            st.rerun()
+                ">{sort_lbl}</button>
+            </form>
+            """
+            st.markdown(sort_html, unsafe_allow_html=True)
+            
+            # قراءة الضغط من الرابط
+            if st.query_params.get(f"sort_{day_key}") == "true":
+                schedule.sort(key=lambda e: parse_time(e.get("start", "00:00")))
+                st.session_state.schedule[day_key] = schedule
+                st.session_state[f"{day_key}_reset"] += 1
+                save_schedule()
+                st.query_params.clear()
+                st.rerun()
     with b4:
         clear_lbl = {
             "badini": "🗑️ ژێبرن", "english": "🗑️ Clear", "arabic": "🗑️ مسح",
