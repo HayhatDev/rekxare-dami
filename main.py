@@ -6,6 +6,9 @@ import json
 import os
 import streamlit.components.v1 as components
 
+with open("translations.json", "r", encoding="utf-8") as f:
+    TRANSLATIONS = json.load(f)
+    
 # --- Simple Login 
 if "user_email" not in st.session_state:
     st.session_state.user_email = ""
