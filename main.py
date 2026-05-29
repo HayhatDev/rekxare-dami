@@ -6,10 +6,7 @@ import json
 import os
 import streamlit.components.v1 as components
 
-if not st.session_state.get("logged_in", False):
-    st.warning("Please login from the main page first.")
-    st.markdown('<meta http-equiv="refresh" content="2; url=/">', unsafe_allow_html=True)
-    st.stop()
+
 
 # --- PWA Manifest ---
 st.markdown("""
