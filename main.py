@@ -6,25 +6,77 @@ import json
 import os
 import streamlit.components.v1 as components
 
-# --- Google OAuth 
-from streamlit_google_auth import google_auth
+# --- Google OAuth (يدوي) ---
+import urllib.parse
 
+CLIENT_ID = st.secrets["google_oauth"]["client_id"]
+REDIRECT_URI = st.secrets["google_oauth"]["redirect_uri"]
 
-user_info = google_auth(
-    client_id=st.secrets["google_oauth"]["client_id"],
-    client_secret=st.secrets["google_oauth"]["client_secret"],
-    redirect_uri=st.secrets["google_oauth"]["redirect_uri"],
-    cookie_name="rekxare_dami_session",
-)
+# قراءة الكود من الرابط بعد عودة المستخدم من Google
+query_params = st.query_params
+auth_code = query_params.get("code", None)
 
+if "google_user" not in st.session_state:
+    st.session_state.google_user = None
 
-if user_info is None:
-    st.warning("Please login to access your data.")
+if auth_code and st.session_state.google_user is None:
+    # تبادل الكود بـ access token
+    import requests
+    
+    token_url = "https://oauth2.googleapis.com/token"
+    token_data = {
+        "code": auth_code,
+        "client_id": CLIENT_ID,
+        "client_secret": st.secrets["google_oauth"]["client_secret"],
+        "redirect_uri": REDIRECT_URI,
+        "grant_type": "authorization_code"
+    }
+    token_response = requests.post(token_url, data=token_data).json()
+    access_token = token_response.get("access_token")
+    
+    if access_token:
+        # جلب معلومات المستخدم
+        user_response = requests.get(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"}
+        ).json()
+        
+        st.session_state.google_user = user_response
+        st.session_state.data_key = user_response.get("email", "default").split("@")[0]
+        st.session_state.user_name = user_response.get("name", "User")
+        st.rerun()
+
+# إذا لم يسجل المستخدم دخوله، اعرض زر التسجيل
+if st.session_state.google_user is None:
+    # رابط تسجيل الدخول
+    auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        + urllib.parse.urlencode({
+            "client_id": CLIENT_ID,
+            "redirect_uri": REDIRECT_URI,
+            "response_type": "code",
+            "scope": "openid email profile",
+            "access_type": "offline",
+            "prompt": "consent"
+        })
+    )
+    
+    st.title("📚 Rekxare Dami")
+    st.markdown(f"""
+    <div style="text-align:center; margin-top:50px;">
+        <h2>Welcome!</h2>
+        <p>Please login to access your study data.</p>
+        <a href="{auth_url}" style="text-decoration:none;">
+            <button style="padding:12px 24px; font-size:16px; border-radius:8px; background:#4285F4; color:white; border:none; cursor:pointer;">
+                🚀 Login with Google
+            </button>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
     st.stop()
 
-user_email = user_info.get("email", "default")
-st.session_state.data_key = user_email.split("@")[0]
-st.session_state.user_name = user_info.get("name", user_email)
+# إذا سجل دخوله، أكمل التطبيق بشكل طبيعي
+# ... (باقي الكود هنا)                                                                                                         
 
 def t(key, **kwargs):
     text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
