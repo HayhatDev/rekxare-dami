@@ -79,14 +79,23 @@ def save_data():
 
 # --- Simple Login ---
 if not st.session_state.logged_in:
+    st.set_page_config(
+        page_title="Rekxare Dami",
+        page_icon="📚",
+        initial_sidebar_state="collapsed",
+        layout="centered"
+    )
     st.title("📚 Rekxare Dami")
     st.markdown("### Welcome! Enter your email to continue.")
     
     email = st.text_input("Email", placeholder="example@gmail.com")
     
+    if email.strip() and "@" not in email and "." not in email:
+        st.error("Please enter a valid email address.")
+    
     col1, col2 = st.columns([2, 1])
     with col1:
-        if st.button("🚀 Enter", use_container_width=True) and email.strip():
+        if st.button("🚀 Enter", use_container_width=True) and email.strip() and "@" in email and "." in email:
             st.session_state.user_email = email.strip()
             st.session_state.logged_in = True
             st.session_state.data_key = email.split("@")[0]
