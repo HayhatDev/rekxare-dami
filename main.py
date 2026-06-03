@@ -99,8 +99,8 @@ if not st.session_state.logged_in:
             st.session_state.user_email = email.strip()
             st.session_state.logged_in = True
             st.session_state.data_key = email.split("@")[0]
-            load_data()
             save_data()
+            load_data()
             st.rerun()
     
     # إخفاء الشريط الجانبي
