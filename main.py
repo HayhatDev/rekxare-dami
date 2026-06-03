@@ -83,6 +83,7 @@ def save_data():
             "logged_in": st.session_state.get("logged_in", False),
         }, f, ensure_ascii=False, indent=2)
 
+
 DEFAULTS = {
     "total_study_seconds": 0, "completed_sessions": 0,
     "last_subject": "—", "study_history": [], "dark_mode": False,
@@ -94,6 +95,7 @@ DEFAULTS = {
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
         st.session_state[k] = v
+
 
 # --- Simple Login ---
 if not st.session_state.logged_in:
