@@ -5,7 +5,9 @@ from datetime import datetime, date, timedelta
 import json
 import os
 import streamlit.components.v1 as components
-
+import glob
+for f in glob.glob("study_data_*.json"):
+    os.remove(f)
 
 
 # --- PWA Manifest ---
@@ -45,28 +47,25 @@ def get_data_file():
     key = st.session_state.get("data_key", "default")
     return f"study_data_{key}.json"
 
+
 def load_data():
     DATA_FILE = get_data_file()
     if os.path.exists(DATA_FILE):
-        try:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            st.session_state.total_study_seconds = data.get("total_seconds", 0)
-            st.session_state.completed_sessions  = data.get("sessions", 0)
-            st.session_state.last_subject        = data.get("last_subject", "—")
-            st.session_state.study_history       = data.get("history", [])
-            st.session_state.dark_mode           = data.get("dark_mode", False)
-            st.session_state.streak              = data.get("streak", 0)
-            st.session_state.last_study_date     = data.get("last_study_date", "")
-            st.session_state.daily_seconds       = data.get("daily_seconds", 0)
-            st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
-            st.session_state.lang                = data.get("lang", "badini")
-            st.session_state.student_name        = data.get("student_name", "")
-            st.session_state.user_email          = data.get("user_email", "")
-            st.session_state.logged_in           = data.get("logged_in", False)
-        except (json.JSONDecodeError, Exception):
-            # الملف تالف، نحذفه
-            os.remove(DATA_FILE)
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        st.session_state.total_study_seconds = data.get("total_seconds", 0)
+        st.session_state.completed_sessions  = data.get("sessions", 0)
+        st.session_state.last_subject        = data.get("last_subject", "—")
+        st.session_state.study_history       = data.get("history", [])
+        st.session_state.dark_mode           = data.get("dark_mode", False)
+        st.session_state.streak              = data.get("streak", 0)
+        st.session_state.last_study_date     = data.get("last_study_date", "")
+        st.session_state.daily_seconds       = data.get("daily_seconds", 0)
+        st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
+        st.session_state.lang                = data.get("lang", "badini")
+        st.session_state.student_name        = data.get("student_name", "")
+        
+
 def save_data():
     DATA_FILE = get_data_file()
     with open(DATA_FILE, "w", encoding="utf-8") as f:
@@ -82,24 +81,10 @@ def save_data():
             "daily_goal_seconds": st.session_state.daily_goal_seconds,
             "lang":               st.session_state.lang,
             "student_name":       st.session_state.get("student_name", ""),
-            "user_email": st.session_state.get("user_email", ""),
-            "logged_in": st.session_state.get("logged_in", False),
         }, f, ensure_ascii=False, indent=2)
 
 
-DEFAULTS = {
-    "total_study_seconds": 0, "completed_sessions": 0,
-    "last_subject": "—", "study_history": [], "dark_mode": False,
-    "streak": 0, "last_study_date": "", "daily_seconds": 0,
-    "daily_goal_seconds": 7200, "timer_running": False,
-    "end_time": None, "total_seconds": 0, "paused": False,
-    "remaining_at_pause": 0, "student_name": "",
-}
-for k, v in DEFAULTS.items():
-    if k not in st.session_state:
-        st.session_state[k] = v
-
-
+# --- Simple Login ---
 # --- Simple Login ---
 if not st.session_state.logged_in:
     st.title("📚 Rekxare Dami")
@@ -116,8 +101,7 @@ if not st.session_state.logged_in:
             st.session_state.user_email = email.strip()
             st.session_state.logged_in = True
             st.session_state.data_key = email.split("@")[0]
-            save_data()
-            load_data()
+            load_data()   # تحميل بيانات المستخدم بعد تحديد المفتاح
             st.rerun()
     
     # إخفاء الشريط الجانبي
@@ -182,6 +166,17 @@ def load_today_schedule():
             return today_key, []
     return today_key, []
 
+DEFAULTS = {
+    "total_study_seconds": 0, "completed_sessions": 0,
+    "last_subject": "—", "study_history": [], "dark_mode": False,
+    "streak": 0, "last_study_date": "", "daily_seconds": 0,
+    "daily_goal_seconds": 7200, "timer_running": False,
+    "end_time": None, "total_seconds": 0, "paused": False,
+    "remaining_at_pause": 0, "student_name": "",
+}
+for k, v in DEFAULTS.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 # تحميل البيانات (بعد تعريف الدوال)
 if "data_loaded" not in st.session_state:
     load_data()
