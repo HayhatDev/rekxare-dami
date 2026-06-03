@@ -841,7 +841,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-duration_lbl = {"badini":"⏱ کاتی خوێندن","english":"⏱ Duration","arabic":"⏱ المدة"}.get(st.session_state.lang,"⏱ Duration")
+duration_lbl = {"badini":"⏱ دەمێ خواندنێ","english":"⏱ Duration","arabic":"⏱ المدة"}.get(st.session_state.lang,"⏱ Duration")
 st.markdown(f'<div style="font-size:12px;font-weight:600;color:{TEXT_MUTED};margin-bottom:4px;">{duration_lbl}</div>', unsafe_allow_html=True)
 
 # Quick preset buttons
