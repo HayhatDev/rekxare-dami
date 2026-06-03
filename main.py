@@ -709,7 +709,7 @@ with st.sidebar:
 #  MAIN PAGE
 # ══════════════════════════════════════════════════════════════════════════════
 
-# ── Name input ─────────────────────────────────────────────────────────────────
+# ── Name input                                                                                       
 _all_defaults = {
     TRANSLATIONS.get(lng, {}).get("default_name", "")
     for lng in ("badini", "english", "arabic")
@@ -726,7 +726,7 @@ if nav != st.session_state.get("student_name", ""):
     st.session_state.student_name = nav
     save_data()
 
-# ── Greeting card ──────────────────────────────────────────────────────────────
+# ── Greeting card
 kurd_greet, eng_greet = get_greeting()
 h_now       = datetime.now().hour
 greet_emoji = ("🌅" if 5 <= h_now < 12 else "☀️" if 12 <= h_now < 17 else
@@ -744,10 +744,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Daily goal achieved banner ─────────────────────────────────────────────────
-if daily_pct >= 100:
+# ── Daily goal achieved banner 
     goal_win_msg = {
-        "badini":  f"ئامانجی ئەمرۆت تەواو کرد! {today_h}ک {today_m}خ خوێندیت.",
+        "badini":  f"ئارمانجێن ئەڤرو تەواو بوون! {today_h}ک {today_m}خ خواندن.",
         "english": f"Daily goal reached! You studied {today_h}h {today_m}m today.",
         "arabic":  f"تم تحقيق هدف اليوم! درست {today_h}س {today_m}د اليوم.",
     }.get(st.session_state.lang, "Goal reached!")
@@ -783,7 +782,7 @@ if today_tasks_named:
     prog_color  = "#2196F3" if done_count == total_count else "#4CAF50"
     
     sched_title_text = {
-        "badini":  f"📅 بەرنامەی ئەمرۆ — {_day_emoji} {_day_eng}",
+        "badini":  f"📅 خشتەیێ ئەڤروکە — {_day_emoji} {_day_eng}",
         "english": f"📅 Today's Schedule — {_day_emoji} {_day_eng}",
         "arabic":  f"📅 جدول اليوم — {_day_emoji} {_day_eng}",
     }.get(st.session_state.lang, f"📅 Today — {_day_eng}")
@@ -803,7 +802,7 @@ if today_tasks_named:
         if st.session_state.lang == "english":
             extra_lbl = f"+{extra} more"
         elif st.session_state.lang == "badini":
-            extra_lbl = f"+{extra} زیاتر"
+            extra_lbl = f"+{extra} زێدەکرن"
         else:
             extra_lbl = f"+{extra} أكثر"
         html_content += f'<div style="font-size:11px;color:{TEXT_MUTED};padding:4px 10px;">{extra_lbl}</div>'
@@ -814,7 +813,7 @@ if today_tasks_named:
     st.markdown(html_content, unsafe_allow_html=True)
 # ── Timer section ──────────────────────────────────────────────────────────────
 timer_section_lbl = {
-    "badini": "⏱ کاتژمێری خوێندن",
+    "badini": "⏱ دەمژمێرێ خواندنێ",
     "english": "⏱ Study Timer",
     "arabic": "⏱ مؤقت الدراسة",
 }.get(st.session_state.lang, "⏱ Study Timer")
@@ -886,13 +885,13 @@ with col2:
 with col3:
     dubare = st.button(t("reset_btn"), use_container_width=True, key="reset_btn")
 
-# ── Quote card ─────────────────────────────────────────────────────────────────
+# ── Quote card 
 hezt = t("quotes")
 if not isinstance(hezt, list):
     hezt = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("quotes", ["Keep going!"])
 current_quote = hezt[st.session_state.quote_idx % len(hezt)]
 
-refresh_lbl = {"badini":"نوێ","english":"New quote","arabic":"اقتباس جديد"}.get(st.session_state.lang,"New quote")
+refresh_lbl = {"badini":"نوى","english":"New quote","arabic":"اقتباس جديد"}.get(st.session_state.lang,"New quote")
 _, qbtn_col = st.columns([5, 2])
 with qbtn_col:
     if st.button(f"🔄 {refresh_lbl}", key="refresh_quote", use_container_width=True):
@@ -933,7 +932,7 @@ if dubare:
     st.session_state.remaining_at_pause = 0
     st.rerun()
 
-# ── SVG circle timer ───────────────────────────────────────────────────────────
+# ── SVG circle timer 
 def render_circle(mins_val, secs_val, progress, color):
     dash = progress * 100.0
     glow = f"filter:drop-shadow(0 0 12px {color}bb);" if progress > 0 else ""
@@ -1015,7 +1014,7 @@ elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
     mv, sv_ = divmod(int(st.session_state.remaining_at_pause), 60)
     prog = min(1.0, 1.0 - (st.session_state.remaining_at_pause / max(1, st.session_state.total_seconds)))
     render_circle(mv, sv_, prog, "#FFA500")
-    pause_lbl = {"badini":"⏸️ کاتژمێر وەستاوە","english":"⏸️ Timer paused","arabic":"⏸️ الموقت متوقف"}
+    pause_lbl = {"badini":"⏸️ دەمژمێر راوەستیایە","english":"⏸️ Timer paused","arabic":"⏸️ الموقت متوقف"}
     st.markdown(f'<div class="paused-banner">{pause_lbl.get(st.session_state.lang,"⏸️ Timer paused")}</div>', unsafe_allow_html=True)
 
 else:
