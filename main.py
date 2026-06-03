@@ -744,7 +744,8 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Daily goal achieved banner 
+# ── Daily goal achieved banner
+if daily_pct >= 100:
     goal_win_msg = {
         "badini":  f"ئارمانجێن ئەڤرو تەواو بوون! {today_h}ک {today_m}خ خواندن.",
         "english": f"Daily goal reached! You studied {today_h}h {today_m}m today.",
