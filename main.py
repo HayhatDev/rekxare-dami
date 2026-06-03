@@ -193,7 +193,7 @@ today_m        = (st.session_state.daily_seconds % 3600) // 60
 _days_map = {"badini": "رۆژ", "english": "days", "arabic": "يوم"}
 days_lbl  = _days_map.get(st.session_state.lang, "رۆژ")
 
-# ── Colour tokens ──────────────────────────────────────────────────────────────
+# ── Colour tokens 
 if is_dark:
     APP_BG         = "#1a1a2e"
     SB_BG          = "#16213e"
@@ -812,7 +812,7 @@ if today_tasks_named:
     html_content += '</div>'
     
     st.markdown(html_content, unsafe_allow_html=True)
-# ── Timer section ──────────────────────────────────────────────────────────────
+# ── Timer section 
 timer_section_lbl = {
     "badini": "⏱ دەمژمێرێ خواندنێ",
     "english": "⏱ Study Timer",
@@ -868,7 +868,7 @@ deqe          = st.slider(t("minutes_question"), 1, 240, key=SLIDER_KEY)
 total_seconds = deqe * 60
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ── Timer control buttons ──────────────────────────────────────────────────────
+# ── Timer control buttons 
 st.markdown('<div class="tcb-anchor"></div>', unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -905,7 +905,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Button actions ─────────────────────────────────────────────────────────────
+# ── Button actions 
 if "dest_pe_bike" in locals() and dest_pe_bike:
     st.session_state.timer_running = True
     st.session_state.paused        = False
