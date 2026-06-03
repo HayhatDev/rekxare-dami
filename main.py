@@ -5,9 +5,6 @@ from datetime import datetime, date, timedelta
 import json
 import os
 import streamlit.components.v1 as components
-import glob
-for f in glob.glob("study_data_*.json"):
-    os.remove(f)
 
 
 # --- PWA Manifest ---
