@@ -751,7 +751,7 @@ st.markdown(f"""
         "arabic":  f"تم تحقيق هدف اليوم! درست {today_h}س {today_m}د اليوم.",
     }.get(st.session_state.lang, "Goal reached!")
     goal_win_sub = {
-        "badini":  "زۆر باشت کرد! بەردەوام بە 🔥",
+        "badini":  "زور باش تە کر! بەردەوام بە 🔥",
         "english": "Amazing work! Keep the momentum going 🔥",
         "arabic":  "عمل رائع! استمر في الزخم 🔥",
     }.get(st.session_state.lang, "Keep going! 🔥")
@@ -765,7 +765,7 @@ st.markdown(f"""
     </div>
     """, unsafe_allow_html=True)
 
-# ── Today's schedule preview ───────────────────────────────────────────────────
+# ── Today's schedule preview 
 _today_key, today_tasks = load_today_schedule()
 DAYS_SHORT = {
     "sun": ("Sunday","☀️"), "mon": ("Monday","📖"), "tue": ("Tuesday","📖"),
