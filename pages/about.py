@@ -11,13 +11,13 @@ st.title("📚 About Rekxare Dami")
 st.markdown("""
 ### What is Rekxare Dami?
 
-Rekxare Dami is a **free, multilingual study time organizer** built for students. It helps you manage your study sessions, track your progress, and plan your week — all in your own language.
+Rekxare Dami is a **free, multilingual study time organizer** built for students. It helps you manage your study sessions, track your progress, and plan your week, all in your own language.
 
 ---
 
 ### Why was it built?
 
-Most productivity apps are available only in English or Arabic. Kurdish students — especially Badini speakers — had no study tool in their native language. Rekxare Dami fills that gap.
+Most productivity apps are available only in English or Arabic. Kurdish students — especially Badini speakers had no study tool in their native language. Rekxare Dami fills that gap.
 
 ---
 
@@ -47,7 +47,7 @@ Most productivity apps are available only in English or Arabic. Kurdish students
 
 ### Built by
 
-**Hayhat Tahir** — a high school student from Kurdistan Region, Iraq. Passionate about computer engineering, robotics, and making technology accessible to everyone.
+**Hayhat Tahir** : a high school student from Kurdistan Region, Iraq. Passionate about computer engineering, robotics, and technology.
 
 ---
 
@@ -59,4 +59,4 @@ Most productivity apps are available only in English or Arabic. Kurdish students
 """)
 
 st.divider()
-st.caption("© 2026 Hayhat Taher. Built with ❤️ in Kurdistan.")
+st.caption("© 2026 Hayhat Tahir. Thanks to everyone checked or used the app!")
