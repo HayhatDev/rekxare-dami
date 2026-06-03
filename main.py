@@ -191,11 +191,6 @@ if "quote_idx" not in st.session_state:
     st.session_state.quote_idx = random.randint(0, 99)
 
 
-}
-for k, v in DEFAULTS.items():
-    if k not in st.session_state:
-        st.session_state[k] = v
-
 today_str = date.today().isoformat()
 if (st.session_state.last_study_date
         and st.session_state.last_study_date != today_str
