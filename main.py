@@ -118,13 +118,24 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
-SUBJECT_COLORS = TRANSLATIONS["badini"]["subjects_color"]
+SUBJECT_COLOR_LIST = [
+    "#2196F3",  # 0: Math
+    "#9C27B0",  # 1: Physics
+    "#FF5722",  # 2: Chemistry
+    "#00BCD4",  # 3: English
+    "#4CAF50",  # 4: Biology
+    "#795548",  # 5: History
+    "#FF9800",  # 6: Geography
+    "#607D8B",  # 7: Computer
+    "#FFC107",  # 8: Religion
+]
 
 def subject_color(label: str) -> str:
-    for key, col in SUBJECT_COLORS.items():
-        if key in label:
-            return col
-    return "#4CAF50"
+    try:
+        idx = subjects_list.index(label)
+        return SUBJECT_COLOR_LIST[idx]
+    except (ValueError, IndexError):
+        return "#4CAF50"
 
 def get_greeting():
     h = datetime.now().hour
