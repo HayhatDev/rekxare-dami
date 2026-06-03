@@ -49,7 +49,7 @@
     "streak_ready": "ئامادەیی! 🌱",
     "streak_keep": "بەردەوام بە! 🔥",
     "streak_champ": "تو قەهرەمانێ! 🏆",
-    "subjects_color": {"بیرکاری": "#2196F3", "فیزیا": "#9C27B0", "کیمیا": "#FF5722", "ئینگلیزی": "#00BCD4", "زیندەوەرزانی": "#4CAF50", "مێژوو": "#795548", "جوگرافیا": "#FF9800", "کۆمپیوتەر": "#607D8B", "ئايين": "#FFC107"}
+    "subjects_color": {"بیرکاری": "#2196F3", "فیزیا": "#9C27B0", "کیمیا": "#FF5722", "ئینگلیزی": "#00BCD4", "زیندەوەرزانی": "#4CAF50", "مێژوو": "#795548", "جوگرافیا": "#FF9800", "کۆمپیوتەر": "#607D8B", "ئايين": "#FFC107"},
     "about_title": "دەربارەی Rekxare Dami",
     "about_what": "Rekxare Dami چییە؟",
     "about_what_desc": "Rekxare Dami **ڕێکخەرەکێ دەمی یێ پتر-زمانی و بێبەرامبەر**ە بو قوتابیان. هاریکاری تە دکەت بۆ ڕێکخستنا دانیشتنێن خوێندنێ، شوینکەفتنا پێشکەفتنا تە، و پلان دانا هەفتیا تە — هەمی ب زمانێ تە.",
@@ -112,7 +112,7 @@
     "streak_ready": "Getting ready! 🌱",
     "streak_keep": "Keep it up! 🔥",
     "streak_champ": "You're a champion! 🏆",
-    "subjects_color": {"Math": "#2196F3", "Physics": "#9C27B0", "Chemistry": "#FF5722", "English": "#00BCD4", "Biology": "#4CAF50", "History": "#795548", "Geography": "#FF9800", "Computer": "#607D8B", "Religion": "#FFC107"}
+    "subjects_color": {"Math": "#2196F3", "Physics": "#9C27B0", "Chemistry": "#FF5722", "English": "#00BCD4", "Biology": "#4CAF50", "History": "#795548", "Geography": "#FF9800", "Computer": "#607D8B", "Religion": "#FFC107"},
     "about_title": "About Rekxare Dami",
     "about_what": "What is Rekxare Dami?",
     "about_what_desc": "Rekxare Dami is a free, multilingual study time organizer built for students. It helps you manage your study sessions, track your progress, and plan your week. all in your own language.",
@@ -192,7 +192,7 @@
     "streak_ready": "استعداد! 🌱",
     "streak_keep": "واصل! 🔥",
     "streak_champ": "أنت بطل! 🏆",
-    "subjects_color": {"رياضيات": "#2196F3", "فيزياء": "#9C27B0", "كيمياء": "#FF5722", "إنجليزي": "#00BCD4", "أحياء": "#4CAF50", "تاريخ": "#795548", "جغرافيا": "#FF9800", "حاسوب": "#607D8B", "دين": "#FFC107"}
+    "subjects_color": {"رياضيات": "#2196F3", "فيزياء": "#9C27B0", "كيمياء": "#FF5722", "إنجليزي": "#00BCD4", "أحياء": "#4CAF50", "تاريخ": "#795548", "جغرافيا": "#FF9800", "حاسوب": "#607D8B", "دين": "#FFC107"},
     "about_title": "عن Rekxare Dami",
     "about_what": "ما هو Rekxare Dami؟",
     "about_what_desc": "Rekxare Dami هو **منظم وقت دراسة مجاني ومتعدد اللغات** مبني للطلاب. يساعدك في إدارة جلسات دراستك، تتبع تقدمك، وتخطيط أسبوعك — كل ذلك بلغتك الخاصة.",
