@@ -83,6 +83,17 @@ def save_data():
             "logged_in": st.session_state.get("logged_in", False),
         }, f, ensure_ascii=False, indent=2)
 
+DEFAULTS = {
+    "total_study_seconds": 0, "completed_sessions": 0,
+    "last_subject": "—", "study_history": [], "dark_mode": False,
+    "streak": 0, "last_study_date": "", "daily_seconds": 0,
+    "daily_goal_seconds": 7200, "timer_running": False,
+    "end_time": None, "total_seconds": 0, "paused": False,
+    "remaining_at_pause": 0, "student_name": "",
+}
+for k, v in DEFAULTS.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
 # --- Simple Login ---
 if not st.session_state.logged_in:
@@ -177,13 +188,7 @@ if "confirm_clear" not in st.session_state:
 if "quote_idx" not in st.session_state:
     st.session_state.quote_idx = random.randint(0, 99)
 
-DEFAULTS = {
-    "total_study_seconds": 0, "completed_sessions": 0,
-    "last_subject": "—", "study_history": [], "dark_mode": False,
-    "streak": 0, "last_study_date": "", "daily_seconds": 0,
-    "daily_goal_seconds": 7200, "timer_running": False,
-    "end_time": None, "total_seconds": 0, "paused": False,
-    "remaining_at_pause": 0, "student_name": "",
+
 }
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
