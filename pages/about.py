@@ -27,11 +27,16 @@ if is_dark:
     text_color = "#e2e2e2"
     card_bg = "rgba(255,255,255,0.06)"
     card_border = "rgba(255,255,255,0.09)"
+    sidebar_bg = "#16213e"
+    sidebar_text = "#e2e2e2"
 else:
     bg_color = "#e8edf5"
     text_color = "#1a1a2e"
     card_bg = "#ffffff"
     card_border = "#dde3ed"
+    sidebar_bg = "#f4f7fb"
+    sidebar_text = "#1a1a2e"
+
 
 st.markdown(f"""
 <style>
@@ -40,6 +45,12 @@ st.markdown(f"""
     }}
     .stApp * {{
         color: {text_color} !important;
+    }}
+    [data-testid="stSidebar"] {{
+        background-color: {sidebar_bg} !important;
+    }}
+    [data-testid="stSidebar"] * {{
+        color: {sidebar_text} !important;
     }}
     .about-card {{
         background: {card_bg};
@@ -65,7 +76,6 @@ st.markdown(f"""
     }}
 </style>
 """, unsafe_allow_html=True)
-
 st.title(f"📚 {t('about_title')}")
 
 st.markdown(f"""
