@@ -41,6 +41,11 @@ if "logged_in" not in st.session_state:
 
 SCHEDULE_FILE = "schedule_data.json"
 
+# تحميل البيانات قبل أي شيء
+if "data_loaded" not in st.session_state:
+    load_data()
+    st.session_state.data_loaded = True
+
 def get_data_file():
     key = st.session_state.get("data_key", "default")
     return f"study_data_{key}.json"
@@ -165,10 +170,6 @@ def load_today_schedule():
             return today_key, []
     return today_key, []
 
-# --- تحميل البيانات (بعد تعريف الدوال) ---
-if "data_loaded" not in st.session_state:
-    load_data()
-    st.session_state.data_loaded = True
 
 if "confirm_clear" not in st.session_state:
     st.session_state.confirm_clear = False
