@@ -61,6 +61,8 @@ def load_data():
         st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
         st.session_state.lang                = data.get("lang", "badini")
         st.session_state.student_name        = data.get("student_name", "")
+        st.session_state.user_email = data.get("user_email", "")
+        st.session_state.logged_in = data.get("logged_in", False)
 
 def save_data():
     DATA_FILE = get_data_file()
@@ -77,6 +79,8 @@ def save_data():
             "daily_goal_seconds": st.session_state.daily_goal_seconds,
             "lang":               st.session_state.lang,
             "student_name":       st.session_state.get("student_name", ""),
+            "user_email": st.session_state.get("user_email", ""),
+            "logged_in": st.session_state.get("logged_in", False),
         }, f, ensure_ascii=False, indent=2)
 
 # --- Simple Login ---
@@ -96,6 +100,7 @@ if not st.session_state.logged_in:
             st.session_state.logged_in = True
             st.session_state.data_key = email.split("@")[0]
             load_data()
+            save_data()
             st.rerun()
     
     # إخفاء الشريط الجانبي
