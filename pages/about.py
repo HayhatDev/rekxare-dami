@@ -47,7 +47,7 @@ Most productivity apps are available only in English or Arabic. Kurdish students
 
 ### Built by
 
-**Hayhat Taher** — a high school student from Kurdistan Region, Iraq. Passionate about computer engineering, robotics, and making technology accessible to everyone.
+**Hayhat Tahir** — a high school student from Kurdistan Region, Iraq. Passionate about computer engineering, robotics, and making technology accessible to everyone.
 
 ---
 
