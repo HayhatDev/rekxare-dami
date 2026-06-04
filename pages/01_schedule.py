@@ -503,6 +503,23 @@ _weekly_title = {
 st.markdown('<div class="week-card">', unsafe_allow_html=True)
 st.markdown(f'<div class="week-card-title">{_weekly_title}</div>', unsafe_allow_html=True)
 
+# ── نسخ الأسبوع 
+st.divider()
+copy_lbl = {
+    "badini": "📋 کوپی بکە بو حەفتیا دهێت",
+    "english": "📋 Copy to Next Week",
+    "arabic": "📋 نسخ إلى الأسبوع القادم",
+}.get(st.session_state.lang, "📋 Copy to Next Week")
+
+if st.button(copy_lbl, use_container_width=True):
+    copy_week_to_next()
+    st.success({
+        "badini": "✅ حەفتی هاتە کۆپیکرن!",
+        "english": "✅ Week copied successfully!",
+        "arabic": "✅ تم نسخ الأسبوع بنجاح!",
+    }.get(st.session_state.lang, "✅ Week copied!"))
+    st.rerun()
+    
 week_cols = st.columns(7)
 for col, (dk, _, eng) in zip(week_cols, DAYS):
     tasks      = st.session_state.schedule.get(dk, [])
@@ -559,7 +576,7 @@ def get_tab_label(day_key):
     dot   = " 🔵" if day_key == today_key else ""
     return f"{day_name}{dot}{badge}"
 
-# --- اختيار اليوم عبر Radio (يحافظ على الاختيار بعد rerun) ---
+# --- اختيار اليوم عبر Radio (يحافظ على الاختيار بعد rerun) 
 if "active_day" not in st.session_state:
     st.session_state.active_day = today_key
 
