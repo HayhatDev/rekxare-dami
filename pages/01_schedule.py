@@ -170,6 +170,7 @@ def copy_week_to_next():
             new_schedule[dk].append(new_task)
     
     st.session_state.schedule = new_schedule
+    st.session_state.active_day = today_key
     save_schedule()
     
 # ── Session-state init
@@ -251,7 +252,7 @@ else:
     TOTAL_COLOR   = "#1565c0"
     TOTAL_BDR     = "rgba(33,150,243,0.18)"
 
-# ── CSS ────────────────────────────────────────────────────────────────────────
+# ── CSS 
 st.markdown(f"""
 <style>
 *, *::before, *::after {{ box-sizing: border-box; }}
@@ -473,7 +474,7 @@ hr {{ border-color: {DIVIDER} !important; margin: 16px 0 !important; }}
 </style>
 """, unsafe_allow_html=True)
 
-# ── Page header ────────────────────────────────────────────────────────────────
+# ── Page header 
 _, dm_col = st.columns([8, 1])
 with dm_col:
     dark_toggle = st.checkbox(
