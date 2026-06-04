@@ -43,7 +43,7 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# ── Constants ──────────────────────────────────────────────────────────────────
+# ── Constants 
 DAYS = [
     ("sun", "☀️ ئێکشەمب", "Sunday"),
     ("mon", "📖 دووشەمب", "Monday"),
@@ -59,7 +59,7 @@ DAY_EMOJIS = {
 }
 SCHEDULE_FILE = "schedule_data.json"
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+# ── Helpers
 def get_day_name(day_key):
     for dk, badini_name, eng_name in DAYS:
         if dk == day_key:
@@ -151,7 +151,28 @@ def save_schedule():
             "dark_mode": st.session_state.dark_mode,
         }, f, ensure_ascii=False, indent=2)
 
-# ── Session-state init ─────────────────────────────────────────────────────────
+def copy_week_to_next():
+    """نسخ مهام الأسبوع الحالي إلى الأسبوع القادم مع إعادة تعيين done=False."""
+    today = datetime.now().weekday()
+    days_until_sunday = (6 - today) % 7
+    if days_until_sunday == 0:
+        days_until_sunday = 7
+    
+    next_sunday = date.today() + timedelta(days=days_until_sunday)
+    week_number = next_sunday.strftime("%Y-%W")
+    
+    new_schedule = {dk: [] for dk, _, _ in DAYS}
+    
+    for dk, _, _ in DAYS:
+        for task in st.session_state.schedule.get(dk, []):
+            new_task = task.copy()
+            new_task["done"] = False
+            new_schedule[dk].append(new_task)
+    
+    st.session_state.schedule = new_schedule
+    save_schedule()
+    
+# ── Session-state init
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
 
@@ -174,7 +195,7 @@ today_map = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat
 today_key = today_map[datetime.now().weekday()]
 is_dark   = st.session_state.dark_mode
 
-# ── Theme tokens ───────────────────────────────────────────────────────────────
+# ── Theme tokens 
 if is_dark:
     APP_BG        = "#1a1a2e"
     SB_BG         = "#16213e"
@@ -616,7 +637,7 @@ for day_key, _, _ in DAYS:
                 st.session_state[f"{day_key}_clear_confirm"] = False
                 st.rerun()
 
-    # ── Progress bar ───────────────────────────────────────────────────────
+    # ── Progress bar
     named   = [tk for tk in schedule if tk.get("task", "").strip()]
     n_total = len(named)
     n_done  = sum(1 for tk in named if tk.get("done", False))
@@ -643,7 +664,7 @@ for day_key, _, _ in DAYS:
             </div>
             """, unsafe_allow_html=True)
 
-    # ── Per-day total scheduled time strip ────────────────────────────────
+    # ── Per-day total scheduled time strip 
     day_total_min = total_day_minutes(schedule)
     if day_total_min > 0:
         total_lbl = {
@@ -802,7 +823,7 @@ for day_key, _, _ in DAYS:
 
     st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
 
-    # ── Action buttons ─────────────────────────────────────────────────────
+    # ── Action buttons 
     st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
     b1, b2, b3, b4 = st.columns(4)
 
