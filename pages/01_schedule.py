@@ -841,6 +841,59 @@ for day_key, _, _ in DAYS:
 
     st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
 
+    # ── نسخ اليوم إلى يوم آخر 
+    st.divider()
+    copy_day_lbl = {
+        "badini": "📋 ڕۆژێ کۆپی بکە بو ڕۆژەکێ دی",
+        "english": "📋 Copy Day to Another Day",
+        "arabic": "📋 نسخ اليوم إلى يوم آخر",
+    }.get(st.session_state.lang, "📋 Copy Day to Another Day")
+    
+    st.caption(copy_day_lbl)
+    
+    # اختيار اليوم الهدف (باستثناء اليوم النشط)
+    target_days = [(dk, get_day_name(dk)) for dk, _, _ in DAYS if dk != active_day_key]
+    target_day_labels = [name for _, name in target_days]
+    target_day_keys   = [dk for dk, _ in target_days]
+    
+    if target_day_labels:
+        target_day = st.selectbox(
+            "👉 " + {
+                "badini": "ڕۆژێ ئارمانج",
+                "english": "Target day",
+                "arabic": "اليوم الهدف",
+            }.get(st.session_state.lang, "Target day"),
+            target_day_labels,
+            key=f"copy_day_target_{active_day_key}"
+        )
+        
+        # الحصول على المفتاح المختار
+        selected_target_key = target_day_keys[target_day_labels.index(target_day)]
+        
+        copy_day_btn_lbl = {
+            "badini": "📋 کۆپی بکە",
+            "english": "📋 Copy Now",
+            "arabic": "📋 نسخ الآن",
+        }.get(st.session_state.lang, "📋 Copy Now")
+        
+        if st.button(copy_day_btn_lbl, use_container_width=True):
+            # نسخ مهام اليوم النشط إلى اليوم الهدف
+            tasks_to_copy = st.session_state.schedule[active_day_key]
+            st.session_state.schedule[selected_target_key] = [
+                {"start": t.get("start", "08:00"),
+                 "end": t.get("end", "09:00"),
+                 "task": t.get("task", ""),
+                 "done": False}
+                for t in tasks_to_copy
+            ]
+            st.session_state[f"{selected_target_key}_reset"] += 1
+            save_schedule()
+            st.success({
+                "badini": f"✅ هاتە کۆپیکرن بۆ {get_day_name(selected_target_key)}!",
+                "english": f"✅ Copied to {get_day_name(selected_target_key)}!",
+                "arabic": f"✅ تم النسخ إلى {get_day_name(selected_target_key)}!",
+            }.get(st.session_state.lang, "✅ Copied!"))
+            st.rerun()
     # ── Action buttons 
     st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
     b1, b2, b3, b4 = st.columns(4)
