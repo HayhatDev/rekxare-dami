@@ -1043,13 +1043,9 @@ for day_key, _, _ in DAYS:
             col_target, col_btn = st.columns([3, 1])
             
             with col_target:
-                st.markdown(f"""
-                <div style="font-size:11px; color:{TEXT_MUTED}; margin-bottom:4px; font-weight:600;">
-                    👉 {{
-                        "badini": "ڕۆژێ ئارمانج",
-                        "english": "Target day",
-                        "arabic": "اليوم الهدف",
-                    }.get(st.session_state.lang, "Target day")}
+                st.markdown("""
+                <div style="font-size:11px; color: var(--text-muted); margin-bottom:4px; font-weight:600;">
+                    👉 Target day
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -1092,7 +1088,6 @@ for day_key, _, _ in DAYS:
                         "arabic": f"✅ تم النسخ إلى {get_day_name(selected_target_key)}!",
                     }.get(st.session_state.lang, "✅ Copied!"))
                     st.rerun()
-
     
     # ── Action buttons ─────────────────────────────────────────────────────
     st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
