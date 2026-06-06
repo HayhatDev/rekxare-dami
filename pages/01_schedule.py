@@ -685,7 +685,7 @@ components.html("""
             var buttons = doc.querySelectorAll('button');
             buttons.forEach(function (btn) {
                 var txt = (btn.textContent || btn.innerText || '').trim();
-                if (txt.indexOf('\uD83D\uDD03') !== -1 && !btn.disabled) {
+                if (txt.indexOf('🔃') !== -1 && !btn.disabled) {
                     btn.style.setProperty('background',    GRAD,   'important');
                     btn.style.setProperty('color',         '#fff', 'important');
                     btn.style.setProperty('border-color',  BORDER, 'important');
