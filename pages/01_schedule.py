@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from datetime import datetime, time as dtime, date, timedelta
 import json
 import os
@@ -663,44 +664,42 @@ hr {{ border-color: {DIVIDER} !important; margin: 14px 0 !important; }}
 """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════
-#  SORT BUTTON — JavaScript direct-style injection
-#  CSS :has() selectors can fail depending on the Streamlit
-#  version / browser context. JS is the guaranteed fallback:
-#  it scans all buttons every 400 ms and force-applies purple
-#  to any button whose text contains the sort emoji 🔃.
+#  SORT BUTTON — JavaScript via components.html()
+#
+#  st.markdown strips <script> tags for security.
+#  components.html() runs inside its own sandboxed iframe
+#  and can reach the Streamlit parent document via
+#  window.parent — this is the ONLY reliable way to execute
+#  JavaScript in Streamlit.
 # ══════════════════════════════════════════════════════════
-st.markdown("""
+components.html("""
 <script>
 (function () {
-    var SORT_EMOJIS = ['🔃'];
-    var PURPLE_GRAD = 'linear-gradient(135deg, #6a1b9a, #ab47bc)';
-    var PURPLE_BORDER = '#4a148c';
-    var PURPLE_SHADOW = '0 2px 8px rgba(106,27,154,0.30)';
+    var GRAD   = 'linear-gradient(135deg, #6a1b9a, #ab47bc)';
+    var BORDER = '#4a148c';
+    var SHADOW = '0 2px 10px rgba(106,27,154,0.40)';
 
-    function applyPurpleToSortBtn() {
+    function styleSortBtn() {
         try {
-            /* Streamlit renders inside an iframe; buttons live in the parent doc */
-            var doc = window.parent ? window.parent.document : document;
+            var doc = window.parent.document;
             var buttons = doc.querySelectorAll('button');
             buttons.forEach(function (btn) {
-                var txt = btn.textContent || btn.innerText || '';
-                var hasSortEmoji = SORT_EMOJIS.some(function (e) { return txt.includes(e); });
-                if (hasSortEmoji && !btn.disabled) {
-                    btn.style.setProperty('background', PURPLE_GRAD, 'important');
-                    btn.style.setProperty('color', '#ffffff', 'important');
-                    btn.style.setProperty('border-color', PURPLE_BORDER, 'important');
-                    btn.style.setProperty('box-shadow', PURPLE_SHADOW, 'important');
+                var txt = (btn.textContent || btn.innerText || '').trim();
+                if (txt.indexOf('\uD83D\uDD03') !== -1 && !btn.disabled) {
+                    btn.style.setProperty('background',    GRAD,   'important');
+                    btn.style.setProperty('color',         '#fff', 'important');
+                    btn.style.setProperty('border-color',  BORDER, 'important');
+                    btn.style.setProperty('box-shadow',    SHADOW, 'important');
                 }
             });
-        } catch (err) { /* cross-origin — silently ignore */ }
+        } catch (e) {}
     }
 
-    /* Run immediately and keep re-applying after Streamlit rerenders */
-    applyPurpleToSortBtn();
-    setInterval(applyPurpleToSortBtn, 400);
+    styleSortBtn();
+    setInterval(styleSortBtn, 300);
 })();
 </script>
-""", unsafe_allow_html=True)
+""", height=0, scrolling=False)
 
 # ══════════════════════════════════════════════════════════
 #  PAGE HEADER
