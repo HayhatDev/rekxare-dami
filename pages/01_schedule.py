@@ -175,42 +175,42 @@ is_dark   = st.session_state.dark_mode
 #  THEME TOKENS
 # ══════════════════════════════════════════════════════════
 if is_dark:
-    APP_BG        = "#0f1117"
+    APP_BG        = "#1a1a2e"
     SB_BG         = "#16213e"
-    INPUT_BG      = "#1e2030"
-    CARD_BG       = "#1a1d2e"
-    CARD_BORDER   = "rgba(255,255,255,0.08)"
-    TEXT_PRIMARY  = "#e2e8f0"
-    TEXT_MUTED    = "#7c85a0"
+    INPUT_BG      = "#252542"
+    CARD_BG       = "rgba(255,255,255,0.05)"
+    CARD_BORDER   = "rgba(255,255,255,0.09)"
+    TEXT_PRIMARY  = "#e2e2e2"
+    TEXT_MUTED    = "#8a8fa8"
     BTN_BG        = "#252542"
-    BTN_COLOR     = "#e2e8f0"
+    BTN_COLOR     = "#e2e2e2"
     BTN_BORDER    = "#3a3a5c"
-    PROG_TRACK    = "rgba(255,255,255,0.10)"
-    DIVIDER       = "rgba(255,255,255,0.07)"
-    TODAY_BG      = "rgba(76,175,80,0.14)"
+    PROG_TRACK    = "rgba(255,255,255,0.12)"
+    DIVIDER       = "rgba(255,255,255,0.08)"
+    TODAY_BG      = "rgba(76,175,80,0.15)"
     TODAY_COLOR   = "#81c784"
-    OVERVIEW_BG   = "#1a1d2e"
-    OVERVIEW_BDR  = "rgba(255,255,255,0.08)"
-    DURATION_CLR  = "#7c85a0"
-    EMPTY_CLR     = "#4a5568"
-    PILL_BG       = "rgba(76,175,80,0.14)"
+    OVERVIEW_BG   = "rgba(255,255,255,0.04)"
+    OVERVIEW_BDR  = "rgba(255,255,255,0.09)"
+    DURATION_CLR  = "#8a8fa8"
+    EMPTY_CLR     = "#555c72"
+    PILL_BG       = "rgba(76,175,80,0.15)"
     PILL_COLOR    = "#81c784"
-    PILL_BORDER   = "rgba(76,175,80,0.22)"
-    TASK_ROW_BG   = "rgba(255,255,255,0.025)"
+    PILL_BORDER   = "rgba(76,175,80,0.25)"
+    TASK_ROW_BG   = "rgba(255,255,255,0.03)"
     TASK_ROW_DONE = "rgba(76,175,80,0.07)"
-    TASK_ROW_BDR  = "rgba(255,255,255,0.06)"
+    TASK_ROW_BDR  = "rgba(255,255,255,0.07)"
     TOTAL_BG      = "rgba(33,150,243,0.12)"
     TOTAL_COLOR   = "#64b5f6"
-    TOTAL_BDR     = "rgba(33,150,243,0.22)"
-    AI_EXP_BG     = "#1a1d2e"
+    TOTAL_BDR     = "rgba(33,150,243,0.25)"
+    AI_EXP_BG     = "rgba(255,255,255,0.03)"
     AI_EXP_BDR    = "rgba(171,71,188,0.25)"
-    SECTION_BG    = "rgba(255,255,255,0.02)"
-    SECTION_BDR   = "rgba(255,255,255,0.07)"
-    DAY_TAB_BG    = "#1a1d2e"
+    SECTION_BG    = "rgba(255,255,255,0.03)"
+    SECTION_BDR   = "rgba(255,255,255,0.08)"
+    DAY_TAB_BG    = "rgba(255,255,255,0.04)"
     DAY_TAB_SEL   = "rgba(76,175,80,0.15)"
-    DAY_TAB_CLR   = "#7c85a0"
+    DAY_TAB_CLR   = "#8a8fa8"
     DAY_TAB_SCLR  = "#81c784"
-    SHADOW        = "rgba(0,0,0,0.4)"
+    SHADOW        = "rgba(0,0,0,0.35)"
 else:
     APP_BG        = "#eef1f8"
     SB_BG         = "#f5f7fc"
@@ -660,6 +660,46 @@ hr {{ border-color: {DIVIDER} !important; margin: 14px 0 !important; }}
     .week-card   {{ padding: 12px 10px 10px !important; }}
 }}
 </style>
+""", unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════
+#  SORT BUTTON — JavaScript direct-style injection
+#  CSS :has() selectors can fail depending on the Streamlit
+#  version / browser context. JS is the guaranteed fallback:
+#  it scans all buttons every 400 ms and force-applies purple
+#  to any button whose text contains the sort emoji 🔃.
+# ══════════════════════════════════════════════════════════
+st.markdown("""
+<script>
+(function () {
+    var SORT_EMOJIS = ['🔃'];
+    var PURPLE_GRAD = 'linear-gradient(135deg, #6a1b9a, #ab47bc)';
+    var PURPLE_BORDER = '#4a148c';
+    var PURPLE_SHADOW = '0 2px 8px rgba(106,27,154,0.30)';
+
+    function applyPurpleToSortBtn() {
+        try {
+            /* Streamlit renders inside an iframe; buttons live in the parent doc */
+            var doc = window.parent ? window.parent.document : document;
+            var buttons = doc.querySelectorAll('button');
+            buttons.forEach(function (btn) {
+                var txt = btn.textContent || btn.innerText || '';
+                var hasSortEmoji = SORT_EMOJIS.some(function (e) { return txt.includes(e); });
+                if (hasSortEmoji && !btn.disabled) {
+                    btn.style.setProperty('background', PURPLE_GRAD, 'important');
+                    btn.style.setProperty('color', '#ffffff', 'important');
+                    btn.style.setProperty('border-color', PURPLE_BORDER, 'important');
+                    btn.style.setProperty('box-shadow', PURPLE_SHADOW, 'important');
+                }
+            });
+        } catch (err) { /* cross-origin — silently ignore */ }
+    }
+
+    /* Run immediately and keep re-applying after Streamlit rerenders */
+    applyPurpleToSortBtn();
+    setInterval(applyPurpleToSortBtn, 400);
+})();
+</script>
 """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════
