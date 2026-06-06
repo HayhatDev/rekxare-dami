@@ -1028,26 +1028,11 @@ for day_key, _, _ in DAYS:
     # ── نسخ اليوم إلى يوم آخر ─────────────────────────────────────────────
     st.divider()
     
-    # كرت خاص بالقسم
+    # عنوان القسم داخل كرت بسيط
     st.markdown(f"""
-    <div style="
-        background: {SETUP_BG}; 
-        border: 1px solid {SETUP_BDR}; 
-        border-radius: 18px; 
-        padding: 18px 20px; 
-        margin-bottom: 14px;
-        box-shadow: 0 1px 8px rgba(0,0,0,0.04);
-    ">
-        <div style="
-            font-size: 12px; 
-            font-weight: 700; 
-            letter-spacing: 0.8px; 
-            text-transform: uppercase; 
-            color: {TEXT_MUTED}; 
-            margin-bottom: 14px;
-        ">
-            📋 {copy_day_lbl}
-        </div>
+    <div style="padding: 8px 0 4px 0;">
+        <span style="font-size:13px; font-weight:700; color:{TEXT_MUTED};">📋 {copy_day_lbl}</span>
+    </div>
     """, unsafe_allow_html=True)
     
     # اختيار اليوم الهدف (باستثناء اليوم النشط)
@@ -1059,22 +1044,15 @@ for day_key, _, _ in DAYS:
         col_target, col_btn = st.columns([3, 1])
         
         with col_target:
-            # عنوان صغير فوق selectbox
-            st.markdown(f"""
-            <div style="font-size:11px; color:{TEXT_MUTED}; margin-bottom:4px;">
-                👉 {{
-                    "badini": "ڕۆژێ ئارمانج هلبژێرە",
-                    "english": "Select target day",
-                    "arabic": "اختر اليوم الهدف",
-                }.get(st.session_state.lang, "Select target day")}
-            </div>
-            """, unsafe_allow_html=True)
-            
             target_day = st.selectbox(
-                "Target day",
+                "👉 " + {
+                    "badini": "ڕۆژێ ئارمانج",
+                    "english": "Target day",
+                    "arabic": "اليوم الهدف",
+                }.get(st.session_state.lang, "Target day"),
                 target_day_labels,
                 key=f"copy_day_target_{active_day_key}",
-                label_visibility="collapsed"
+                label_visibility="visible"
             )
         
         with col_btn:
@@ -1087,7 +1065,7 @@ for day_key, _, _ in DAYS:
             }.get(st.session_state.lang, "📋 Copy")
             
             # محاذاة الزر مع selectbox
-            st.markdown('<div style="height: 20px;"></div>', unsafe_allow_html=True)
+            st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
             
             if st.button(
                 copy_day_btn_lbl,
@@ -1110,9 +1088,6 @@ for day_key, _, _ in DAYS:
                     "arabic": f"✅ تم النسخ إلى {get_day_name(selected_target_key)}!",
                 }.get(st.session_state.lang, "✅ Copied!"))
                 st.rerun()
-    
-    # إغلاق الكرت
-    st.markdown("</div>", unsafe_allow_html=True)
                 
     # ── Action buttons ─────────────────────────────────────────────────────
     st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
