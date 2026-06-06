@@ -409,6 +409,23 @@ section[data-testid="stMain"],
     text-transform: uppercase; color: {TEXT_MUTED} !important;
     margin-bottom: 10px;
 }}
+/* ── AI Scheduler Button ── */
+section[data-testid="stVerticalBlock"] .stButton > button {
+    background: linear-gradient(135deg, #6a1b9a, #ab47bc) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    padding: 12px 20px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 12px rgba(106,27,154,0.25) !important;
+}
+section[data-testid="stVerticalBlock"] .stButton > button:hover {
+    background: linear-gradient(135deg, #7b1fa2, #ce93d8) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(106,27,154,0.35) !important;
+}
 /* ── AI Scheduler Expander ── */
 [data-testid="stExpander"] {
     background: {AI_EXPANDER_BG} !important;
@@ -639,7 +656,7 @@ if "ai_loading" not in st.session_state:
 
 with st.expander(ai_lbl, expanded=False):
     st.markdown({
-        "badini": "ئامانجێن خوە بنڤیسە (ب زمانێ ئینگلیزی باشترین کار دکەت):",
+        "badini": "ئارمانجێن خوە بنڤیسە (ب زمانێ ئینگلیزی باشتر کار دکەت):",
         "english": "Describe your study goals (English works best):",
         "arabic": "اكتب أهدافك الدراسية (الإنجليزية تعمل بشكل أفضل):",
     }.get(st.session_state.lang, "Describe your study goals:"))
@@ -653,14 +670,17 @@ with st.expander(ai_lbl, expanded=False):
     )
     st.session_state.ai_input = user_goal
     
-    # استبدل زر st.button بزر HTML مخصص
-    generate_lbl = "🚀 " + {
-        "badini": "دروست بکە",
-        "english": "Generate Schedule",
-        "arabic": "توليد الجدول",
-    }.get(st.session_state.lang, "Generate Schedule")
-    
-    st.markdown(f'<div class="ai-generate-btn"><button type="submit" style="width:100%;">{generate_lbl}</button></div>', unsafe_allow_html=True)
+       if st.button(
+        generate_lbl,
+        key=f"ai_generate_{st.session_state.get('ai_click', 0)}",
+        use_container_width=True,
+        disabled=st.session_state.ai_loading
+    ):
+        if not user_goal.strip():
+            st.error(...)
+        else:
+            st.session_state.ai_loading = True
+            st.rerun()
         if not user_goal.strip():
             st.error({
                 "badini": "تکایە ئامانجێن خوە بنڤیسە.",
