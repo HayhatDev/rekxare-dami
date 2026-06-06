@@ -6,8 +6,9 @@ import json
 import os
 import streamlit.components.v1 as components
 
-
-# --- PWA Manifest ---
+# ══════════════════════════════════════════════════════════
+#  PWA MANIFEST & PAGE CONFIG
+# ══════════════════════════════════════════════════════════
 st.markdown("""
 <link rel="manifest" href="/manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -25,10 +26,12 @@ st.set_page_config(
     layout="centered"
 )
 
+# ══════════════════════════════════════════════════════════
+#  TRANSLATIONS & DEFAULTS
+# ══════════════════════════════════════════════════════════
 with open("translations.json", "r", encoding="utf-8") as f:
     TRANSLATIONS = json.load(f)
 
-# --- تهيئة القيم الافتراضية مبكراً ---
 if "lang" not in st.session_state:
     st.session_state.lang = "badini"
 if "data_key" not in st.session_state:
@@ -40,10 +43,12 @@ if "logged_in" not in st.session_state:
 
 SCHEDULE_FILE = "schedule_data.json"
 
+# ══════════════════════════════════════════════════════════
+#  DATA FUNCTIONS
+# ══════════════════════════════════════════════════════════
 def get_data_file():
     key = st.session_state.get("data_key", "default")
     return f"study_data_{key}.json"
-
 
 def load_data():
     DATA_FILE = get_data_file()
@@ -61,7 +66,6 @@ def load_data():
         st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
         st.session_state.lang                = data.get("lang", "badini")
         st.session_state.student_name        = data.get("student_name", "")
-        
 
 def save_data():
     DATA_FILE = get_data_file()
@@ -80,9 +84,9 @@ def save_data():
             "student_name":       st.session_state.get("student_name", ""),
         }, f, ensure_ascii=False, indent=2)
 
-
-# --- Simple Login ---
-# --- Simple Login ---
+# ══════════════════════════════════════════════════════════
+#  SIMPLE LOGIN
+# ══════════════════════════════════════════════════════════
 if not st.session_state.logged_in:
     st.title("📚 Rekxare Dami")
     st.markdown("### Welcome! Enter your email to continue.")
@@ -98,10 +102,9 @@ if not st.session_state.logged_in:
             st.session_state.user_email = email.strip()
             st.session_state.logged_in = True
             st.session_state.data_key = email.split("@")[0]
-            load_data()   # تحميل بيانات المستخدم بعد تحديد المفتاح
+            load_data()
             st.rerun()
     
-    # إخفاء الشريط الجانبي
     st.markdown("""
     <style>
         [data-testid="stSidebar"] { display: none !important; }
@@ -112,25 +115,23 @@ if not st.session_state.logged_in:
     
     st.stop()
 
-# إذا سجل دخوله، أكمل التطبيق
 st.session_state.data_key = st.session_state.user_email.split("@")[0]
 
+# ══════════════════════════════════════════════════════════
+#  TRANSLATION HELPER
+# ══════════════════════════════════════════════════════════
 def t(key, **kwargs):
     text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
     if kwargs:
         text = text.format(**kwargs)
     return text
 
+# ══════════════════════════════════════════════════════════
+#  SUBJECT COLORS
+# ══════════════════════════════════════════════════════════
 SUBJECT_COLOR_LIST = [
-    "#2196F3",  # 0: Math
-    "#9C27B0",  # 1: Physics
-    "#FF5722",  # 2: Chemistry
-    "#00BCD4",  # 3: English
-    "#4CAF50",  # 4: Biology
-    "#795548",  # 5: History
-    "#FF9800",  # 6: Geography
-    "#607D8B",  # 7: Computer
-    "#FFC107",  # 8: Religion
+    "#2196F3", "#9C27B0", "#FF5722", "#00BCD4", "#4CAF50",
+    "#795548", "#FF9800", "#607D8B", "#FFC107"
 ]
 
 def subject_color(label: str) -> str:
@@ -140,6 +141,9 @@ def subject_color(label: str) -> str:
     except (ValueError, IndexError):
         return "#4CAF50"
 
+# ══════════════════════════════════════════════════════════
+#  GREETING & SCHEDULE HELPERS
+# ══════════════════════════════════════════════════════════
 def get_greeting():
     h = datetime.now().hour
     if 5 <= h < 12:
@@ -163,6 +167,9 @@ def load_today_schedule():
             return today_key, []
     return today_key, []
 
+# ══════════════════════════════════════════════════════════
+#  SESSION STATE INIT
+# ══════════════════════════════════════════════════════════
 DEFAULTS = {
     "total_study_seconds": 0, "completed_sessions": 0,
     "last_subject": "—", "study_history": [], "dark_mode": False,
@@ -174,7 +181,7 @@ DEFAULTS = {
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
         st.session_state[k] = v
-# تحميل البيانات (بعد تعريف الدوال)
+
 if "data_loaded" not in st.session_state:
     load_data()
     st.session_state.data_loaded = True
@@ -185,7 +192,9 @@ if "confirm_clear" not in st.session_state:
 if "quote_idx" not in st.session_state:
     st.session_state.quote_idx = random.randint(0, 99)
 
-
+# ══════════════════════════════════════════════════════════
+#  DAILY RESET & CALCULATIONS
+# ══════════════════════════════════════════════════════════
 today_str = date.today().isoformat()
 if (st.session_state.last_study_date
         and st.session_state.last_study_date != today_str
@@ -207,16 +216,18 @@ today_m        = (st.session_state.daily_seconds % 3600) // 60
 _days_map = {"badini": "رۆژ", "english": "days", "arabic": "يوم"}
 days_lbl  = _days_map.get(st.session_state.lang, "رۆژ")
 
-# ── Colour tokens 
+# ══════════════════════════════════════════════════════════
+#  THEME TOKENS
+# ══════════════════════════════════════════════════════════
 if is_dark:
     APP_BG         = "#1a1a2e"
     SB_BG          = "#16213e"
-    CARD_BG        = "rgba(255,255,255,0.06)"
-    CARD_BORDER    = "rgba(255,255,255,0.09)"
+    CARD_BG        = "rgba(255,255,255,0.04)"
+    CARD_BORDER    = "rgba(255,255,255,0.08)"
     TEXT_PRIMARY   = "#e2e2e2"
     TEXT_MUTED     = "#8a8fa8"
     SECTION_LBL    = "#555c72"
-    TAG_BG         = "rgba(76,175,80,0.18)"
+    TAG_BG         = "rgba(76,175,80,0.15)"
     TAG_COLOR      = "#81c784"
     ACTIVITY_BG    = "rgba(255,255,255,0.04)"
     SETTINGS_BG    = "rgba(255,255,255,0.04)"
@@ -230,8 +241,8 @@ if is_dark:
     TIMER_CARD_BG  = "rgba(255,255,255,0.04)"
     TIMER_CARD_BDR = "rgba(255,255,255,0.09)"
     PROG_TRACK     = "rgba(255,255,255,0.10)"
-    GREET_BG       = "rgba(255,255,255,0.05)"
-    GREET_BDR      = "rgba(255,255,255,0.09)"
+    GREET_BG       = "rgba(255,255,255,0.04)"
+    GREET_BDR      = "rgba(255,255,255,0.08)"
     DIVIDER        = "rgba(255,255,255,0.08)"
     LANG_ACTIVE_BG = "rgba(76,175,80,0.25)"
     LANG_ACTIVE_C  = "#81c784"
@@ -253,39 +264,42 @@ if is_dark:
     QUOTE_BDR      = "rgba(255,255,255,0.08)"
     QUOTE_COLOR    = "#c5cae9"
     SETUP_BG       = "rgba(255,255,255,0.04)"
-    SETUP_BDR      = "rgba(255,255,255,0.09)"
+    SETUP_BDR      = "rgba(255,255,255,0.08)"
     GOAL_WIN_BG    = "rgba(76,175,80,0.14)"
     GOAL_WIN_BDR   = "rgba(76,175,80,0.30)"
     PRESET_BG      = "rgba(255,255,255,0.06)"
     PRESET_BDR     = "rgba(255,255,255,0.10)"
+    SHADOW         = "rgba(0,0,0,0.35)"
+    AI_EXP_BG      = "rgba(255,255,255,0.03)"
+    AI_EXP_BDR     = "rgba(171,71,188,0.25)"
 else:
-    APP_BG         = "#e8edf5"
-    SB_BG          = "#f4f7fb"
+    APP_BG         = "#eef1f8"
+    SB_BG          = "#f5f7fc"
     CARD_BG        = "#ffffff"
-    CARD_BORDER    = "#dde3ed"
+    CARD_BORDER    = "#dde4f0"
     TEXT_PRIMARY   = "#1a1a2e"
     TEXT_MUTED     = "#6b7280"
     SECTION_LBL    = "#9ca3af"
-    TAG_BG         = "rgba(76,175,80,0.10)"
+    TAG_BG         = "rgba(76,175,80,0.08)"
     TAG_COLOR      = "#2e7d32"
-    ACTIVITY_BG    = "#dde5f0"
-    SETTINGS_BG    = "#dde5f0"
-    SETTINGS_BDR   = "#c8d4e8"
+    ACTIVITY_BG    = "#f0f3fa"
+    SETTINGS_BG    = "#f0f3fa"
+    SETTINGS_BDR   = "#d0d8ea"
     INPUT_BG       = "#ffffff"
-    BTN_BG         = "#dde5f0"
+    BTN_BG         = "#e2e8f5"
     BTN_COLOR      = "#1a1a2e"
-    BTN_BORDER     = "#c0cce0"
-    TIMER_TRACK    = "#dde3ed"
+    BTN_BORDER     = "#c5d0e6"
+    TIMER_TRACK    = "#dde4f0"
     TIMER_TEXT     = "#1a1a2e"
     TIMER_CARD_BG  = "#ffffff"
-    TIMER_CARD_BDR = "#dde3ed"
-    PROG_TRACK     = "#dde3ed"
+    TIMER_CARD_BDR = "#dde4f0"
+    PROG_TRACK     = "#dde4f0"
     GREET_BG       = "#ffffff"
-    GREET_BDR      = "#dde3ed"
-    DIVIDER        = "#dde3ed"
+    GREET_BDR      = "#dde4f0"
+    DIVIDER        = "#e2e8f5"
     LANG_ACTIVE_BG = "rgba(76,175,80,0.12)"
     LANG_ACTIVE_C  = "#2e7d32"
-    LANG_IDLE_BG   = "#edf0f7"
+    LANG_IDLE_BG   = "#eef1f8"
     LANG_IDLE_C    = "#6b7280"
     TODAY_CARD_BG  = "rgba(76,175,80,0.07)"
     TODAY_CARD_BDR = "rgba(76,175,80,0.18)"
@@ -296,41 +310,41 @@ else:
     DANGER_BDR     = "#ef9a9a"
     DANGER_COLOR   = "#c62828"
     SCHED_BG       = "#ffffff"
-    SCHED_BDR      = "#dde3ed"
-    SCHED_DONE_BG  = "rgba(76,175,80,0.07)"
-    SCHED_TODO_BG  = "#f9fafb"
+    SCHED_BDR      = "#dde4f0"
+    SCHED_DONE_BG  = "rgba(76,175,80,0.05)"
+    SCHED_TODO_BG  = "#fafbfd"
     QUOTE_BG       = "#ffffff"
-    QUOTE_BDR      = "#dde3ed"
+    QUOTE_BDR      = "#dde4f0"
     QUOTE_COLOR    = "#3949ab"
     SETUP_BG       = "#ffffff"
-    SETUP_BDR      = "#dde3ed"
+    SETUP_BDR      = "#dde4f0"
     GOAL_WIN_BG    = "rgba(76,175,80,0.08)"
     GOAL_WIN_BDR   = "rgba(76,175,80,0.22)"
-    PRESET_BG      = "#edf0f7"
-    PRESET_BDR     = "#c0cce0"
+    PRESET_BG      = "#eef1f8"
+    PRESET_BDR     = "#c5d0e6"
+    SHADOW         = "rgba(0,0,0,0.06)"
+    AI_EXP_BG      = "#faf8ff"
+    AI_EXP_BDR     = "rgba(171,71,188,0.18)"
 
+# ══════════════════════════════════════════════════════════
+#  CSS
+# ══════════════════════════════════════════════════════════
 st.markdown(f"""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 *, *::before, *::after {{ box-sizing: border-box; }}
 
-/* ── MOBILE FIX: prevent double-tap zoom on all interactive elements ── */
-button, input, select, textarea, label {{
-    touch-action: manipulation !important;
-}}
-
-/* ── Safe area for notched phones (iPhone X+) ── */
-.main .block-container {{
-    padding-left: max(1rem, env(safe-area-inset-left)) !important;
-    padding-right: max(1rem, env(safe-area-inset-right)) !important;
-    padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
-}}
-
+/* ── Base ── */
 .stApp,
 [data-testid="stAppViewContainer"],
 [data-testid="stMainBlockContainer"],
 section[data-testid="stMain"],
-.main .block-container      {{ background-color: {APP_BG} !important; }}
-[data-testid="stSidebar"]   {{ background-color: {SB_BG} !important; }}
+.main .block-container {{
+    background-color: {APP_BG} !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+}}
+[data-testid="stSidebar"] {{ background-color: {SB_BG} !important; }}
 .stApp *, [data-testid="stSidebar"] * {{ color: {TEXT_PRIMARY} !important; }}
 h1, h2, h3 {{ font-weight: 800 !important; letter-spacing: -0.3px; }}
 
@@ -338,14 +352,18 @@ h1, h2, h3 {{ font-weight: 800 !important; letter-spacing: -0.3px; }}
 .stSelectbox > div > div,
 .stTimeInput input {{
     background-color: {INPUT_BG} !important;
-    border: 1px solid {CARD_BORDER} !important;
+    border: 1.5px solid {CARD_BORDER} !important;
     border-radius: 10px !important;
     font-size: 14px !important;
-    transition: border-color 0.2s ease !important;
-    /* MOBILE FIX: prevent iOS auto-zoom on focus (needs ≥16px) */
-    font-size: 16px !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+    padding: 10px 14px !important;
 }}
-.stTextInput input:focus {{ border-color: #4CAF50 !important; box-shadow: 0 0 0 2px rgba(76,175,80,0.15) !important; }}
+.stTextInput input:focus {{
+    border-color: #4CAF50 !important;
+    box-shadow: 0 0 0 3px rgba(76,175,80,0.13) !important;
+    outline: none !important;
+}}
 
 [data-testid="stRadio"] > div {{ gap: 6px !important; flex-wrap: wrap !important; }}
 [data-testid="stRadio"] label {{
@@ -355,7 +373,7 @@ h1, h2, h3 {{ font-weight: 800 !important; letter-spacing: -0.3px; }}
     padding: 6px 16px !important;
     font-size: 13px !important;
     font-weight: 600 !important;
-    border: 1px solid {CARD_BORDER} !important;
+    border: 1.5px solid {CARD_BORDER} !important;
     cursor: pointer !important;
     transition: all 0.15s ease !important;
     min-height: 36px !important;
@@ -368,14 +386,15 @@ h1, h2, h3 {{ font-weight: 800 !important; letter-spacing: -0.3px; }}
 }}
 [data-testid="stRadio"] input[type="radio"] {{ display: none !important; }}
 
-/* ── MOBILE FIX: 44px minimum touch target (Apple HIG / Google Material) ── */
+/* ── Buttons ── */
 .stButton > button {{
-    background-color: {BTN_BG}    !important;
+    background-color: {BTN_BG} !important;
     color:            {BTN_COLOR} !important;
-    border:           1px solid {BTN_BORDER} !important;
+    border:           1.5px solid {BTN_BORDER} !important;
     border-radius:    12px !important;
-    font-weight:      600  !important;
-    font-size:        15px !important;
+    font-weight:      600 !important;
+    font-size:        14px !important;
+    font-family:      'Inter', system-ui, sans-serif !important;
     padding:          10px 16px !important;
     min-height:       44px !important;
     transition:       all 0.18s ease !important;
@@ -383,26 +402,32 @@ h1, h2, h3 {{ font-weight: 800 !important; letter-spacing: -0.3px; }}
     -webkit-tap-highlight-color: transparent !important;
 }}
 .stButton > button:hover:not(:disabled) {{
-    opacity: 0.82 !important;
+    filter: brightness(1.07) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.10) !important;
+    box-shadow: 0 4px 14px {SHADOW} !important;
 }}
-.stButton > button:active:not(:disabled) {{ transform: translateY(0px) !important; }}
-.stButton > button:disabled {{ opacity: 0.35 !important; cursor: not-allowed !important; }}
+.stButton > button:active:not(:disabled) {{
+    transform: translateY(0) !important;
+    box-shadow: none !important;
+}}
+.stButton > button:disabled {{
+    opacity: 0.35 !important;
+    cursor: not-allowed !important;
+}}
 
 /* ── Timer control buttons ── */
 .tcb-anchor {{ display: none !important; }}
 .element-container:has(.tcb-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(1) .stButton button:not(:disabled) {{
-    background: linear-gradient(135deg, #43a047, #66bb6a) !important;
-    color: #fff !important; border-color: #388e3c !important;
+    background: linear-gradient(135deg, #388e3c, #4caf50) !important;
+    color: #fff !important; border-color: #2e7d32 !important;
     box-shadow: 0 3px 12px rgba(67,160,71,0.35) !important;
 }}
 .element-container:has(.tcb-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton button:not(:disabled) {{
-    background: linear-gradient(135deg, #ef6c00, #ffa726) !important;
-    color: #fff !important; border-color: #e65100 !important;
-    box-shadow: 0 3px 12px rgba(239,108,0,0.30) !important;
+    background: linear-gradient(135deg, #e65100, #ff9800) !important;
+    color: #fff !important; border-color: #bf360c !important;
+    box-shadow: 0 3px 12px rgba(239,108,0,0.35) !important;
 }}
 
 /* ── Quick preset buttons ── */
@@ -411,9 +436,9 @@ h1, h2, h3 {{ font-weight: 800 !important; letter-spacing: -0.3px; }}
     [data-testid="stHorizontalBlock"] .stButton button {{
     background: {PRESET_BG} !important;
     color: {TEXT_PRIMARY} !important;
-    border: 1px solid {PRESET_BDR} !important;
+    border: 1.5px solid {PRESET_BDR} !important;
     border-radius: 20px !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     padding: 8px 6px !important;
     font-weight: 700 !important;
     min-height: 40px !important;
@@ -424,187 +449,197 @@ h1, h2, h3 {{ font-weight: 800 !important; letter-spacing: -0.3px; }}
     color: #4CAF50 !important;
     background: {TAG_BG} !important;
     box-shadow: none !important;
+    filter: none !important;
 }}
 
 /* ── Cards ── */
 .timer-card {{
-    background: {TIMER_CARD_BG}; border: 1px solid {TIMER_CARD_BDR};
+    background: {TIMER_CARD_BG}; border: 1.5px solid {TIMER_CARD_BDR};
     border-radius: 24px; padding: 28px 16px 20px;
     margin: 8px 0 16px; text-align: center;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 20px {SHADOW};
 }}
 .timer-card svg {{
     width: min(260px, 78vw) !important;
     height: min(260px, 78vw) !important;
 }}
 .setup-card {{
-    background: {SETUP_BG}; border: 1px solid {SETUP_BDR};
-    border-radius: 18px; padding: 18px 20px;
-    margin-bottom: 14px;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+    background: {SETUP_BG}; border: 1.5px solid {SETUP_BDR};
+    border-radius: 20px; padding: 20px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px {SHADOW};
 }}
 .quote-card {{
-    background: {QUOTE_BG}; border: 1px solid {QUOTE_BDR};
+    background: {QUOTE_BG}; border: 1.5px solid {QUOTE_BDR};
     border-radius: 16px; padding: 18px 20px;
     margin: 4px 0 14px;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 12px {SHADOW};
     position: relative;
 }}
-.quote-mark {{ font-size: 36px; line-height: 1; opacity: 0.18; position: absolute; top: 12px; left: 16px; }}
+.quote-mark {{ font-size: 36px; line-height: 1; opacity: 0.12; position: absolute; top: 12px; left: 16px; }}
 .quote-text {{
     font-size: 14px; font-weight: 500; font-style: italic;
     color: {QUOTE_COLOR} !important; line-height: 1.6;
     padding-left: 22px; padding-right: 8px;
 }}
 .paused-banner {{
-    background: {WARN_BG}; border: 1px solid {WARN_BDR};
-    border-radius: 12px; padding: 12px 16px; text-align: center;
-    font-size: 14px; font-weight: 600; color: {WARN_COLOR} !important;
-    margin-bottom: 8px;
+    background: {WARN_BG}; border: 1.5px solid {WARN_BDR};
+    border-radius: 14px; padding: 14px 18px; text-align: center;
+    font-size: 15px; font-weight: 700; color: {WARN_COLOR} !important;
+    margin-bottom: 12px;
 }}
 .goal-win-banner {{
-    background: {GOAL_WIN_BG}; border: 1px solid {GOAL_WIN_BDR};
-    border-radius: 14px; padding: 14px 18px;
-    display: flex; align-items: center; gap: 14px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 12px rgba(76,175,80,0.12);
+    background: {GOAL_WIN_BG}; border: 1.5px solid {GOAL_WIN_BDR};
+    border-radius: 16px; padding: 16px 20px;
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(76,175,80,0.15);
 }}
-.goal-win-icon {{ font-size: 32px; line-height: 1; flex-shrink: 0; }}
-.goal-win-text {{ font-size: 14px; font-weight: 700; color: #4CAF50 !important; }}
-.goal-win-sub  {{ font-size: 12px; color: {TEXT_MUTED} !important; margin-top: 2px; }}
+.goal-win-icon {{ font-size: 36px; line-height: 1; flex-shrink: 0; }}
+.goal-win-text {{ font-size: 15px; font-weight: 800; color: #4CAF50 !important; }}
+.goal-win-sub  {{ font-size: 12px; color: {TEXT_MUTED} !important; margin-top: 3px; font-weight: 500; }}
+
 .subject-color-dot {{
-    display: inline-block; width: 10px; height: 10px;
-    border-radius: 50%; margin-right: 6px; flex-shrink: 0; vertical-align: middle;
+    display: inline-block; width: 12px; height: 12px;
+    border-radius: 50%; margin-right: 8px; flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
 }}
 .subject-pill {{
     display: inline-flex; align-items: center;
     background: {TAG_BG}; color: {TAG_COLOR} !important;
-    border-radius: 20px; padding: 4px 12px; font-size: 13px; font-weight: 700;
-    margin-bottom: 10px;
+    border-radius: 24px; padding: 6px 16px; font-size: 14px; font-weight: 700;
+    margin-bottom: 14px;
 }}
+
 .section-hdr {{
-    display: flex; align-items: center; gap: 8px;
-    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; font-weight: 800; letter-spacing: 1.4px;
     text-transform: uppercase; color: {SECTION_LBL} !important;
-    margin: 20px 0 10px;
+    margin: 24px 0 14px;
 }}
 .section-hdr span {{ color: {SECTION_LBL} !important; }}
-.section-line {{ flex: 1; height: 1px; background: {DIVIDER}; }}
+.section-line {{ flex: 1; height: 1.5px; background: {DIVIDER}; border-radius: 99px; }}
 
 /* ── Sidebar labels ── */
 .sb-lbl {{
-    font-size: 10px; font-weight: 700; letter-spacing: 1.4px;
+    font-size: 10px; font-weight: 800; letter-spacing: 1.5px;
     text-transform: uppercase; color: {SECTION_LBL} !important;
-    margin: 20px 0 8px 2px; display: block;
+    margin: 20px 0 10px 2px; display: block;
 }}
-.stat-row  {{ display: flex; gap: 10px; margin-bottom: 8px; }}
+.stat-row  {{ display: flex; gap: 10px; margin-bottom: 10px; }}
 .stat-card {{
-    flex: 1; background: {CARD_BG}; border: 1px solid {CARD_BORDER};
-    border-radius: 14px; padding: 14px 10px; text-align: center;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    flex: 1; background: {CARD_BG}; border: 1.5px solid {CARD_BORDER};
+    border-radius: 16px; padding: 16px 10px; text-align: center;
+    box-shadow: 0 2px 8px {SHADOW};
 }}
-.stat-icon {{ font-size: 20px; margin-bottom: 5px; line-height: 1; }}
+.stat-icon {{ font-size: 22px; margin-bottom: 6px; line-height: 1; }}
 .stat-val  {{ font-size: 16px; font-weight: 800; line-height: 1.2; }}
-.stat-lbl  {{ font-size: 10px; color: {TEXT_MUTED} !important; margin-top: 3px; }}
+.stat-lbl  {{ font-size: 10px; color: {TEXT_MUTED} !important; margin-top: 4px; font-weight: 500; }}
 .today-stat {{
-    background: {TODAY_CARD_BG}; border: 1px solid {TODAY_CARD_BDR};
-    border-radius: 14px; padding: 10px 14px; margin-bottom: 4px;
+    background: {TODAY_CARD_BG}; border: 1.5px solid {TODAY_CARD_BDR};
+    border-radius: 16px; padding: 12px 16px; margin-bottom: 6px;
     display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 8px {SHADOW};
 }}
-.today-stat-label {{ font-size: 12px; font-weight: 600; }}
-.today-stat-val   {{ font-size: 15px; font-weight: 800; color: #4CAF50 !important; }}
+.today-stat-label {{ font-size: 12px; font-weight: 700; }}
+.today-stat-val   {{ font-size: 16px; font-weight: 800; color: #4CAF50 !important; }}
+
 .streak-card {{
-    background: {CARD_BG}; border: 1px solid {CARD_BORDER};
-    border-radius: 14px; padding: 12px 14px;
-    display: flex; align-items: center; gap: 12px; margin-bottom: 4px;
+    background: {CARD_BG}; border: 1.5px solid {CARD_BORDER};
+    border-radius: 16px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px; margin-bottom: 6px;
+    box-shadow: 0 2px 8px {SHADOW};
 }}
-.streak-num {{ font-size: 24px; font-weight: 800; color: #FF9800 !important; line-height: 1; }}
-.streak-sub {{ font-size: 11px; color: {TEXT_MUTED} !important; margin-top: 3px; }}
+.streak-num {{ font-size: 26px; font-weight: 800; color: #FF9800 !important; line-height: 1; }}
+.streak-sub {{ font-size: 11px; color: {TEXT_MUTED} !important; margin-top: 4px; font-weight: 500; }}
+
 .goal-wrap {{
-    background: {CARD_BG}; border: 1px solid {CARD_BORDER};
-    border-radius: 14px; padding: 12px 14px; margin-bottom: 4px;
+    background: {CARD_BG}; border: 1.5px solid {CARD_BORDER};
+    border-radius: 16px; padding: 14px 16px; margin-bottom: 6px;
+    box-shadow: 0 2px 8px {SHADOW};
 }}
-.goal-header {{ display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: {TEXT_MUTED} !important; margin-bottom: 8px; }}
+.goal-header {{ display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: {TEXT_MUTED} !important; margin-bottom: 10px; }}
 .goal-title  {{ font-weight: 700; color: {TEXT_PRIMARY} !important; font-size: 13px; }}
-.goal-track  {{ background: {PROG_TRACK}; border-radius: 99px; height: 7px; overflow: hidden; }}
-.goal-fill   {{ height: 7px; border-radius: 99px; transition: width 0.5s ease; }}
-.subject-tag {{ display: inline-block; background: {TAG_BG}; color: {TAG_COLOR} !important; border-radius: 20px; padding: 5px 14px; font-size: 13px; font-weight: 700; }}
-.act-list  {{ background: {ACTIVITY_BG}; border-radius: 12px; padding: 4px; overflow: hidden; }}
-.act-item  {{ display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 9px; font-size: 12px; }}
-.act-dot   {{ width:7px;height:7px;border-radius:50%;background:#4CAF50;flex-shrink:0; }}
-.act-empty {{ font-size:12px;color:{TEXT_MUTED} !important;padding:12px;text-align:center; }}
-.settings-box {{ background: {SETTINGS_BG}; border: 1px solid {SETTINGS_BDR}; border-radius: 14px; padding: 14px; }}
+.goal-track  {{ background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden; }}
+.goal-fill   {{ height: 8px; border-radius: 99px; transition: width 0.5s ease; }}
+
+.subject-tag {{ display: inline-block; background: {TAG_BG}; color: {TAG_COLOR} !important; border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 700; }}
+.act-list  {{ background: {ACTIVITY_BG}; border-radius: 14px; padding: 6px; overflow: hidden; }}
+.act-item  {{ display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; font-size: 12px; }}
+.act-dot   {{ width: 7px; height: 7px; border-radius: 50%; background: #4CAF50; flex-shrink: 0; }}
+.act-empty {{ font-size: 12px; color: {TEXT_MUTED} !important; padding: 14px; text-align: center; }}
+
+.settings-box {{ background: {SETTINGS_BG}; border: 1.5px solid {SETTINGS_BDR}; border-radius: 16px; padding: 16px; }}
 .danger-box {{
-    background: {DANGER_BG}; border: 1px solid {DANGER_BDR};
-    border-radius: 12px; padding: 10px 12px; margin-bottom: 6px;
-    font-size: 12px; font-weight: 600; color: {DANGER_COLOR} !important; text-align: center;
+    background: {DANGER_BG}; border: 1.5px solid {DANGER_BDR};
+    border-radius: 14px; padding: 12px 16px; margin-bottom: 8px;
+    font-size: 13px; font-weight: 700; color: {DANGER_COLOR} !important; text-align: center;
 }}
+
 .greet-card {{
-    background: {GREET_BG}; border: 1px solid {GREET_BDR};
-    border-radius: 18px; padding: 20px 22px; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    background: {GREET_BG}; border: 1.5px solid {GREET_BDR};
+    border-radius: 20px; padding: 24px 28px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 20px;
+    box-shadow: 0 4px 18px {SHADOW};
 }}
-.greet-emoji {{ font-size: 44px; line-height: 1; flex-shrink: 0; }}
-.greet-name  {{ font-size: 20px; font-weight: 800; line-height: 1.2; }}
-.greet-sub   {{ font-size: 13px; color: {TEXT_MUTED} !important; margin-top: 4px; }}
-.greet-time  {{ font-size: 11px; color: {TEXT_MUTED} !important; margin-top: 3px; opacity: 0.8; }}
-.sched-card {{ background: {SCHED_BG}; border: 1px solid {SCHED_BDR}; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }}
-.sched-title {{ font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: {TEXT_MUTED} !important; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }}
-.sched-item      {{ display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; margin-bottom: 4px; font-size: 13px; }}
+.greet-emoji {{ font-size: 48px; line-height: 1; flex-shrink: 0; }}
+.greet-name  {{ font-size: 22px; font-weight: 800; line-height: 1.2; letter-spacing: -0.3px; }}
+.greet-sub   {{ font-size: 13px; color: {TEXT_MUTED} !important; margin-top: 5px; font-weight: 500; }}
+.greet-time  {{ font-size: 11px; color: {TEXT_MUTED} !important; margin-top: 4px; opacity: 0.75; }}
+
+.sched-card {{ background: {SCHED_BG}; border: 1.5px solid {SCHED_BDR}; border-radius: 18px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 2px 12px {SHADOW}; }}
+.sched-title {{ font-size: 12px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: {TEXT_MUTED} !important; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }}
+.sched-item      {{ display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; margin-bottom: 5px; font-size: 13px; }}
 .sched-item-done {{ background: {SCHED_DONE_BG}; opacity: 0.65; }}
 .sched-item-todo {{ background: {SCHED_TODO_BG}; }}
-.sched-time      {{ font-size: 11px; font-weight: 600; color: {TEXT_MUTED} !important; min-width: 72px; flex-shrink: 0; }}
+.sched-time      {{ font-size: 11px; font-weight: 700; color: {TEXT_MUTED} !important; min-width: 72px; flex-shrink: 0; background: {PROG_TRACK}; padding: 2px 8px; border-radius: 6px; text-align: center; }}
 .sched-task      {{ font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
 .sched-task-done {{ text-decoration: line-through; color: {TEXT_MUTED} !important; }}
 .sched-check     {{ flex-shrink: 0; }}
-.sched-prog-wrap {{ margin-top: 10px; background: {PROG_TRACK}; border-radius: 99px; height: 5px; overflow: hidden; }}
-.sched-prog-fill {{ height: 5px; border-radius: 99px; }}
+.sched-prog-wrap {{ margin-top: 12px; background: {PROG_TRACK}; border-radius: 99px; height: 6px; overflow: hidden; }}
+.sched-prog-fill {{ height: 6px; border-radius: 99px; }}
 
-hr {{ border-color: {DIVIDER} !important; margin: 16px 0 !important; }}
+hr {{ border-color: {DIVIDER} !important; margin: 20px 0 !important; }}
 
-/* ── Mobile (≤640px) ── */
+/* ── Mobile ── */
 @media (max-width: 640px) {{
-    .greet-card  {{ padding: 14px 16px; gap: 12px; }}
-    .greet-emoji {{ font-size: 32px; }}
-    .greet-name  {{ font-size: 17px; }}
+    .greet-card  {{ padding: 16px 18px; gap: 14px; }}
+    .greet-emoji {{ font-size: 34px; }}
+    .greet-name  {{ font-size: 18px; }}
     .greet-sub   {{ font-size: 12px; }}
     .greet-time  {{ display: none; }}
-    .stat-card   {{ padding: 10px 6px; }}
+    .stat-card   {{ padding: 12px 6px; }}
     .stat-val    {{ font-size: 14px; }}
-    .timer-card  {{ padding: 14px 6px 12px; border-radius: 18px; }}
-    .stButton > button {{ font-size: 14px !important; }}
-    .setup-card  {{ padding: 14px 12px; }}
-    .quote-card  {{ padding: 14px 14px; }}
+    .timer-card  {{ padding: 16px 8px 14px; border-radius: 18px; }}
+    .stButton > button {{ font-size: 13px !important; }}
+    .setup-card  {{ padding: 16px 14px; }}
+    .quote-card  {{ padding: 16px 14px; }}
     .quote-text  {{ font-size: 13px; }}
-    .sched-time  {{ min-width: 64px; }}
-    .goal-win-banner {{ padding: 12px 14px; gap: 10px; }}
-    .goal-win-icon   {{ font-size: 26px; }}
-    .goal-win-text   {{ font-size: 13px; }}
+    .goal-win-banner {{ padding: 14px 16px; gap: 12px; }}
+    .goal-win-icon   {{ font-size: 28px; }}
+    .goal-win-text   {{ font-size: 14px; }}
 }}
 
-/* ── Very small phones (≤380px) ── */
 @media (max-width: 380px) {{
-    .greet-emoji {{ font-size: 26px; }}
-    .greet-name  {{ font-size: 15px; }}
-    .stat-val    {{ font-size: 12px; }}
-    .stat-icon   {{ font-size: 16px; }}
+    .greet-emoji {{ font-size: 28px; }}
+    .greet-name  {{ font-size: 16px; }}
+    .stat-val    {{ font-size: 13px; }}
+    .stat-icon   {{ font-size: 18px; }}
     .stButton > button {{ font-size: 12px !important; padding: 8px 6px !important; }}
-    .sched-time  {{ display: none; }}
 }}
 </style>
 """, unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════
 #  SIDEBAR
-# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════
 with st.sidebar:
     st.markdown(f"""
-    <div style="padding:22px 4px 8px;">
-        <div style="font-size:23px;font-weight:900;letter-spacing:-0.5px;">📚 Rekxare Dami</div>
-        <div style="font-size:12px;color:{TEXT_MUTED};margin-top:3px;">{t("app_title")}</div>
+    <div style="padding:24px 4px 10px;">
+        <div style="font-size:24px;font-weight:900;letter-spacing:-0.5px;">📚 Rekxare Dami</div>
+        <div style="font-size:12px;color:{TEXT_MUTED};margin-top:3px;font-weight:500;">{t("app_title")}</div>
     </div>
-    <div style="height:1px;background:{DIVIDER};margin:10px 0 4px;"></div>
+    <div style="height:1.5px;background:{DIVIDER};margin:12px 0 6px;border-radius:99px;"></div>
     """, unsafe_allow_html=True)
 
     st.markdown('<span class="sb-lbl">زمان | Language</span>', unsafe_allow_html=True)
@@ -642,10 +677,10 @@ with st.sidebar:
             else t("streak_keep") if sv < 7 else t("streak_champ"))
     st.markdown(f"""
     <div class="streak-card">
-        <div style="font-size:30px;line-height:1;">🔥</div>
+        <div style="font-size:32px;line-height:1;">🔥</div>
         <div>
             <div class="streak-num">{sv}
-                <span style="font-size:14px;font-weight:400;color:{TEXT_MUTED};">{days_lbl}</span>
+                <span style="font-size:14px;font-weight:500;color:{TEXT_MUTED};">{days_lbl}</span>
             </div>
             <div class="streak-sub">{smsg}</div>
         </div>
@@ -667,7 +702,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown(f'<span class="sb-lbl">{t("last_subject")}</span>', unsafe_allow_html=True)
-    st.markdown(f'<div style="padding:2px 0 8px;"><span class="subject-tag">📖 {st.session_state.last_subject}</span></div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="padding:2px 0 10px;"><span class="subject-tag">📖 {st.session_state.last_subject}</span></div>', unsafe_allow_html=True)
 
     st.markdown(f'<span class="sb-lbl">{t("recent_activity")}</span>', unsafe_allow_html=True)
     hist = st.session_state.study_history[-4:][::-1]
@@ -685,10 +720,10 @@ with st.sidebar:
         st.session_state.daily_goal_seconds = goal_mins * 60
         save_data()
         st.rerun()
-    st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
     dc, tc = st.columns([3, 1])
     with dc:
-        st.markdown(f'<div style="font-size:13px;padding-top:6px;font-weight:500;">{t("dark_mode")}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:13px;padding-top:6px;font-weight:600;">{t("dark_mode")}</div>', unsafe_allow_html=True)
     with tc:
         dark_btn = st.checkbox("", value=is_dark, label_visibility="collapsed", key="dark_mode_sb")
     if dark_btn != is_dark:
@@ -696,7 +731,7 @@ with st.sidebar:
         save_data()
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
 
     if not st.session_state.confirm_clear:
         if st.button(t("clear_stats"), use_container_width=True):
@@ -719,11 +754,11 @@ with st.sidebar:
                 st.session_state.confirm_clear = False
                 st.rerun()
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════
 #  MAIN PAGE
-# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════
 
-# ── Name input                                                                                       
+# ── Name input ──
 _all_defaults = {
     TRANSLATIONS.get(lng, {}).get("default_name", "")
     for lng in ("badini", "english", "arabic")
@@ -740,7 +775,7 @@ if nav != st.session_state.get("student_name", ""):
     st.session_state.student_name = nav
     save_data()
 
-# ── Greeting card
+# ── Greeting card ──
 kurd_greet, eng_greet = get_greeting()
 h_now       = datetime.now().hour
 greet_emoji = ("🌅" if 5 <= h_now < 12 else "☀️" if 12 <= h_now < 17 else
@@ -758,7 +793,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Daily goal achieved banner
+# ── Daily goal achieved banner ──
 if daily_pct >= 100:
     goal_win_msg = {
         "badini":  f"ئارمانجێن ئەڤرو تەواو بوون! {today_h}ک {today_m}خ خواندن.",
@@ -780,7 +815,7 @@ if daily_pct >= 100:
     </div>
     """, unsafe_allow_html=True)
 
-# ── Today's schedule preview 
+# ── Today's schedule preview ──
 _today_key, today_tasks = load_today_schedule()
 DAYS_SHORT = {
     "sun": ("Sunday","☀️"), "mon": ("Monday","📖"), "tue": ("Tuesday","📖"),
@@ -802,7 +837,6 @@ if today_tasks_named:
         "arabic":  f"📅 جدول اليوم — {_day_emoji} {_day_eng}",
     }.get(st.session_state.lang, f"📅 Today — {_day_eng}")
     
-    # بناء HTML في متغير بسيط
     html_content = '<div class="sched-card">'
     html_content += f'<div class="sched-title">{sched_title_text} <span style="margin-left:auto;font-size:11px;color:{TEXT_MUTED};font-weight:500;letter-spacing:0;">{done_count}/{total_count} — {pct_sched}%</span></div>'
     
@@ -826,7 +860,8 @@ if today_tasks_named:
     html_content += '</div>'
     
     st.markdown(html_content, unsafe_allow_html=True)
-# ── Timer section 
+
+# ── Timer section ──
 timer_section_lbl = {
     "badini": "⏱ دەمژمێرێ خواندنێ",
     "english": "⏱ Study Timer",
@@ -856,7 +891,7 @@ st.markdown(
 )
 
 duration_lbl = {"badini":"⏱ دەمێ خواندنێ","english":"⏱ Duration","arabic":"⏱ المدة"}.get(st.session_state.lang,"⏱ Duration")
-st.markdown(f'<div style="font-size:12px;font-weight:600;color:{TEXT_MUTED};margin-bottom:4px;">{duration_lbl}</div>', unsafe_allow_html=True)
+st.markdown(f'<div style="font-size:12px;font-weight:700;color:{TEXT_MUTED};margin-bottom:6px;">{duration_lbl}</div>', unsafe_allow_html=True)
 
 # Quick preset buttons
 SLIDER_KEY = "duration_slider_v2"
@@ -882,7 +917,7 @@ deqe          = st.slider(t("minutes_question"), 1, 240, key=SLIDER_KEY)
 total_seconds = deqe * 60
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ── Timer control buttons 
+# ── Timer control buttons ──
 st.markdown('<div class="tcb-anchor"></div>', unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -900,7 +935,7 @@ with col2:
 with col3:
     dubare = st.button(t("reset_btn"), use_container_width=True, key="reset_btn")
 
-# ── Quote card 
+# ── Quote card ──
 hezt = t("quotes")
 if not isinstance(hezt, list):
     hezt = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("quotes", ["Keep going!"])
@@ -919,7 +954,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Button actions 
+# ── Button actions ──
 if "dest_pe_bike" in locals() and dest_pe_bike:
     st.session_state.timer_running = True
     st.session_state.paused        = False
@@ -947,25 +982,25 @@ if dubare:
     st.session_state.remaining_at_pause = 0
     st.rerun()
 
-# ── SVG circle timer 
+# ── SVG circle timer ──
 def render_circle(mins_val, secs_val, progress, color):
     dash = progress * 100.0
-    glow = f"filter:drop-shadow(0 0 12px {color}bb);" if progress > 0 else ""
+    glow = f"filter:drop-shadow(0 0 14px {color}cc);" if progress > 0 else ""
     st.markdown(f"""
     <div class="timer-card">
         <div style="display:flex;justify-content:center;">
             <svg width="260" height="260" viewBox="0 0 36 36" style="{glow}">
                 <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none" stroke="{TIMER_TRACK}" stroke-width="2.2"/>
+                      fill="none" stroke="{TIMER_TRACK}" stroke-width="2.5"/>
                 <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none" stroke="{color}" stroke-width="2.2"
+                      fill="none" stroke="{color}" stroke-width="2.5"
                       stroke-linecap="round" stroke-dasharray="{dash:.2f}, 200"/>
                 <text x="18" y="17" text-anchor="middle"
-                      fill="{TIMER_TEXT}" font-size="6.5" font-weight="700" font-family="monospace">
+                      fill="{TIMER_TEXT}" font-size="6.5" font-weight="800" font-family="monospace">
                     {mins_val:02d}:{secs_val:02d}
                 </text>
-                <text x="18" y="22" text-anchor="middle"
-                      fill="{TIMER_TEXT}99" font-size="2.6">{t('min_sec_labels')}</text>
+                <text x="18" y="22.5" text-anchor="middle"
+                      fill="{TIMER_TEXT}aa" font-size="2.6" font-weight="600">{t('min_sec_labels')}</text>
             </svg>
         </div>
     </div>
