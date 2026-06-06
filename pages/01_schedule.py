@@ -138,14 +138,25 @@ def save_schedule():
         }, f, ensure_ascii=False, indent=2)
 
 def copy_week_to_next():
-    new_schedule = {dk: [] for dk, _, _ in DAYS}
+    # حساب اليوم الحالي مباشرة لضمان الدقة
+    today = datetime.now().weekday()
+    today_map_local = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat"}
+    today_key_local = today_map_local[today]
+    
+    # إنشاء جدول جديد
+    new_schedule = {}
     for dk, _, _ in DAYS:
+        new_schedule[dk] = []
         for task in st.session_state.schedule.get(dk, []):
             new_task = task.copy()
             new_task["done"] = False
             new_schedule[dk].append(new_task)
+    
+    # تحديث الجدول
     st.session_state.schedule = new_schedule
-    st.session_state.active_day = today_key
+    # تعيين اليوم النشط إلى اليوم الحالي
+    st.session_state.active_day = today_key_local
+    # حفظ التغييرات
     save_schedule()
 
 # ══════════════════════════════════════════════════════════
