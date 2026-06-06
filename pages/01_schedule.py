@@ -3,6 +3,7 @@ from datetime import datetime, time as dtime, date, timedelta
 import json
 import os
 import requests
+import time
 
 # ── Translations first
 with open("translations.json", "r", encoding="utf-8") as f:
