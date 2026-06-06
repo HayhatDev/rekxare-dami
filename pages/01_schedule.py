@@ -5,19 +5,9 @@ import os
 import requests
 import time
 
-# ── Translations first
+# ── Translations first (must be before set_page_config uses t())
 with open("translations.json", "r", encoding="utf-8") as f:
     TRANSLATIONS = json.load(f)
-
-# --- PWA Manifest 
-st.markdown("""
-<link rel="manifest" href="/manifest.json">
-<script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js');
-    }
-</script>
-""", unsafe_allow_html=True)
 
 if "lang" not in st.session_state:
     st.session_state.lang = "badini"
@@ -28,13 +18,14 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
-# ── set_page_config
+# ── set_page_config MUST be the very first Streamlit call
 st.set_page_config(
     page_title=t("schedule_title"),
     page_icon="📅",
     layout="centered"
 )
 
+# ── PWA Manifest (inject only once)
 st.markdown("""
 <link rel="manifest" href="/manifest.json">
 <script>
@@ -44,7 +35,7 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# ── Constants 
+# ── Constants
 DAYS = [
     ("sun", "☀️ ئێکشەمب", "Sunday"),
     ("mon", "📖 دووشەمب", "Monday"),
@@ -113,13 +104,12 @@ def format_duration(start_str, end_str):
         return ""
 
 def total_day_minutes(day_entries):
-    """Sum durations of all named tasks for a day."""
     total = 0
     for e in day_entries:
         if not e.get("task", "").strip():
             continue
         try:
-            s = datetime.strptime(e.get("start", "00:00"), "%H:%M")
+            s   = datetime.strptime(e.get("start", "00:00"), "%H:%M")
             end = datetime.strptime(e.get("end",   "00:00"), "%H:%M")
             diff = int((end - s).total_seconds() // 60)
             if diff > 0:
@@ -153,7 +143,6 @@ def save_schedule():
         }, f, ensure_ascii=False, indent=2)
 
 def copy_week_to_next():
-    """نسخ مهام الأسبوع الحالي إلى الأسبوع القادم مع إعادة تعيين done=False."""
     new_schedule = {dk: [] for dk, _, _ in DAYS}
     for dk, _, _ in DAYS:
         for task in st.session_state.schedule.get(dk, []):
@@ -187,71 +176,73 @@ today_map = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat
 today_key = today_map[datetime.now().weekday()]
 is_dark   = st.session_state.dark_mode
 
-# ── Theme tokens 
+# ── Theme tokens
 if is_dark:
-    APP_BG        = "#1a1a2e"
-    SB_BG         = "#16213e"
-    INPUT_BG      = "#252542"
-    CARD_BG       = "rgba(255,255,255,0.05)"
-    CARD_BORDER   = "rgba(255,255,255,0.09)"
-    TEXT_PRIMARY  = "#e2e2e2"
-    TEXT_MUTED    = "#8a8fa8"
-    BTN_BG        = "#252542"
-    BTN_COLOR     = "#e2e2e2"
-    BTN_BORDER    = "#3a3a5c"
-    PROG_TRACK    = "rgba(255,255,255,0.12)"
-    DIVIDER       = "rgba(255,255,255,0.08)"
-    TODAY_BG      = "rgba(76,175,80,0.15)"
-    TODAY_COLOR   = "#81c784"
-    OVERVIEW_BG   = "rgba(255,255,255,0.04)"
-    OVERVIEW_BDR  = "rgba(255,255,255,0.09)"
-    DURATION_CLR  = "#8a8fa8"
-    EMPTY_CLR     = "#555c72"
-    PILL_BG       = "rgba(76,175,80,0.15)"
-    PILL_COLOR    = "#81c784"
-    PILL_BORDER   = "rgba(76,175,80,0.25)"
-    TASK_ROW_BG   = "rgba(255,255,255,0.03)"
-    TASK_ROW_DONE = "rgba(76,175,80,0.07)"
-    TOTAL_BG      = "rgba(33,150,243,0.12)"
-    TOTAL_COLOR   = "#64b5f6"
-    TOTAL_BDR     = "rgba(33,150,243,0.25)"
-    AI_EXPANDER_BG = "rgba(255,255,255,0.03)"
+    APP_BG         = "#1a1a2e"
+    SB_BG          = "#16213e"
+    INPUT_BG       = "#252542"
+    CARD_BG        = "rgba(255,255,255,0.05)"
+    CARD_BORDER    = "rgba(255,255,255,0.09)"
+    TEXT_PRIMARY   = "#e2e2e2"
+    TEXT_MUTED     = "#8a8fa8"
+    BTN_BG         = "#252542"
+    BTN_COLOR      = "#e2e2e2"
+    BTN_BORDER     = "#3a3a5c"
+    PROG_TRACK     = "rgba(255,255,255,0.12)"
+    DIVIDER        = "rgba(255,255,255,0.08)"
+    TODAY_BG       = "rgba(76,175,80,0.15)"
+    TODAY_COLOR    = "#81c784"
+    OVERVIEW_BG    = "rgba(255,255,255,0.04)"
+    OVERVIEW_BDR   = "rgba(255,255,255,0.09)"
+    DURATION_CLR   = "#8a8fa8"
+    EMPTY_CLR      = "#555c72"
+    PILL_BG        = "rgba(76,175,80,0.15)"
+    PILL_COLOR     = "#81c784"
+    PILL_BORDER    = "rgba(76,175,80,0.25)"
+    TASK_ROW_BG    = "rgba(255,255,255,0.03)"
+    TASK_ROW_DONE  = "rgba(76,175,80,0.07)"
+    TOTAL_BG       = "rgba(33,150,243,0.12)"
+    TOTAL_COLOR    = "#64b5f6"
+    TOTAL_BDR      = "rgba(33,150,243,0.25)"
+    AI_EXPANDER_BG     = "rgba(255,255,255,0.03)"
     AI_EXPANDER_BORDER = "rgba(255,255,255,0.10)"
-    AI_BTN_BG = "linear-gradient(135deg, #6a1b9a, #ab47bc)"
-    AI_BTN_HOVER = "linear-gradient(135deg, #7b1fa2, #ce93d8)"
+    AI_BTN_BG      = "linear-gradient(135deg, #6a1b9a, #ab47bc)"
+    AI_BTN_HOVER   = "linear-gradient(135deg, #7b1fa2, #ce93d8)"
+    ROW_HOVER      = "rgba(255,255,255,0.04)"
 else:
-    APP_BG        = "#e8edf5"
-    SB_BG         = "#f4f7fb"
-    INPUT_BG      = "#ffffff"
-    CARD_BG       = "#ffffff"
-    CARD_BORDER   = "#dde3ed"
-    TEXT_PRIMARY  = "#1a1a2e"
-    TEXT_MUTED    = "#6b7280"
-    BTN_BG        = "#dde5f0"
-    BTN_COLOR     = "#1a1a2e"
-    BTN_BORDER    = "#c0cce0"
-    PROG_TRACK    = "#dde3ed"
-    DIVIDER       = "#dde3ed"
-    TODAY_BG      = "rgba(76,175,80,0.10)"
-    TODAY_COLOR   = "#2e7d32"
-    OVERVIEW_BG   = "#ffffff"
-    OVERVIEW_BDR  = "#dde3ed"
-    DURATION_CLR  = "#9ca3af"
-    EMPTY_CLR     = "#9ca3af"
-    PILL_BG       = "rgba(76,175,80,0.08)"
-    PILL_COLOR    = "#2e7d32"
-    PILL_BORDER   = "rgba(76,175,80,0.20)"
-    TASK_ROW_BG   = "#f9fafb"
-    TASK_ROW_DONE = "rgba(76,175,80,0.06)"
-    TOTAL_BG      = "rgba(33,150,243,0.07)"
-    TOTAL_COLOR   = "#1565c0"
-    TOTAL_BDR     = "rgba(33,150,243,0.18)"
-    AI_EXPANDER_BG = "#f8f9fa"
+    APP_BG         = "#e8edf5"
+    SB_BG          = "#f4f7fb"
+    INPUT_BG       = "#ffffff"
+    CARD_BG        = "#ffffff"
+    CARD_BORDER    = "#dde3ed"
+    TEXT_PRIMARY   = "#1a1a2e"
+    TEXT_MUTED     = "#6b7280"
+    BTN_BG         = "#dde5f0"
+    BTN_COLOR      = "#1a1a2e"
+    BTN_BORDER     = "#c0cce0"
+    PROG_TRACK     = "#dde3ed"
+    DIVIDER        = "#dde3ed"
+    TODAY_BG       = "rgba(76,175,80,0.10)"
+    TODAY_COLOR    = "#2e7d32"
+    OVERVIEW_BG    = "#ffffff"
+    OVERVIEW_BDR   = "#dde3ed"
+    DURATION_CLR   = "#9ca3af"
+    EMPTY_CLR      = "#9ca3af"
+    PILL_BG        = "rgba(76,175,80,0.08)"
+    PILL_COLOR     = "#2e7d32"
+    PILL_BORDER    = "rgba(76,175,80,0.20)"
+    TASK_ROW_BG    = "#f9fafb"
+    TASK_ROW_DONE  = "rgba(76,175,80,0.06)"
+    TOTAL_BG       = "rgba(33,150,243,0.07)"
+    TOTAL_COLOR    = "#1565c0"
+    TOTAL_BDR      = "rgba(33,150,243,0.18)"
+    AI_EXPANDER_BG     = "#f8f9fa"
     AI_EXPANDER_BORDER = "#e0e0e0"
-    AI_BTN_BG = "linear-gradient(135deg, #6a1b9a, #ab47bc)"
-    AI_BTN_HOVER = "linear-gradient(135deg, #7b1fa2, #ce93d8)"
+    AI_BTN_BG      = "linear-gradient(135deg, #6a1b9a, #ab47bc)"
+    AI_BTN_HOVER   = "linear-gradient(135deg, #7b1fa2, #ce93d8)"
+    ROW_HOVER      = "rgba(0,0,0,0.02)"
 
-# ── CSS 
+# ── CSS
 st.markdown(f"""
 <style>
 *, *::before, *::after {{ box-sizing: border-box; }}
@@ -264,6 +255,7 @@ section[data-testid="stMain"],
 [data-testid="stSidebar"]   {{ background-color: {SB_BG} !important; }}
 .stApp *, [data-testid="stSidebar"] * {{ color: {TEXT_PRIMARY} !important; }}
 
+/* ── Inputs ── */
 .stTextInput input,
 .stTimeInput input {{
     background-color: {INPUT_BG} !important;
@@ -271,16 +263,23 @@ section[data-testid="stMain"],
     border-radius: 8px !important;
     font-size: 13px !important;
     padding: 6px 8px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }}
-.stTextInput input:focus   {{ border-color: #4CAF50 !important; box-shadow: 0 0 0 2px rgba(76,175,80,0.15) !important; }}
+.stTextInput input:focus   {{
+    border-color: #4CAF50 !important;
+    box-shadow: 0 0 0 3px rgba(76,175,80,0.12) !important;
+    outline: none !important;
+}}
 .stTextInput input:disabled {{
     text-decoration: line-through !important;
-    opacity: 0.50 !important;
+    opacity: 0.45 !important;
+    background-color: {TASK_ROW_DONE} !important;
 }}
 
 [data-testid="stCheckbox"] svg {{ stroke: #4CAF50 !important; }}
 [data-testid="stCheckbox"]     {{ margin-top: 8px !important; }}
 
+/* ── Base button styles ── */
 .stButton > button {{
     background-color: {BTN_BG} !important;
     color:            {BTN_COLOR} !important;
@@ -290,28 +289,20 @@ section[data-testid="stMain"],
     font-size:        13px !important;
     transition:       all 0.18s ease !important;
     padding:          6px 8px !important;
+    letter-spacing:   0.1px !important;
 }}
 .stButton > button:hover:not(:disabled) {{
-    opacity: 0.80 !important;
+    opacity: 0.82 !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.10) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
 }}
-.stButton > button:disabled {{ opacity: 0.28 !important; }}
+.stButton > button:active:not(:disabled) {{
+    transform: translateY(0px) !important;
+    box-shadow: none !important;
+}}
+.stButton > button:disabled {{ opacity: 0.28 !important; cursor: not-allowed !important; }}
 
-/* Delete button — 4th column */
-[data-testid="column"]:nth-child(4) .stButton > button {{
-    background: transparent !important;
-    color: #ef5350 !important;
-    border-color: transparent !important;
-    font-size: 16px !important;
-    padding: 6px 8px !important;
-}}
-[data-testid="column"]:nth-child(4) .stButton > button:hover {{
-    background: rgba(239,83,80,0.10) !important;
-    border-color: #ef5350 !important;
-}}
-
-/* ── St.Selectbox styling ── */
+/* ── Selectbox ── */
 .stSelectbox > div > div {{
     background-color: {INPUT_BG} !important;
     border: 1px solid {CARD_BORDER} !important;
@@ -320,76 +311,114 @@ section[data-testid="stMain"],
     transition: border-color 0.2s ease !important;
 }}
 
-/* ── Action row buttons via anchor — zero wrapper divs ── */
+/* ══════════════════════════════════════════════════════════════
+   ACTION ROW  (Add / All Done / Sort / Clear)
+   Uses .action-row-anchor hidden div to scope selectors
+   ══════════════════════════════════════════════════════════════ */
 .action-row-anchor {{ display: none !important; }}
 
+/* btn 1 — Add Task → green */
 .element-container:has(.action-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(1) .stButton > button {{
-    background: linear-gradient(135deg,#43a047,#66bb6a) !important;
-    color: #fff !important; border-color: #388e3c !important;
-    font-size: 13px !important; padding: 9px 8px !important;
-    box-shadow: 0 2px 8px rgba(67,160,71,0.30) !important;
+    background: linear-gradient(135deg, #43a047, #66bb6a) !important;
+    color: #fff !important;
+    border-color: #388e3c !important;
+    font-size: 13px !important;
+    padding: 9px 8px !important;
+    box-shadow: 0 2px 8px rgba(67,160,71,0.28) !important;
 }}
 .element-container:has(.action-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(1) .stButton > button:hover:not(:disabled) {{
+    box-shadow: 0 4px 14px rgba(67,160,71,0.38) !important;
+}}
+
+/* btn 2 — All Done → blue */
+.element-container:has(.action-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton > button:not(:disabled) {{
-    background: linear-gradient(135deg,#1565c0,#1e88e5) !important;
-    color: #fff !important; border-color: #0d47a1 !important;
+    background: linear-gradient(135deg, #1565c0, #1e88e5) !important;
+    color: #fff !important;
+    border-color: #0d47a1 !important;
     font-size: 12px !important;
     box-shadow: 0 2px 8px rgba(21,101,192,0.25) !important;
 }}
 .element-container:has(.action-row-anchor) + div
-    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button {{
-    background: linear-gradient(135deg,#43a047,#66bb6a) !important;
-    color: #fff !important; border-color: #388e3c !important;
-    font-size: 12px !important; padding: 9px 8px !important;
-    box-shadow: 0 2px 8px rgba(67,160,71,0.30) !important;
+    [data-testid="stHorizontalBlock"] > div:nth-child(2) .stButton > button:not(:disabled):hover {{
+    box-shadow: 0 4px 14px rgba(21,101,192,0.35) !important;
 }}
+
+/* btn 3 — Sort → purple  ✦ fixed from green ✦ */
+.element-container:has(.action-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button:not(:disabled) {{
+    background: linear-gradient(135deg, #6a1b9a, #ab47bc) !important;
+    color: #fff !important;
+    border-color: #4a148c !important;
+    font-size: 12px !important;
+    padding: 9px 8px !important;
+    box-shadow: 0 2px 8px rgba(106,27,154,0.28) !important;
+}}
+.element-container:has(.action-row-anchor) + div
+    [data-testid="stHorizontalBlock"] > div:nth-child(3) .stButton > button:not(:disabled):hover {{
+    box-shadow: 0 4px 14px rgba(106,27,154,0.40) !important;
+}}
+
+/* btn 4 — Clear → soft red/transparent */
 .element-container:has(.action-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(4) .stButton > button {{
     background: transparent !important;
     color: #ef5350 !important;
-    border-color: #ef535044 !important;
+    border-color: rgba(239,83,80,0.30) !important;
     font-size: 12px !important;
 }}
 .element-container:has(.action-row-anchor) + div
-    [data-testid="stHorizontalBlock"] > div:nth-child(4) .stButton > button:hover {{
+    [data-testid="stHorizontalBlock"] > div:nth-child(4) .stButton > button:hover:not(:disabled) {{
     background: rgba(239,83,80,0.10) !important;
     border-color: #ef5350 !important;
+    box-shadow: 0 2px 8px rgba(239,83,80,0.18) !important;
 }}
 
-/* ── Confirm row — YES button red ── */
+/* ── Confirm row — YES red ── */
 .confirm-row-anchor {{ display: none !important; }}
 .element-container:has(.confirm-row-anchor) + div
     [data-testid="stHorizontalBlock"] > div:nth-child(1) .stButton > button {{
-    background: linear-gradient(135deg,#c62828,#ef5350) !important;
-    color: #fff !important; border-color: #b71c1c !important;
+    background: linear-gradient(135deg, #c62828, #ef5350) !important;
+    color: #fff !important;
+    border-color: #b71c1c !important;
 }}
 
-/* ── Live time-range pill (replaces old st.caption) ── */
+/* ── Time pill ── */
 .time-pill {{
     display: inline-flex; align-items: center; gap: 4px;
     background: {PILL_BG};
     color: {PILL_COLOR} !important;
     border: 1px solid {PILL_BORDER};
     font-size: 11px; font-weight: 700;
-    padding: 3px 8px; border-radius: 20px;
+    padding: 3px 9px; border-radius: 20px;
     margin-bottom: 4px; white-space: nowrap;
     font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
 }}
 
 /* ── Duration badge ── */
 .duration-badge {{
     font-size: 10px; color: {DURATION_CLR} !important;
-    display: block; text-align: center; margin-top: 3px;
-    font-weight: 600;
+    display: block; text-align: center; margin-top: 2px;
+    font-weight: 600; opacity: 0.85;
 }}
 
-/* ── Per-day total time strip ── */
+/* ── Task row separator ── */
+.task-row-sep {{
+    height: 1px;
+    background: {DIVIDER};
+    margin: 4px 0 8px;
+    border-radius: 1px;
+}}
+
+/* ── Per-day total strip ── */
 .day-total-strip {{
     display: flex; align-items: center; justify-content: space-between;
     background: {TOTAL_BG};
     border: 1px solid {TOTAL_BDR};
-    border-radius: 10px; padding: 7px 12px; margin-bottom: 14px;
+    border-radius: 10px; padding: 8px 14px; margin-bottom: 14px;
     font-size: 12px; font-weight: 600;
     color: {TOTAL_COLOR} !important;
 }}
@@ -399,18 +428,18 @@ section[data-testid="stMain"],
 .week-card {{
     background: {OVERVIEW_BG};
     border: 1px solid {OVERVIEW_BDR};
-    border-radius: 16px;
-    padding: 14px 16px 12px;
+    border-radius: 18px;
+    padding: 16px 18px 14px;
     margin-bottom: 20px;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
 }}
 .week-card-title {{
-    font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+    font-size: 10px; font-weight: 800; letter-spacing: 1px;
     text-transform: uppercase; color: {TEXT_MUTED} !important;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }}
 
-/* ── AI Scheduler Expander ── */
+/* ── AI Expander ── */
 [data-testid="stExpander"] {{
     background: {AI_EXPANDER_BG} !important;
     border: 1px solid {AI_EXPANDER_BORDER} !important;
@@ -429,7 +458,7 @@ section[data-testid="stMain"],
     background: rgba(76,175,80,0.05) !important;
 }}
 
-/* ── AI Scheduler Button ── */
+/* ── AI Generate button ── */
 .ai-generate-btn button {{
     background: {AI_BTN_BG} !important;
     color: #fff !important;
@@ -441,63 +470,75 @@ section[data-testid="stMain"],
     transition: all 0.2s ease !important;
     box-shadow: 0 4px 12px rgba(106,27,154,0.25) !important;
 }}
-.ai-generate-btn button:hover {{
+.ai-generate-btn button:hover:not(:disabled) {{
     background: {AI_BTN_HOVER} !important;
     transform: translateY(-1px) !important;
     box-shadow: 0 6px 16px rgba(106,27,154,0.35) !important;
 }}
 .ai-generate-btn button:disabled {{
-    opacity: 0.5;
-    cursor: not-allowed;
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
 }}
 
+/* ── Progress bar ── */
 [data-testid="stProgressBar"] p {{ display: none !important; }}
 [data-testid="stProgressBar"] > div {{ height: 5px !important; border-radius: 99px !important; }}
 
 /* ── Today badge ── */
 .today-badge {{
-    display: inline-flex; align-items: center; gap: 6px;
+    display: inline-flex; align-items: center; gap: 8px;
     background: {TODAY_BG}; color: {TODAY_COLOR} !important;
     border: 1px solid {TODAY_COLOR}44;
     font-size: 12px; font-weight: 700;
-    padding: 5px 14px; border-radius: 20px; margin-bottom: 14px;
+    padding: 6px 16px; border-radius: 20px; margin-bottom: 14px;
 }}
 .today-badge span {{ color: {TODAY_COLOR} !important; }}
 
-/* ── Progress bar (per-day) ── */
+/* ── Day progress bar ── */
 .prog-wrap   {{ margin-bottom: 16px; }}
-.prog-header {{ display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 6px; }}
-.prog-label  {{ font-weight: 600; color: {TEXT_PRIMARY} !important; }}
-.prog-pct    {{ color: {TEXT_MUTED} !important; font-variant-numeric: tabular-nums; }}
+.prog-header {{ display: flex; justify-content: space-between; align-items: center;
+                font-size: 12px; margin-bottom: 7px; }}
+.prog-label  {{ font-weight: 700; color: {TEXT_PRIMARY} !important; }}
+.prog-pct    {{ color: {TEXT_MUTED} !important; font-variant-numeric: tabular-nums;
+                font-weight: 600; }}
 .prog-track  {{ background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden; }}
-.prog-fill   {{ height: 8px; border-radius: 99px; transition: width 0.4s ease; }}
+.prog-fill   {{ height: 8px; border-radius: 99px; transition: width 0.5s ease; }}
 
 /* ── All-done banner ── */
 .all-done-banner {{
     background: rgba(76,175,80,0.12);
-    border: 1px solid rgba(76,175,80,0.35);
+    border: 1px solid rgba(76,175,80,0.30);
     border-radius: 12px; padding: 14px 16px; text-align: center;
     font-size: 15px; font-weight: 700;
     color: #4CAF50 !important; margin-bottom: 14px;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 10px rgba(76,175,80,0.10);
 }}
 
 /* ── Empty state ── */
-.empty-day      {{ text-align: center; padding: 36px 16px; color: {EMPTY_CLR} !important; font-size: 13px; }}
-.empty-day-icon {{ font-size: 40px; margin-bottom: 10px; }}
-.empty-day-hint {{ font-size: 11px; margin-top: 6px; opacity: 0.7; }}
+.empty-day      {{ text-align: center; padding: 40px 16px; color: {EMPTY_CLR} !important; font-size: 13px; }}
+.empty-day-icon {{ font-size: 44px; margin-bottom: 12px; }}
+.empty-day-hint {{ font-size: 11px; margin-top: 8px; opacity: 0.65; }}
 
 /* ── Danger confirm ── */
 .danger-confirm {{
-    background: rgba(239,83,80,0.10);
-    border: 1px solid rgba(239,83,80,0.30);
+    background: rgba(239,83,80,0.09);
+    border: 1px solid rgba(239,83,80,0.28);
     border-radius: 10px; padding: 10px 14px;
     font-size: 12px; font-weight: 600;
     color: #ef5350 !important; text-align: center; margin-bottom: 8px;
 }}
 
-hr {{ border-color: {DIVIDER} !important; margin: 16px 0 !important; }}
+/* ── Column headers ── */
+.col-header {{
+    font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+    text-transform: uppercase; color: {TEXT_MUTED} !important;
+    padding-bottom: 6px; border-bottom: 1px solid {DIVIDER};
+    margin-bottom: 2px;
+}}
+.col-header span {{ color: {TEXT_MUTED} !important; }}
 
+/* ── Tabs ── */
 [data-testid="stTabs"] [data-baseweb="tab"] {{
     font-size: 11px !important; font-weight: 600 !important;
     border-radius: 8px 8px 0 0 !important; padding: 7px 9px !important;
@@ -507,23 +548,18 @@ hr {{ border-color: {DIVIDER} !important; margin: 16px 0 !important; }}
     border-bottom-color: #4CAF50 !important;
 }}
 
-/* ── Column header captions ── */
-.col-header {{
-    font-size: 10px; font-weight: 700; letter-spacing: 0.7px;
-    text-transform: uppercase; color: {TEXT_MUTED} !important;
-    padding-bottom: 4px;
-}}
-.col-header span {{ color: {TEXT_MUTED} !important; }}
+hr {{ border-color: {DIVIDER} !important; margin: 14px 0 !important; }}
 
 @media (max-width: 640px) {{
     .stTimeInput input {{ font-size: 12px !important; }}
     .stTextInput input {{ font-size: 12px !important; }}
     .time-pill {{ font-size: 10px !important; padding: 2px 6px !important; }}
+    .week-card {{ padding: 12px 10px 10px !important; }}
 }}
 </style>
 """, unsafe_allow_html=True)
 
-# ── Page header 
+# ── Page header
 _, dm_col = st.columns([8, 1])
 with dm_col:
     dark_toggle = st.checkbox(
@@ -536,8 +572,8 @@ with dm_col:
         st.rerun()
 
 st.markdown(f"""
-<div style="padding:0 0 16px;">
-    <div style="font-size:26px;font-weight:900;letter-spacing:-0.5px;">
+<div style="padding:0 0 18px;">
+    <div style="font-size:26px;font-weight:900;letter-spacing:-0.5px;line-height:1.2;">
         📅 {t("schedule_title")}
     </div>
 </div>
@@ -609,11 +645,11 @@ def get_tab_label(day_key):
     dot   = " 🔵" if day_key == today_key else ""
     return f"{day_name}{dot}{badge}"
 
-# ── AI Scheduler ───────────────────────────────────────────────────────────────
+# ── AI Scheduler
 ai_lbl = {
-    "badini": "🤖 ڕێکخستنی زیرەک ب AI",
+    "badini":  "🤖 ڕێکخستنی زیرەک ب AI",
     "english": "🤖 AI Smart Scheduler",
-    "arabic": "🤖 الجدولة الذكية بالذكاء الاصطناعي",
+    "arabic":  "🤖 الجدولة الذكية بالذكاء الاصطناعي",
 }.get(st.session_state.lang, "🤖 AI Smart Scheduler")
 
 if "ai_input" not in st.session_state:
@@ -623,11 +659,11 @@ if "ai_loading" not in st.session_state:
 
 with st.expander(ai_lbl, expanded=False):
     st.markdown({
-        "badini": "ئارمانجێن خوە بنڤیسە (ب زمانێ ئینگلیزی باشتر کار دکەت):",
+        "badini":  "ئارمانجێن خوە بنڤیسە (ب زمانێ ئینگلیزی باشتر کار دکەت):",
         "english": "Describe your study goals (English works best):",
-        "arabic": "اكتب أهدافك الدراسية (الإنجليزية تعمل بشكل أفضل):",
+        "arabic":  "اكتب أهدافك الدراسية (الإنجليزية تعمل بشكل أفضل):",
     }.get(st.session_state.lang, "Describe your study goals:"))
-    
+
     user_goal = st.text_area(
         "Goal",
         value=st.session_state.ai_input,
@@ -636,39 +672,41 @@ with st.expander(ai_lbl, expanded=False):
         key="ai_goal_input"
     )
     st.session_state.ai_input = user_goal
-    
+
     generate_lbl = "🚀 " + {
-        "badini": "دروست بکە",
+        "badini":  "دروست بکە",
         "english": "Generate Schedule",
-        "arabic": "توليد الجدول",
+        "arabic":  "توليد الجدول",
     }.get(st.session_state.lang, "Generate Schedule")
-    
+
+    st.markdown('<div class="ai-generate-btn">', unsafe_allow_html=True)
     if st.button(generate_lbl, use_container_width=True, disabled=st.session_state.ai_loading):
         if not user_goal.strip():
             st.error({
-                "badini": "تکایە ئامانجێن خوە بنڤیسە.",
+                "badini":  "تکایە ئامانجێن خوە بنڤیسە.",
                 "english": "Please enter your goals.",
-                "arabic": "يرجى كتابة أهدافك.",
+                "arabic":  "يرجى كتابة أهدافك.",
             }.get(st.session_state.lang, "Please enter your goals."))
         else:
             st.session_state.ai_loading = True
             st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# تنفيذ الطلب إذا كان التحميل مفعلاً
+# AI request execution
 if st.session_state.ai_loading and st.session_state.ai_input:
     api_key = st.secrets.get("GROQ_API_KEY", "")
     if not api_key:
         st.error("🚨 Groq API key is missing. Add it to Streamlit secrets.")
         st.session_state.ai_loading = False
         st.stop()
-    
-    today = datetime.now().strftime("%A")
+
+    today_str = datetime.now().strftime("%A")
     prompt = f"""
-You are a study schedule generator. The user has the following study goals for the upcoming week (starting today, {today}):
+You are a study schedule generator. The user has the following study goals for the upcoming week (starting today, {today_str}):
 
 {st.session_state.ai_input}
 
-Please create a day-by-day study schedule for the next 7 days. 
+Please create a day-by-day study schedule for the next 7 days.
 Return ONLY a valid JSON object with the following structure, and no other text before or after the JSON:
 {{
   "mon": [{{"start": "HH:MM", "end": "HH:MM", "task": "Subject"}}, ...],
@@ -681,7 +719,7 @@ Return ONLY a valid JSON object with the following structure, and no other text 
 }}
 Fill only the days that are relevant. Use 24-hour format for times. Distribute the study hours according to the user's preferences (e.g., mornings, afternoons). Include breaks if necessary.
 """
-    
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
@@ -692,7 +730,7 @@ Fill only the days that are relevant. Use 24-hour format for times. Distribute t
         "temperature": 0.2,
         "max_tokens": 2000
     }
-    
+
     try:
         response = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
@@ -701,38 +739,35 @@ Fill only the days that are relevant. Use 24-hour format for times. Distribute t
             timeout=30
         )
         response.raise_for_status()
-        data = response.json()
+        data    = response.json()
         content = data["choices"][0]["message"]["content"]
-        
+
         if "```json" in content:
             content = content.split("```json")[1].split("```")[0].strip()
         elif "```" in content:
             content = content.split("```")[1].split("```")[0].strip()
-        
+
         new_schedule = json.loads(content)
-        
+
         valid_keys = {"sun", "mon", "tue", "wed", "thu", "fri", "sat"}
-        for day_key in valid_keys:
-            if day_key in new_schedule and isinstance(new_schedule[day_key], list):
-                st.session_state.schedule[day_key] = []
-                for task in new_schedule[day_key]:
-                    start = task.get("start", "08:00")
-                    end = task.get("end", "09:00")
-                    task_name = task.get("task", "Study")
-                    st.session_state.schedule[day_key].append({
-                        "start": start,
-                        "end": end,
-                        "task": task_name,
-                        "done": False
+        for day_k in valid_keys:
+            if day_k in new_schedule and isinstance(new_schedule[day_k], list):
+                st.session_state.schedule[day_k] = []
+                for task_item in new_schedule[day_k]:
+                    st.session_state.schedule[day_k].append({
+                        "start": task_item.get("start", "08:00"),
+                        "end":   task_item.get("end",   "09:00"),
+                        "task":  task_item.get("task",  "Study"),
+                        "done":  False
                     })
-        
+
         save_schedule()
         st.success({
-            "badini": "✅ خشتە ب سەرکەفتی دروست بوو!",
+            "badini":  "✅ خشتە ب سەرکەفتی دروست بوو!",
             "english": "✅ Schedule generated successfully!",
-            "arabic": "✅ تم إنشاء الجدول بنجاح!",
+            "arabic":  "✅ تم إنشاء الجدول بنجاح!",
         }.get(st.session_state.lang, "✅ Schedule generated!"))
-        
+
     except requests.exceptions.RequestException as e:
         st.error(f"🚨 Network error: {str(e)}")
     except json.JSONDecodeError:
@@ -740,31 +775,31 @@ Fill only the days that are relevant. Use 24-hour format for times. Distribute t
         st.code(content, language="json")
     except Exception as e:
         st.error(f"🚨 Unexpected error: {str(e)}")
-    
+
     st.session_state.ai_loading = False
-    st.session_state.ai_input = ""
+    st.session_state.ai_input   = ""
     time.sleep(1.5)
     st.rerun()
 
-# ── نسخ الأسبوع ───────────────────────────────────────────────────────────────
+# ── Copy week button
 st.divider()
 copy_lbl = {
-    "badini": "📋 کوپی بکە بو حەفتیا دهێت",
+    "badini":  "📋 کوپی بکە بو حەفتیا دهێت",
     "english": "📋 Copy to Next Week",
-    "arabic": "📋 نسخ إلى الأسبوع القادم",
+    "arabic":  "📋 نسخ إلى الأسبوع القادم",
 }.get(st.session_state.lang, "📋 Copy to Next Week")
 
 if st.button(copy_lbl, use_container_width=True):
     copy_week_to_next()
     st.toast({
-        "badini": "✅ حەفتی هاتە کۆپیکرن!",
+        "badini":  "✅ حەفتی هاتە کۆپیکرن!",
         "english": "✅ Week copied successfully!",
-        "arabic": "✅ تم نسخ الأسبوع بنجاح!",
+        "arabic":  "✅ تم نسخ الأسبوع بنجاح!",
     }.get(st.session_state.lang, "✅ Week copied!"))
     time.sleep(1)
     st.rerun()
 
-# --- اختيار اليوم عبر Radio (يحافظ على الاختيار بعد rerun) ──────────────────────
+# ── Day selector via Radio
 if "active_day" not in st.session_state:
     st.session_state.active_day = today_key
 
@@ -785,18 +820,19 @@ selected_label = st.radio(
 selected_index = day_labels.index(selected_label)
 st.session_state.active_day = day_keys[selected_index]
 
-# ── Per-day tab 
+# ── Per-day view
 active_day_key = st.session_state.active_day
 for day_key, _, _ in DAYS:
     if day_key != active_day_key:
         continue
     schedule = st.session_state.schedule[day_key]
-    
+
+    # Today badge
     if day_key == today_key:
         named_today = [tk for tk in schedule if tk.get("task", "").strip()]
         done_today  = sum(1 for tk in named_today if tk.get("done", False))
         tot_today   = total_day_minutes(schedule)
-        extras      = []
+        extras = []
         if named_today:
             extras.append(f"{done_today}/{len(named_today)}")
         if tot_today:
@@ -804,11 +840,11 @@ for day_key, _, _ in DAYS:
         extra_str = f" · {' · '.join(extras)}" if extras else ""
         st.markdown(
             f'<div class="today-badge"><span>🔵 {t("today_badge")}</span>'
-            f'<span style="font-weight:400;opacity:0.85;">{extra_str}</span></div>',
+            f'<span style="font-weight:400;opacity:0.80;">{extra_str}</span></div>',
             unsafe_allow_html=True
         )
 
-    # ── Clear-day confirmation 
+    # Clear-day confirmation
     if st.session_state[f"{day_key}_clear_confirm"]:
         st.markdown(
             '<div class="danger-confirm">⚠️ '
@@ -816,7 +852,7 @@ for day_key, _, _ in DAYS:
                 "badini":  "هەمی کاران ژێببە؟",
                 "english": "Clear all tasks for this day?",
                 "arabic":  "مسح جميع المهام لهذا اليوم؟",
-              }.get(st.session_state.lang, "Clear all tasks for this day?")
+            }.get(st.session_state.lang, "Clear all tasks for this day?")
             + '</div>',
             unsafe_allow_html=True
         )
@@ -842,14 +878,14 @@ for day_key, _, _ in DAYS:
                 st.session_state[f"{day_key}_clear_confirm"] = False
                 st.rerun()
 
-    # ── Progress bar
+    # Progress bar
     named   = [tk for tk in schedule if tk.get("task", "").strip()]
     n_total = len(named)
     n_done  = sum(1 for tk in named if tk.get("done", False))
 
     if n_total > 0:
-        pct       = int((n_done / n_total) * 100)
-        all_done  = n_done == n_total
+        pct      = int((n_done / n_total) * 100)
+        all_done = n_done == n_total
         bar_color = "#4CAF50" if not all_done else "#2196F3"
         if all_done:
             st.markdown(
@@ -869,7 +905,7 @@ for day_key, _, _ in DAYS:
             </div>
             """, unsafe_allow_html=True)
 
-    # ── Per-day total scheduled time strip 
+    # Per-day total strip
     day_total_min = total_day_minutes(schedule)
     if day_total_min > 0:
         total_lbl = {
@@ -891,7 +927,7 @@ for day_key, _, _ in DAYS:
             unsafe_allow_html=True
         )
 
-    # ── Empty state
+    # Empty state
     if not schedule:
         no_tasks_msg = {
             "badini":  "هیچ كار نينە.",
@@ -900,8 +936,8 @@ for day_key, _, _ in DAYS:
         }
         hint_msg = {
             "badini":  "زێدەکرنێ کلیک بکە بو دروستکرنا کارەکێ",
-            "english": "Click + Add Task below to get started",
-            "arabic":  "انقر على + إضافة مهمة أدناه للبدء",
+            "english": "Click ➕ Add Task below to get started",
+            "arabic":  "انقر على ➕ إضافة مهمة أدناه للبدء",
         }
         st.markdown(f"""
         <div class="empty-day">
@@ -926,6 +962,10 @@ for day_key, _, _ in DAYS:
         done_changed = False
 
         for i, entry in enumerate(schedule):
+            # Subtle separator between rows (skip before first)
+            if i > 0:
+                st.markdown('<div class="task-row-sep"></div>', unsafe_allow_html=True)
+
             c_time, c_done, c_task, c_del = st.columns([2.8, 0.7, 4.8, 0.7])
 
             with c_time:
@@ -938,8 +978,8 @@ for day_key, _, _ in DAYS:
                 except Exception:
                     end_val = datetime.strptime("08:00", "%H:%M").time()
 
-                _sk = f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}"
-                _ek = f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}"
+                _sk    = f"{day_key}_start_{i}_{st.session_state[f'{day_key}_reset']}"
+                _ek    = f"{day_key}_end_{i}_{st.session_state[f'{day_key}_reset']}"
                 _live_s = st.session_state.get(_sk, start_val)
                 _live_e = st.session_state.get(_ek, end_val)
                 _cap_s  = (_live_s.strftime("%H:%M") if hasattr(_live_s, "strftime")
@@ -1028,78 +1068,83 @@ for day_key, _, _ in DAYS:
 
     st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
 
-    # ── نسخ اليوم إلى يوم آخر ─────────────────────────────────────────────
+    # ── Copy Day to Another Day
     st.divider()
-    
+
     copy_day_lbl = {
-        "badini": "📋 ڕۆژێ کۆپی بکە بو ڕۆژەکێ دی",
+        "badini":  "📋 ڕۆژێ کۆپی بکە بو ڕۆژەکێ دی",
         "english": "📋 Copy Day to Another Day",
-        "arabic": "📋 نسخ اليوم إلى يوم آخر",
+        "arabic":  "📋 نسخ اليوم إلى يوم آخر",
     }.get(st.session_state.lang, "📋 Copy Day to Another Day")
-    
+
     with st.expander(copy_day_lbl, expanded=False):
-        target_days = [(dk, get_day_name(dk)) for dk, _, _ in DAYS if dk != active_day_key]
+        target_days       = [(dk, get_day_name(dk)) for dk, _, _ in DAYS if dk != active_day_key]
         target_day_labels = [name for _, name in target_days]
-        target_day_keys   = [dk for dk, _ in target_days]
-        
+        target_day_keys   = [dk   for dk, _ in target_days]
+
         if target_day_labels:
             col_target, col_btn = st.columns([3, 1])
-            
+
             with col_target:
-                st.markdown("""
-                <div style="font-size:11px; color: var(--text-muted); margin-bottom:4px; font-weight:600;">
-                    👉 Target day
+                st.markdown(f"""
+                <div style="font-size:11px; color:{TEXT_MUTED}; margin-bottom:4px; font-weight:700; letter-spacing:0.5px;">
+                    👉 {"ڕۆژا ئامانجی" if st.session_state.lang == "badini" else "اليوم المستهدف" if st.session_state.lang == "arabic" else "Target Day"}
                 </div>
                 """, unsafe_allow_html=True)
-                
+
                 target_day = st.selectbox(
                     "Target day",
                     target_day_labels,
                     key=f"copy_day_target_{active_day_key}",
                     label_visibility="collapsed"
                 )
-            
+
             with col_btn:
                 selected_target_key = target_day_keys[target_day_labels.index(target_day)]
-                
+
                 copy_day_btn_lbl = {
-                    "badini": "📋 کۆپی بکە",
+                    "badini":  "📋 کۆپی بکە",
                     "english": "📋 Copy",
-                    "arabic": "📋 نسخ",
+                    "arabic":  "📋 نسخ",
                 }.get(st.session_state.lang, "📋 Copy")
-                
+
                 st.markdown('<div style="height: 24px;"></div>', unsafe_allow_html=True)
-                
+
                 if st.button(
                     copy_day_btn_lbl,
                     key=f"copy_day_btn_{active_day_key}",
                     use_container_width=True
                 ):
-                    tasks_to_copy = st.session_state.schedule[active_day_key]
+                    # ✦ Fixed: renamed loop var from `t` to `task_item` to avoid
+                    #   shadowing the translation function t()
                     st.session_state.schedule[selected_target_key] = [
-                        {"start": t.get("start", "08:00"),
-                         "end": t.get("end", "09:00"),
-                         "task": t.get("task", ""),
-                         "done": False}
-                        for t in tasks_to_copy
+                        {
+                            "start": task_item.get("start", "08:00"),
+                            "end":   task_item.get("end",   "09:00"),
+                            "task":  task_item.get("task",  ""),
+                            "done":  False,
+                        }
+                        for task_item in st.session_state.schedule[active_day_key]
                     ]
                     st.session_state[f"{selected_target_key}_reset"] += 1
                     save_schedule()
                     st.toast({
-                        "badini": f"✅ هاتە کۆپیکرن بۆ {get_day_name(selected_target_key)}!",
+                        "badini":  f"✅ هاتە کۆپیکرن بۆ {get_day_name(selected_target_key)}!",
                         "english": f"✅ Copied to {get_day_name(selected_target_key)}!",
-                        "arabic": f"✅ تم النسخ إلى {get_day_name(selected_target_key)}!",
+                        "arabic":  f"✅ تم النسخ إلى {get_day_name(selected_target_key)}!",
                     }.get(st.session_state.lang, "✅ Copied!"))
                     time.sleep(1)
                     st.rerun()
-    
-    # ── Action buttons ─────────────────────────────────────────────────────
+
+    # ── Action buttons (Add / All Done / Sort / Clear)
     st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
     b1, b2, b3, b4 = st.columns(4)
 
     with b1:
         add_lbl = {
-            "badini": "➕ زێدەکرن", "english": "➕ Add Task", "arabic": "➕ إضافة",
+            "badini":  "➕ زێدەکرن",
+            "english": "➕ Add Task",
+            "arabic":  "➕ إضافة",
         }
         if st.button(
             add_lbl.get(st.session_state.lang, "➕ Add Task"),
@@ -1112,30 +1157,32 @@ for day_key, _, _ in DAYS:
             st.rerun()
 
     with b2:
-        has_incomplete = any(not e.get("done",False) for e in schedule)
+        has_incomplete = any(not e.get("done", False) for e in schedule)
         if st.button(
-            {"badini":"✅ هەموو","english":"✅ All Done","arabic":"✅ إتمام الكل"}.get(st.session_state.lang,"✅ All Done"),
+            {"badini": "✅ هەموو", "english": "✅ All Done", "arabic": "✅ إتمام الكل"}.get(
+                st.session_state.lang, "✅ All Done"),
             key=f"{day_key}_markall_{st.session_state[f'{day_key}_reset']}",
-            use_container_width=True, disabled=not has_incomplete
+            use_container_width=True,
+            disabled=not has_incomplete
         ):
             for e in schedule:
                 e["done"] = True
             st.session_state[f"{day_key}_reset"] += 1
             st.session_state.schedule[day_key] = schedule
-            save_schedule(); st.rerun()
+            save_schedule()
+            st.rerun()
 
     with b3:
         sort_disabled = len(schedule) <= 1
         sort_lbl = {
-            "badini": "🔃 ڕیزکرن", "english": "🔃 Sort", "arabic": "🔃 ترتيب",
+            "badini":  "🔃 ڕیزکرن",
+            "english": "🔃 Sort",
+            "arabic":  "🔃 ترتيب",
         }.get(st.session_state.lang, "🔃 Sort")
-        
-        # مفتاح ديناميكي
-        sort_key = f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}"
-        
+
         if st.button(
             sort_lbl,
-            key=sort_key,
+            key=f"{day_key}_sort_{st.session_state[f'{day_key}_reset']}",
             use_container_width=True,
             disabled=sort_disabled,
             help="Sort tasks by start time"
@@ -1145,15 +1192,18 @@ for day_key, _, _ in DAYS:
             st.session_state[f"{day_key}_reset"] += 1
             save_schedule()
             st.rerun()
-            
+
     with b4:
         clear_lbl = {
-            "badini": "🗑️ ژێبرن", "english": "🗑️ Clear", "arabic": "🗑️ مسح",
+            "badini":  "🗑️ ژێبرن",
+            "english": "🗑️ Clear",
+            "arabic":  "🗑️ مسح",
         }
         if st.button(
             clear_lbl.get(st.session_state.lang, "🗑️ Clear"),
             key=f"{day_key}_clear_{st.session_state[f'{day_key}_reset']}",
-            use_container_width=True, disabled=not schedule
+            use_container_width=True,
+            disabled=not schedule
         ):
             st.session_state[f"{day_key}_clear_confirm"] = True
             st.rerun()
