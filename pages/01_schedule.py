@@ -742,6 +742,7 @@ Fill only the days that are relevant. Use 24-hour format for times. Distribute t
     
     st.session_state.ai_loading = False
     st.session_state.ai_input = ""
+    time.sleep(1.5)
     st.rerun()
 
 # ── نسخ الأسبوع ───────────────────────────────────────────────────────────────
@@ -754,11 +755,12 @@ copy_lbl = {
 
 if st.button(copy_lbl, use_container_width=True):
     copy_week_to_next()
-    st.success({
+    st.toast({
         "badini": "✅ حەفتی هاتە کۆپیکرن!",
         "english": "✅ Week copied successfully!",
         "arabic": "✅ تم نسخ الأسبوع بنجاح!",
     }.get(st.session_state.lang, "✅ Week copied!"))
+    time.sleep(1)
     st.rerun()
 
 # --- اختيار اليوم عبر Radio (يحافظ على الاختيار بعد rerun) ──────────────────────
@@ -1082,11 +1084,12 @@ for day_key, _, _ in DAYS:
                     ]
                     st.session_state[f"{selected_target_key}_reset"] += 1
                     save_schedule()
-                    st.success({
+                    st.toast({
                         "badini": f"✅ هاتە کۆپیکرن بۆ {get_day_name(selected_target_key)}!",
                         "english": f"✅ Copied to {get_day_name(selected_target_key)}!",
                         "arabic": f"✅ تم النسخ إلى {get_day_name(selected_target_key)}!",
                     }.get(st.session_state.lang, "✅ Copied!"))
+                    time.sleep(1)
                     st.rerun()
     
     # ── Action buttons ─────────────────────────────────────────────────────
