@@ -153,26 +153,16 @@ def save_schedule():
 
 def copy_week_to_next():
     """نسخ مهام الأسبوع الحالي إلى الأسبوع القادم مع إعادة تعيين done=False."""
-    today = datetime.now().weekday()
-    days_until_sunday = (6 - today) % 7
-    if days_until_sunday == 0:
-        days_until_sunday = 7
-    
-    next_sunday = date.today() + timedelta(days=days_until_sunday)
-    week_number = next_sunday.strftime("%Y-%W")
-    
     new_schedule = {dk: [] for dk, _, _ in DAYS}
-    
     for dk, _, _ in DAYS:
         for task in st.session_state.schedule.get(dk, []):
             new_task = task.copy()
             new_task["done"] = False
             new_schedule[dk].append(new_task)
-    
     st.session_state.schedule = new_schedule
     st.session_state.active_day = today_key
     save_schedule()
-    
+
 # ── Session-state init
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
@@ -409,44 +399,28 @@ section[data-testid="stMain"],
     text-transform: uppercase; color: {TEXT_MUTED} !important;
     margin-bottom: 10px;
 }}
-/* ── AI Scheduler Button ── */
-section[data-testid="stVerticalBlock"] .stButton > button {
-    background: linear-gradient(135deg, #6a1b9a, #ab47bc) !important;
-    color: #fff !important;
-    border: none !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    font-size: 15px !important;
-    padding: 12px 20px !important;
-    transition: all 0.2s ease !important;
-    box-shadow: 0 4px 12px rgba(106,27,154,0.25) !important;
-}
-section[data-testid="stVerticalBlock"] .stButton > button:hover {
-    background: linear-gradient(135deg, #7b1fa2, #ce93d8) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 16px rgba(106,27,154,0.35) !important;
-}
+
 /* ── AI Scheduler Expander ── */
-[data-testid="stExpander"] {
+[data-testid="stExpander"] {{
     background: {AI_EXPANDER_BG} !important;
     border: 1px solid {AI_EXPANDER_BORDER} !important;
     border-radius: 16px !important;
     margin-bottom: 16px !important;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04) !important;
     overflow: hidden;
-}
-[data-testid="stExpander"] summary {
+}}
+[data-testid="stExpander"] summary {{
     font-weight: 700 !important;
     font-size: 14px !important;
     padding: 12px 16px !important;
     color: {TEXT_PRIMARY} !important;
-}
-[data-testid="stExpander"] summary:hover {
+}}
+[data-testid="stExpander"] summary:hover {{
     background: rgba(76,175,80,0.05) !important;
-}
+}}
 
 /* ── AI Scheduler Button ── */
-.ai-generate-btn button {
+.ai-generate-btn button {{
     background: {AI_BTN_BG} !important;
     color: #fff !important;
     border: none !important;
@@ -456,16 +430,16 @@ section[data-testid="stVerticalBlock"] .stButton > button:hover {
     padding: 12px 20px !important;
     transition: all 0.2s ease !important;
     box-shadow: 0 4px 12px rgba(106,27,154,0.25) !important;
-}
-.ai-generate-btn button:hover {
+}}
+.ai-generate-btn button:hover {{
     background: {AI_BTN_HOVER} !important;
     transform: translateY(-1px) !important;
     box-shadow: 0 6px 16px rgba(106,27,154,0.35) !important;
-}
-.ai-generate-btn button:disabled {
+}}
+.ai-generate-btn button:disabled {{
     opacity: 0.5;
     cursor: not-allowed;
-}
+}}
 
 [data-testid="stProgressBar"] p {{ display: none !important; }}
 [data-testid="stProgressBar"] > div {{ height: 5px !important; border-radius: 99px !important; }}
@@ -670,17 +644,13 @@ with st.expander(ai_lbl, expanded=False):
     )
     st.session_state.ai_input = user_goal
     
-       if st.button(
-        generate_lbl,
-        key=f"ai_generate_{st.session_state.get('ai_click', 0)}",
-        use_container_width=True,
-        disabled=st.session_state.ai_loading
-    ):
-        if not user_goal.strip():
-            st.error(...)
-        else:
-            st.session_state.ai_loading = True
-            st.rerun()
+    generate_lbl = "🚀 " + {
+        "badini": "دروست بکە",
+        "english": "Generate Schedule",
+        "arabic": "توليد الجدول",
+    }.get(st.session_state.lang, "Generate Schedule")
+    
+    if st.button(generate_lbl, use_container_width=True, disabled=st.session_state.ai_loading):
         if not user_goal.strip():
             st.error({
                 "badini": "تکایە ئامانجێن خوە بنڤیسە.",
@@ -758,7 +728,6 @@ Fill only the days that are relevant. Use 24-hour format for times. Distribute t
             if day_key in new_schedule and isinstance(new_schedule[day_key], list):
                 st.session_state.schedule[day_key] = []
                 for task in new_schedule[day_key]:
-                    # تأكد من وجود الحقول المطلوبة
                     start = task.get("start", "08:00")
                     end = task.get("end", "09:00")
                     task_name = task.get("task", "Study")
@@ -1118,6 +1087,7 @@ for day_key, _, _ in DAYS:
                     "arabic": f"✅ تم النسخ إلى {get_day_name(selected_target_key)}!",
                 }.get(st.session_state.lang, "✅ Copied!"))
                 st.rerun()
+                
     # ── Action buttons 
     st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
     b1, b2, b3, b4 = st.columns(4)
