@@ -1028,10 +1028,17 @@ for day_key, _, _ in DAYS:
     # ── نسخ اليوم إلى يوم آخر ─────────────────────────────────────────────
     st.divider()
     
-    # عنوان القسم داخل كرت بسيط
+    # تعريف الترجمة أولاً
+    copy_day_lbl = {
+        "badini": "📋 ڕۆژێ کۆپی بکە بو ڕۆژەکێ دی",
+        "english": "📋 Copy Day to Another Day",
+        "arabic": "📋 نسخ اليوم إلى يوم آخر",
+    }.get(st.session_state.lang, "📋 Copy Day to Another Day")
+    
+    # عنوان القسم
     st.markdown(f"""
     <div style="padding: 8px 0 4px 0;">
-        <span style="font-size:13px; font-weight:700; color:{TEXT_MUTED};">📋 {copy_day_lbl}</span>
+        <span style="font-size:13px; font-weight:700; color:{TEXT_MUTED};">{copy_day_lbl}</span>
     </div>
     """, unsafe_allow_html=True)
     
@@ -1088,7 +1095,6 @@ for day_key, _, _ in DAYS:
                     "arabic": f"✅ تم النسخ إلى {get_day_name(selected_target_key)}!",
                 }.get(st.session_state.lang, "✅ Copied!"))
                 st.rerun()
-                
     # ── Action buttons ─────────────────────────────────────────────────────
     st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
     b1, b2, b3, b4 = st.columns(4)
