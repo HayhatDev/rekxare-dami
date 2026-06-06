@@ -577,6 +577,146 @@ def get_tab_label(day_key):
     dot   = " 🔵" if day_key == today_key else ""
     return f"{day_name}{dot}{badge}"
 
+# ── AI Scheduler 
+ai_lbl = {
+    "badini": "🤖 ڕێکخستنی زیرەک ب AI",
+    "english": "🤖 AI Smart Scheduler",
+    "arabic": "🤖 الجدولة الذكية بالذكاء الاصطناعي",
+}.get(st.session_state.lang, "🤖 AI Smart Scheduler")
+
+if "ai_input" not in st.session_state:
+    st.session_state.ai_input = ""
+if "ai_loading" not in st.session_state:
+    st.session_state.ai_loading = False
+
+with st.expander(ai_lbl, expanded=False):
+    st.markdown({
+        "badini": "ئامانجێن خوە بنڤیسە (ب زمانێ ئینگلیزی باشترین کار دکەت):",
+        "english": "Describe your study goals (English works best):",
+        "arabic": "اكتب أهدافك الدراسية (الإنجليزية تعمل بشكل أفضل):",
+    }.get(st.session_state.lang, "Describe your study goals:"))
+    
+    user_goal = st.text_area(
+        "Goal",
+        value=st.session_state.ai_input,
+        placeholder="e.g., I need to study math for 10 hours, physics for 5 hours this week. I prefer mornings.",
+        label_visibility="collapsed",
+        key="ai_goal_input"
+    )
+    st.session_state.ai_input = user_goal
+    
+    if st.button("🚀 " + {
+        "badini": "دروست بکە",
+        "english": "Generate Schedule",
+        "arabic": "توليد الجدول",
+    }.get(st.session_state.lang, "Generate Schedule"), use_container_width=True, disabled=st.session_state.ai_loading):
+        if not user_goal.strip():
+            st.error({
+                "badini": "تکایە ئامانجێن خوە بنڤیسە.",
+                "english": "Please enter your goals.",
+                "arabic": "يرجى كتابة أهدافك.",
+            }.get(st.session_state.lang, "Please enter your goals."))
+        else:
+            st.session_state.ai_loading = True
+            st.rerun()
+
+# تنفيذ الطلب إذا كان التحميل مفعلاً
+if st.session_state.ai_loading and st.session_state.ai_input:
+    import requests
+    
+    api_key = st.secrets.get("GROQ_API_KEY", "")
+    if not api_key:
+        st.error("🚨 Groq API key is missing. Add it to Streamlit secrets.")
+        st.session_state.ai_loading = False
+        st.stop()
+    
+    # إعداد الرسالة للذكاء الاصطناعي
+    today = datetime.now().strftime("%A")
+    prompt = f"""
+You are a study schedule generator. The user has the following study goals for the upcoming week (starting today, {today}):
+
+{st.session_state.ai_input}
+
+Please create a day-by-day study schedule for the next 7 days. 
+Return ONLY a valid JSON object with the following structure, and no other text before or after the JSON:
+{{
+  "mon": [{{"start": "HH:MM", "end": "HH:MM", "task": "Subject"}}, ...],
+  "tue": [...],
+  "wed": [...],
+  "thu": [...],
+  "fri": [...],
+  "sat": [...],
+  "sun": [...]
+}}
+Fill only the days that are relevant. Use 24-hour format for times. Distribute the study hours according to the user's preferences (e.g., mornings, afternoons). Include breaks if necessary.
+"""
+    
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.2,
+        "max_tokens": 2000
+    }
+    
+    try:
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+        response.raise_for_status()
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        
+        # محاولة تنظيف الرد
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].split("```")[0].strip()
+        
+        new_schedule = json.loads(content)
+        
+        # التحقق من أن المفاتيح صحيحة
+        valid_keys = {"sun", "mon", "tue", "wed", "thu", "fri", "sat"}
+        for day_key in valid_keys:
+            if day_key in new_schedule and isinstance(new_schedule[day_key], list):
+                st.session_state.schedule[day_key] = []
+                for task in new_schedule[day_key]:
+                    # تأكد من وجود الحقول المطلوبة
+                    start = task.get("start", "08:00")
+                    end = task.get("end", "09:00")
+                    task_name = task.get("task", "Study")
+                    st.session_state.schedule[day_key].append({
+                        "start": start,
+                        "end": end,
+                        "task": task_name,
+                        "done": False
+                    })
+        
+        save_schedule()
+        st.success({
+            "badini": "✅ خشتە ب سەرکەفتی دروست بوو!",
+            "english": "✅ Schedule generated successfully!",
+            "arabic": "✅ تم إنشاء الجدول بنجاح!",
+        }.get(st.session_state.lang, "✅ Schedule generated!"))
+        
+    except requests.exceptions.RequestException as e:
+        st.error(f"🚨 Network error: {str(e)}")
+    except json.JSONDecodeError:
+        st.error("🚨 The AI returned an invalid format. Please try again.")
+        st.code(content, language="json")
+    except Exception as e:
+        st.error(f"🚨 Unexpected error: {str(e)}")
+    
+    st.session_state.ai_loading = False
+    st.session_state.ai_input = ""
+    st.rerun()
+    
 # --- اختيار اليوم عبر Radio (يحافظ على الاختيار بعد rerun) 
 if "active_day" not in st.session_state:
     st.session_state.active_day = today_key
