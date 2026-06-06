@@ -224,6 +224,10 @@ if is_dark:
     TOTAL_BG      = "rgba(33,150,243,0.12)"
     TOTAL_COLOR   = "#64b5f6"
     TOTAL_BDR     = "rgba(33,150,243,0.25)"
+    AI_EXPANDER_BG = "rgba(255,255,255,0.03)"
+    AI_EXPANDER_BORDER = "rgba(255,255,255,0.10)"
+    AI_BTN_BG = "linear-gradient(135deg, #6a1b9a, #ab47bc)"
+    AI_BTN_HOVER = "linear-gradient(135deg, #7b1fa2, #ce93d8)"
 else:
     APP_BG        = "#e8edf5"
     SB_BG         = "#f4f7fb"
@@ -251,6 +255,10 @@ else:
     TOTAL_BG      = "rgba(33,150,243,0.07)"
     TOTAL_COLOR   = "#1565c0"
     TOTAL_BDR     = "rgba(33,150,243,0.18)"
+    AI_EXPANDER_BG = "#f8f9fa"
+    AI_EXPANDER_BORDER = "#e0e0e0"
+    AI_BTN_BG = "linear-gradient(135deg, #6a1b9a, #ab47bc)"
+    AI_BTN_HOVER = "linear-gradient(135deg, #7b1fa2, #ce93d8)"
 
 # ── CSS 
 st.markdown(f"""
@@ -401,6 +409,46 @@ section[data-testid="stMain"],
     text-transform: uppercase; color: {TEXT_MUTED} !important;
     margin-bottom: 10px;
 }}
+/* ── AI Scheduler Expander ── */
+[data-testid="stExpander"] {
+    background: {AI_EXPANDER_BG} !important;
+    border: 1px solid {AI_EXPANDER_BORDER} !important;
+    border-radius: 16px !important;
+    margin-bottom: 16px !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04) !important;
+    overflow: hidden;
+}
+[data-testid="stExpander"] summary {
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    padding: 12px 16px !important;
+    color: {TEXT_PRIMARY} !important;
+}
+[data-testid="stExpander"] summary:hover {
+    background: rgba(76,175,80,0.05) !important;
+}
+
+/* ── AI Scheduler Button ── */
+.ai-generate-btn button {
+    background: {AI_BTN_BG} !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    padding: 12px 20px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 12px rgba(106,27,154,0.25) !important;
+}
+.ai-generate-btn button:hover {
+    background: {AI_BTN_HOVER} !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(106,27,154,0.35) !important;
+}
+.ai-generate-btn button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 
 [data-testid="stProgressBar"] p {{ display: none !important; }}
 [data-testid="stProgressBar"] > div {{ height: 5px !important; border-radius: 99px !important; }}
@@ -605,11 +653,14 @@ with st.expander(ai_lbl, expanded=False):
     )
     st.session_state.ai_input = user_goal
     
-    if st.button("🚀 " + {
+    # استبدل زر st.button بزر HTML مخصص
+    generate_lbl = "🚀 " + {
         "badini": "دروست بکە",
         "english": "Generate Schedule",
         "arabic": "توليد الجدول",
-    }.get(st.session_state.lang, "Generate Schedule"), use_container_width=True, disabled=st.session_state.ai_loading):
+    }.get(st.session_state.lang, "Generate Schedule")
+    
+    st.markdown(f'<div class="ai-generate-btn"><button type="submit" style="width:100%;">{generate_lbl}</button></div>', unsafe_allow_html=True)
         if not user_goal.strip():
             st.error({
                 "badini": "تکایە ئامانجێن خوە بنڤیسە.",
