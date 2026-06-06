@@ -365,6 +365,13 @@ h1, h2, h3 {{ font-weight: 800 !important; letter-spacing: -0.3px; }}
     outline: none !important;
 }}
 
+/* ── Selectbox Selected Text FIX ── */
+.stSelectbox [data-testid="stMarkdownContainer"] p,
+.stSelectbox span,
+.stSelectbox div[role="combobox"] {{
+    color: {TEXT_PRIMARY} !important;
+}}
+
 [data-testid="stRadio"] > div {{ gap: 6px !important; flex-wrap: wrap !important; }}
 [data-testid="stRadio"] label {{
     background: {LANG_IDLE_BG} !important;
