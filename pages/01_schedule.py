@@ -2,11 +2,11 @@ import streamlit as st
 from datetime import datetime, time as dtime, date, timedelta
 import json
 import os
+import requests
 
 # ── Translations first
 with open("translations.json", "r", encoding="utf-8") as f:
     TRANSLATIONS = json.load(f)
-
 
 # --- PWA Manifest 
 st.markdown("""
@@ -310,6 +310,15 @@ section[data-testid="stMain"],
     border-color: #ef5350 !important;
 }}
 
+/* ── St.Selectbox styling ── */
+.stSelectbox > div > div {{
+    background-color: {INPUT_BG} !important;
+    border: 1px solid {CARD_BORDER} !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+    transition: border-color 0.2s ease !important;
+}}
+
 /* ── Action row buttons via anchor — zero wrapper divs ── */
 .action-row-anchor {{ display: none !important; }}
 
@@ -543,23 +552,6 @@ _weekly_title = {
 st.markdown('<div class="week-card">', unsafe_allow_html=True)
 st.markdown(f'<div class="week-card-title">{_weekly_title}</div>', unsafe_allow_html=True)
 
-# ── نسخ الأسبوع 
-st.divider()
-copy_lbl = {
-    "badini": "📋 کوپی بکە بو حەفتیا دهێت",
-    "english": "📋 Copy to Next Week",
-    "arabic": "📋 نسخ إلى الأسبوع القادم",
-}.get(st.session_state.lang, "📋 Copy to Next Week")
-
-if st.button(copy_lbl, use_container_width=True):
-    copy_week_to_next()
-    st.success({
-        "badini": "✅ حەفتی هاتە کۆپیکرن!",
-        "english": "✅ Week copied successfully!",
-        "arabic": "✅ تم نسخ الأسبوع بنجاح!",
-    }.get(st.session_state.lang, "✅ Week copied!"))
-    st.rerun()
-    
 week_cols = st.columns(7)
 for col, (dk, _, eng) in zip(week_cols, DAYS):
     tasks      = st.session_state.schedule.get(dk, [])
@@ -616,7 +608,7 @@ def get_tab_label(day_key):
     dot   = " 🔵" if day_key == today_key else ""
     return f"{day_name}{dot}{badge}"
 
-# ── AI Scheduler 
+# ── AI Scheduler ───────────────────────────────────────────────────────────────
 ai_lbl = {
     "badini": "🤖 ڕێکخستنی زیرەک ب AI",
     "english": "🤖 AI Smart Scheduler",
@@ -663,15 +655,12 @@ with st.expander(ai_lbl, expanded=False):
 
 # تنفيذ الطلب إذا كان التحميل مفعلاً
 if st.session_state.ai_loading and st.session_state.ai_input:
-    import requests
-    
     api_key = st.secrets.get("GROQ_API_KEY", "")
     if not api_key:
         st.error("🚨 Groq API key is missing. Add it to Streamlit secrets.")
         st.session_state.ai_loading = False
         st.stop()
     
-    # إعداد الرسالة للذكاء الاصطناعي
     today = datetime.now().strftime("%A")
     prompt = f"""
 You are a study schedule generator. The user has the following study goals for the upcoming week (starting today, {today}):
@@ -714,7 +703,6 @@ Fill only the days that are relevant. Use 24-hour format for times. Distribute t
         data = response.json()
         content = data["choices"][0]["message"]["content"]
         
-        # محاولة تنظيف الرد
         if "```json" in content:
             content = content.split("```json")[1].split("```")[0].strip()
         elif "```" in content:
@@ -722,7 +710,6 @@ Fill only the days that are relevant. Use 24-hour format for times. Distribute t
         
         new_schedule = json.loads(content)
         
-        # التحقق من أن المفاتيح صحيحة
         valid_keys = {"sun", "mon", "tue", "wed", "thu", "fri", "sat"}
         for day_key in valid_keys:
             if day_key in new_schedule and isinstance(new_schedule[day_key], list):
@@ -756,8 +743,25 @@ Fill only the days that are relevant. Use 24-hour format for times. Distribute t
     st.session_state.ai_loading = False
     st.session_state.ai_input = ""
     st.rerun()
-    
-# --- اختيار اليوم عبر Radio (يحافظ على الاختيار بعد rerun) 
+
+# ── نسخ الأسبوع ───────────────────────────────────────────────────────────────
+st.divider()
+copy_lbl = {
+    "badini": "📋 کوپی بکە بو حەفتیا دهێت",
+    "english": "📋 Copy to Next Week",
+    "arabic": "📋 نسخ إلى الأسبوع القادم",
+}.get(st.session_state.lang, "📋 Copy to Next Week")
+
+if st.button(copy_lbl, use_container_width=True):
+    copy_week_to_next()
+    st.success({
+        "badini": "✅ حەفتی هاتە کۆپیکرن!",
+        "english": "✅ Week copied successfully!",
+        "arabic": "✅ تم نسخ الأسبوع بنجاح!",
+    }.get(st.session_state.lang, "✅ Week copied!"))
+    st.rerun()
+
+# --- اختيار اليوم عبر Radio (يحافظ على الاختيار بعد rerun) ──────────────────────
 if "active_day" not in st.session_state:
     st.session_state.active_day = today_key
 
@@ -777,8 +781,8 @@ selected_label = st.radio(
 
 selected_index = day_labels.index(selected_label)
 st.session_state.active_day = day_keys[selected_index]
+
 # ── Per-day tab 
-# عرض محتوى اليوم النشط فقط
 active_day_key = st.session_state.active_day
 for day_key, _, _ in DAYS:
     if day_key != active_day_key:
@@ -1021,7 +1025,7 @@ for day_key, _, _ in DAYS:
 
     st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
 
-    # ── نسخ اليوم إلى يوم آخر 
+    # ── نسخ اليوم إلى يوم آخر ─────────────────────────────────────────────
     st.divider()
     copy_day_lbl = {
         "badini": "📋 ڕۆژێ کۆپی بکە بو ڕۆژەکێ دی",
@@ -1088,7 +1092,7 @@ for day_key, _, _ in DAYS:
                 }.get(st.session_state.lang, "✅ Copied!"))
                 st.rerun()
                 
-    # ── Action buttons 
+    # ── Action buttons ─────────────────────────────────────────────────────
     st.markdown('<div class="action-row-anchor"></div>', unsafe_allow_html=True)
     b1, b2, b3, b4 = st.columns(4)
 
