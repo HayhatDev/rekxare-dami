@@ -101,21 +101,45 @@ if not st.session_state.logged_in:
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     *, *::before, *::after { box-sizing: border-box; }
-    html, body, .stApp,
-    [data-testid="stAppViewContainer"],
-    section[data-testid="stMain"],
-    .main .block-container {
-        background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
-        font-family: 'Inter', system-ui, sans-serif !important;
-        min-height: 100vh !important;
-    }
+
+    /* ── Kill every pixel of Streamlit chrome ── */
+    header[data-testid="stHeader"],
+    #MainMenu, footer,
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"]        { display: none !important; height: 0 !important; }
     [data-testid="stSidebar"],
     [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"]     { display: none !important; }
-    .main .block-container               { max-width: 420px !important; padding: 0 16px !important; }
+    [data-testid="collapsedControl"]      { display: none !important; }
+
+    html, body, .stApp,
+    [data-testid="stAppViewContainer"]    {
+        background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
+        font-family: 'Inter', system-ui, sans-serif !important;
+        height: 100% !important;
+        margin: 0 !important; padding: 0 !important;
+    }
+    section[data-testid="stMain"]         {
+        background: transparent !important;
+        padding: 0 !important; margin: 0 !important;
+        height: 100% !important;
+    }
+    .main .block-container {
+        background: transparent !important;
+        max-width: 440px !important;
+        width: 100% !important;
+        padding: 0 20px !important;
+        margin: 0 auto !important;
+        min-height: 0 !important;
+    }
+
+    /* ── Login wrapper: true vertical centre, no scroll ── */
     .login-wrap {
         display: flex; flex-direction: column; align-items: center;
-        min-height: 100vh; padding: 48px 0 32px;
+        justify-content: center;
+        min-height: 100svh;   /* svh = small viewport height, respects mobile browser chrome */
+        padding: 20px 0 env(safe-area-inset-bottom, 16px);
+        gap: 0;
     }
     .login-logo {
         font-size: 64px; line-height: 1; margin-bottom: 12px;
@@ -466,9 +490,8 @@ button, input, select, textarea, label {{
     padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
 }}
 
-/* ── Inputs (font-size 16px prevents iOS auto-zoom on focus) ── */
+/* ── Text / time inputs (16px → no iOS auto-zoom) ── */
 .stTextInput input,
-.stSelectbox > div > div,
 .stTimeInput input {{
     background-color: {INPUT_BG} !important;
     border: 1.5px solid {CARD_BORDER} !important;
@@ -478,6 +501,30 @@ button, input, select, textarea, label {{
     font-family: 'Inter', system-ui, sans-serif !important;
     transition: border-color 0.2s, box-shadow 0.2s !important;
     min-height: 48px !important;
+}}
+
+/* ── Selectbox — kept separate so height:auto prevents text clipping ── */
+.stSelectbox [data-baseweb="select"] {{
+    background-color: {INPUT_BG} !important;
+    border: 1.5px solid {CARD_BORDER} !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+    overflow: visible !important;
+}}
+/* The inner clickable row — height:auto lets wrapped text breathe */
+.stSelectbox [data-baseweb="select"] > div:first-child {{
+    height: auto !important;
+    min-height: 48px !important;
+    padding: 10px 44px 10px 14px !important;
+    overflow: visible !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 12px !important;
+    line-height: 1.4 !important;
+    display: flex !important;
+    align-items: center !important;
 }}
 .stTextInput input:focus {{
     border-color: #4CAF50 !important;
