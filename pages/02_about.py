@@ -352,8 +352,8 @@ st.markdown(f"""
 <div class="hackathon-banner">
     <div class="hackathon-icon">🏆</div>
     <div>
-        <div class="hackathon-title">Hackathon Project</div>
-        <div class="hackathon-sub">Built with passion for students who want to level up their study game.</div>
+        <div class="hackathon-title">{t('hackathon_project')}</div>
+        <div class="hackathon-sub">{t('hackathon_sub')}</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -365,15 +365,15 @@ st.markdown(f"""
 <div class="stats-row">
     <div class="stat-box">
         <div class="stat-number" style="color:#4CAF50;">3</div>
-        <div class="stat-label">Pages</div>
+        <div class="stat-label">{t('stat_pages')}</div>
     </div>
     <div class="stat-box">
         <div class="stat-number" style="color:#2196F3;">3</div>
-        <div class="stat-label">Languages</div>
+        <div class="stat-label">{t('stat_languages')}</div>
     </div>
     <div class="stat-box">
         <div class="stat-number" style="color:#FF9800;">∞</div>
-        <div class="stat-label">Sessions</div>
+        <div class="stat-label">{t('stat_sessions')}</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -418,18 +418,18 @@ st.markdown(f"""
     </div>
     <div class="feat-card" style="--accent:#9C27B0;">
         <span class="feat-icon">🤖</span>
-        <div class="feat-title">AI Scheduler</div>
-        <div class="feat-desc">Generate a full week schedule from your study goals with one tap.</div>
+        <div class="feat-title">{t('feature_ai_scheduler')}</div>
+        <div class="feat-desc">{t('feature_ai_scheduler_desc')}</div>
     </div>
     <div class="feat-card" style="--accent:#607D8B;">
         <span class="feat-icon">🌙</span>
         <div class="feat-title">{t('feature_dark_mode')}</div>
-        <div class="feat-desc">Easy on the eyes. Switch anytime — your preference is saved automatically.</div>
+        <div class="feat-desc">{t('feature_dark_mode_desc')}</div>
     </div>
     <div class="feat-card" style="--accent:#00BCD4;">
         <span class="feat-icon">🌍</span>
         <div class="feat-title">{t('feature_languages')}</div>
-        <div class="feat-desc">Full support for Badini Kurdish, Arabic, and English.</div>
+        <div class="feat-desc">{t('feature_languages_desc')}</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -531,6 +531,6 @@ st.markdown(f"""
 st.markdown(f"""
 <div class="about-footer">
     {t("about_footer")}<br>
-    <span style="opacity:0.6;margin-top:4px;display:block;">Made with ❤️ for students everywhere</span>
+    <span style="opacity:0.6;margin-top:4px;display:block;">{t('made_with')}</span>
 </div>
 """, unsafe_allow_html=True)
