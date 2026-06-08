@@ -22,15 +22,7 @@ if "user_email" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# DEBUG: Catch any early errors
-try:
-    with open("translations.json", "r", encoding="utf-8") as f:
-        TRANSLATIONS = json.load(f)
-    st.success("✅ translations.json loaded successfully")
-except Exception as e:
-    st.error(f"❌ Failed to load translations.json: {e}")
-    st.stop()
-    
+
 # ══════════════════════════════════════════════════════════
 #  PAGE CONFIG
 # ══════════════════════════════════════════════════════════
