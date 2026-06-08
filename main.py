@@ -23,7 +23,7 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 # ══════════════════════════════════════════════════════════
-#  PAGE CONFIG  ← must be the FIRST Streamlit call
+#  PAGE CONFIG
 # ══════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="Rekxare Dami",
@@ -112,27 +112,47 @@ if not st.session_state.logged_in:
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"]      { display: none !important; }
 
-    html, body { margin: 0 !important; padding: 0 !important; height: 100% !important; }
-
-    /* ── Login wrapper: fixed overlay covers the FULL viewport ── */
-    /* position:fixed ignores all of Streamlit's container padding/margins */
-    .login-wrap {
-        position: fixed !important;
-        inset: 0 !important;
-        z-index: 9999 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
+    /* ── Full dark background on every layer ── */
+    html, body, .stApp,
+    [data-testid="stAppViewContainer"] {
         background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
-        overflow-y: auto !important;
-        padding: 24px 20px env(safe-area-inset-bottom, 20px) !important;
+        margin: 0 !important; padding: 0 !important;
         font-family: 'Inter', system-ui, sans-serif !important;
     }
-    /* inner content cap so it doesn't stretch on tablets */
-    .login-inner {
-        width: 100%; max-width: 400px;
-        display: flex; flex-direction: column; align-items: center;
+
+    /* ── Make stMain fill the viewport and FLEX-CENTER the block-container ── */
+    /* This centers the entire group of Streamlit blocks as one unit         */
+    section[data-testid="stMain"] {
+        background: transparent !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 100svh !important;
+        padding: 0 !important;
+    }
+    section[data-testid="stMain"] > div {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 100svh !important;
+    }
+
+    /* ── Kill ALL default block-container padding (the 4rem top is the culprit) ── */
+    .main .block-container,
+    [data-testid="stMainBlockContainer"],
+    div[data-testid="stVerticalBlock"] {
+        background: transparent !important;
+        padding: 0 20px !important;
+        margin: 0 auto !important;
+        max-width: 440px !important;
+        width: 100% !important;
+    }
+
+    /* ── Login visual shell — purely decorative, no positioning tricks ── */
+    .login-wrap {
+        width: 100%; display: flex; flex-direction: column; align-items: center;
+        padding: 20px 0;
     }
     .login-logo {
         font-size: 64px; line-height: 1; margin-bottom: 12px;
@@ -218,7 +238,7 @@ if not st.session_state.logged_in:
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="login-wrap"><div class="login-inner">', unsafe_allow_html=True)
+    st.markdown('<div class="login-wrap">', unsafe_allow_html=True)
     st.markdown('<div class="login-logo">📚</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-title">Rekxare Dami</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-sub">Your personal study companion</div>', unsafe_allow_html=True)
@@ -245,7 +265,7 @@ if not st.session_state.logged_in:
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="login-footer">Your data stays on this device · No account created</div>', unsafe_allow_html=True)
-    st.markdown('</div></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
 # ══════════════════════════════════════════════════════════
