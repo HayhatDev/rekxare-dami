@@ -100,78 +100,117 @@ def save_data():
 if not st.session_state.logged_in:
     st.markdown("""
     <style>
-    /* Force dark gradient background for the entire login page */
-    html, body, .stApp, [data-testid="stAppViewContainer"], section[data-testid="stMain"] {
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    
+    *, *::before, *::after { box-sizing: border-box; }
+    
+    /* ── 1. Dark gradient background on EVERY Streamlit layer ── */
+    html, body, .stApp, [data-testid="stAppViewContainer"], section[data-testid="stMain"], .main .block-container {
         background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
-        background-color: #0f0c29 !important;
+        background-attachment: fixed !important;
     }
     
-    /* Hide Streamlit default header, footer, menu */
-    header[data-testid="stHeader"], #MainMenu, footer, [data-testid="stToolbar"] {
+    /* ── 2. Hide Streamlit chrome ── */
+    header[data-testid="stHeader"], #MainMenu, footer, [data-testid="stToolbar"], [data-testid="stDecoration"], [data-testid="stStatusWidget"], [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] {
         display: none !important;
     }
     
-    /* Center the login form */
+    /* ── 3. Center the login form ── */
     .main .block-container {
         padding-top: max(20px, calc(50vh - 220px)) !important;
+        padding-bottom: 40px !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
         max-width: 440px !important;
+        font-family: 'Inter', system-ui, sans-serif !important;
     }
     
-    /* Login card styling (dark glass effect) */
-    .login-card {
-        background: rgba(0, 0, 0, 0.55) !important;
-        backdrop-filter: blur(12px);
-        border-radius: 24px;
-        padding: 2rem;
-        border: 1px solid rgba(255,255,255,0.2);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    /* ── 4. Visual login shell ── */
+    .login-wrap {
+        width: 100%;
+        display: flex; flex-direction: column; align-items: center;
     }
-    
-    /* Input fields dark theme */
-    .stTextInput input {
-        background-color: rgba(255,255,255,0.1) !important;
-        color: white !important;
-        border: 1px solid #4CAF50 !important;
-        border-radius: 14px !important;
-        padding: 12px 16px !important;
+    .login-logo {
+        font-size: 64px; line-height: 1; margin-bottom: 12px;
+        filter: drop-shadow(0 4px 16px rgba(76,175,80,0.4));
+        animation: float 3s ease-in-out infinite;
     }
-    .stTextInput input:focus {
-        border-color: #81c784 !important;
-        box-shadow: 0 0 0 3px rgba(76,175,80,0.2) !important;
+    @keyframes float {
+        0%,100% { transform: translateY(0); }
+        50%      { transform: translateY(-8px); }
     }
-    
-    /* Login button */
-    .stButton > button {
-        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 30px !important;
-        font-weight: bold !important;
-        padding: 12px !important;
-        width: 100% !important;
-    }
-    
-    /* Text colors */
-    .login-title, .login-sub, .login-label, .login-footer, .login-badge {
-        color: white !important;
+    .login-title {
+        font-size: 30px; font-weight: 900; letter-spacing: -0.8px;
+        color: #ffffff; text-align: center; margin-bottom: 4px;
     }
     .login-sub {
-        color: rgba(255,255,255,0.8) !important;
+        font-size: 14px; color: rgba(255,255,255,0.55);
+        text-align: center; margin-bottom: 32px; font-weight: 500;
+    }
+    .login-card {
+        background: rgba(255,255,255,0.07);
+        border: 1.5px solid rgba(255,255,255,0.13);
+        border-radius: 24px;
+        padding: 32px 28px 28px;
+        width: 100%;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.40), 0 1px 0 rgba(255,255,255,0.06) inset;
+        backdrop-filter: blur(12px);
+    }
+    .login-label {
+        font-size: 12px; font-weight: 700; letter-spacing: 1px;
+        text-transform: uppercase; color: rgba(255,255,255,0.5);
+        margin-bottom: 8px; display: block;
+    }
+    .stTextInput input {
+        background: rgba(255,255,255,0.09) !important;
+        border: 1.5px solid rgba(255,255,255,0.15) !important;
+        border-radius: 14px !important;
+        color: #ffffff !important;
+        font-size: 16px !important;
+        padding: 14px 16px !important;
+        font-family: 'Inter', system-ui, sans-serif !important;
+        transition: border-color 0.2s, box-shadow 0.2s !important;
+        min-height: 52px !important;
+    }
+    .stTextInput input:focus {
+        border-color: #4CAF50 !important;
+        box-shadow: 0 0 0 3px rgba(76,175,80,0.20) !important;
+    }
+    .stTextInput input::placeholder { color: rgba(255,255,255,0.30) !important; }
+    .stTextInput label { display: none !important; }
+    .stButton > button {
+        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 14px !important;
+        font-weight: 700 !important;
+        font-size: 16px !important;
+        min-height: 52px !important;
+        width: 100% !important;
+        letter-spacing: 0.2px !important;
+        box-shadow: 0 4px 18px rgba(76,175,80,0.35) !important;
+        transition: all 0.18s ease !important;
+        touch-action: manipulation !important;
+    }
+    .stButton > button:hover:not(:disabled) {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 24px rgba(76,175,80,0.45) !important;
+    }
+    .stButton > button:active:not(:disabled) {
+        transform: translateY(0) !important;
     }
     .login-footer {
-        color: rgba(255,255,255,0.6) !important;
+        font-size: 12px; color: rgba(255,255,255,0.30);
+        text-align: center; margin-top: 24px;
     }
     .login-badge {
-        background: rgba(76,175,80,0.2) !important;
-        border-color: #4CAF50 !important;
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.25);
+        color: #81c784; border-radius: 20px; padding: 5px 14px;
+        font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+        margin-bottom: 24px;
     }
-    
-    /* Error message styling */
-    .stAlert {
-        background: rgba(0,0,0,0.7) !important;
-        color: #ffcccc !important;
-        border-radius: 12px !important;
-    }
+    .stAlert { border-radius: 12px !important; background: rgba(0,0,0,0.7) !important; color: #ffcccc !important; }
     </style>
     """, unsafe_allow_html=True)
 
