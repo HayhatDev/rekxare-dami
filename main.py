@@ -14,13 +14,16 @@ with open("translations.json", "r", encoding="utf-8") as f:
 
 # ── Early session-state defaults (needed before login gate)
 if "lang" not in st.session_state:
-    st.session_state.lang = "badini"
+    st.session_state.lang = "english"
 if "data_key" not in st.session_state:
     st.session_state.data_key = "default"
 if "user_email" not in st.session_state:
     st.session_state.user_email = ""
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = True
+    
 
 
 # ══════════════════════════════════════════════════════════
@@ -67,13 +70,16 @@ def load_data():
         st.session_state.completed_sessions  = data.get("sessions", 0)
         st.session_state.last_subject        = data.get("last_subject", "—")
         st.session_state.study_history       = data.get("history", [])
-        st.session_state.dark_mode           = data.get("dark_mode", False)
+        st.session_state.dark_mode           = data.get("dark_mode", True)
         st.session_state.streak              = data.get("streak", 0)
         st.session_state.last_study_date     = data.get("last_study_date", "")
         st.session_state.daily_seconds       = data.get("daily_seconds", 0)
         st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
-        st.session_state.lang                = data.get("lang", "badini")
+        st.session_state.lang                = data.get("lang", "english")
         st.session_state.student_name        = data.get("student_name", "")
+    else:
+        st.session_state.lang = "english"
+        st.session_state.dark_mode = True
 
 
 def save_data():
@@ -251,7 +257,7 @@ st.session_state.data_key = st.session_state.user_email.split("@")[0]
 
 
 def t(key, **kwargs):
-    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["english"]).get(key, key)
     if kwargs:
         text = text.format(**kwargs)
     return text
@@ -299,11 +305,11 @@ def load_today_schedule():
 # ── Defaults
 DEFAULTS = {
     "total_study_seconds": 0, "completed_sessions": 0,
-    "last_subject": "—", "study_history": [], "dark_mode": False,
+    "last_subject": "—", "study_history": [], "dark_mode": True,
     "streak": 0, "last_study_date": "", "daily_seconds": 0,
     "daily_goal_seconds": 7200, "timer_running": False,
     "end_time": None, "total_seconds": 0, "paused": False,
-    "remaining_at_pause": 0, "student_name": "",
+    "remaining_at_pause": 0, "student_name": "", "lang": "english",
 }
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
