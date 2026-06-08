@@ -102,57 +102,44 @@ if not st.session_state.logged_in:
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     *, *::before, *::after { box-sizing: border-box; }
 
-    /* ── Kill every pixel of Streamlit chrome ── */
+    /* ── 1. Dark background on EVERY Streamlit layer ── */
+    html, body {
+        background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
+        margin: 0 !important; padding: 0 !important;
+    }
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    section[data-testid="stMain"],
+    .main, .main .block-container {
+        background: transparent !important;
+    }
+
+    /* ── 2. Hide every piece of Streamlit chrome ── */
     header[data-testid="stHeader"],
     #MainMenu, footer,
     [data-testid="stToolbar"],
     [data-testid="stDecoration"],
-    [data-testid="stStatusWidget"]        { display: none !important; height: 0 !important; }
+    [data-testid="stStatusWidget"]    { display: none !important; }
     [data-testid="stSidebar"],
     [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"]      { display: none !important; }
+    [data-testid="collapsedControl"]  { display: none !important; }
 
-    /* ── Full dark background on every layer ── */
-    html, body, .stApp,
-    [data-testid="stAppViewContainer"] {
-        background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
-        margin: 0 !important; padding: 0 !important;
+    /* ── 3. Center the form WITHOUT touching Streamlit flex/display ──
+       padding-top: calc(50vh - 220px) places the ~440px-tall form in the
+       middle of the viewport on any screen size; clamped to 20px minimum. ── */
+    .main .block-container {
+        padding-top:    max(20px, calc(50vh - 220px)) !important;
+        padding-bottom: 40px  !important;
+        padding-left:   20px  !important;
+        padding-right:  20px  !important;
+        max-width: 440px !important;
         font-family: 'Inter', system-ui, sans-serif !important;
     }
 
-    /* ── Make stMain fill the viewport and FLEX-CENTER the block-container ── */
-    /* This centers the entire group of Streamlit blocks as one unit         */
-    section[data-testid="stMain"] {
-        background: transparent !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        min-height: 100svh !important;
-        padding: 0 !important;
-    }
-    section[data-testid="stMain"] > div {
-        width: 100% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        min-height: 100svh !important;
-    }
-
-    /* ── Kill ALL default block-container padding (the 4rem top is the culprit) ── */
-    .main .block-container,
-    [data-testid="stMainBlockContainer"],
-    div[data-testid="stVerticalBlock"] {
-        background: transparent !important;
-        padding: 0 20px !important;
-        margin: 0 auto !important;
-        max-width: 440px !important;
-        width: 100% !important;
-    }
-
-    /* ── Login visual shell — purely decorative, no positioning tricks ── */
+    /* ── 4. Login visual shell (decorative only — no flex tricks) ── */
     .login-wrap {
-        width: 100%; display: flex; flex-direction: column; align-items: center;
-        padding: 20px 0;
+        width: 100%;
+        display: flex; flex-direction: column; align-items: center;
     }
     .login-logo {
         font-size: 64px; line-height: 1; margin-bottom: 12px;
