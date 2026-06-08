@@ -112,34 +112,27 @@ if not st.session_state.logged_in:
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"]      { display: none !important; }
 
-    html, body, .stApp,
-    [data-testid="stAppViewContainer"]    {
-        background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
-        font-family: 'Inter', system-ui, sans-serif !important;
-        height: 100% !important;
-        margin: 0 !important; padding: 0 !important;
-    }
-    section[data-testid="stMain"]         {
-        background: transparent !important;
-        padding: 0 !important; margin: 0 !important;
-        height: 100% !important;
-    }
-    .main .block-container {
-        background: transparent !important;
-        max-width: 440px !important;
-        width: 100% !important;
-        padding: 0 20px !important;
-        margin: 0 auto !important;
-        min-height: 0 !important;
-    }
+    html, body { margin: 0 !important; padding: 0 !important; height: 100% !important; }
 
-    /* ── Login wrapper: true vertical centre, no scroll ── */
+    /* ── Login wrapper: fixed overlay covers the FULL viewport ── */
+    /* position:fixed ignores all of Streamlit's container padding/margins */
     .login-wrap {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 9999 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
+        overflow-y: auto !important;
+        padding: 24px 20px env(safe-area-inset-bottom, 20px) !important;
+        font-family: 'Inter', system-ui, sans-serif !important;
+    }
+    /* inner content cap so it doesn't stretch on tablets */
+    .login-inner {
+        width: 100%; max-width: 400px;
         display: flex; flex-direction: column; align-items: center;
-        justify-content: center;
-        min-height: 100svh;   /* svh = small viewport height, respects mobile browser chrome */
-        padding: 20px 0 env(safe-area-inset-bottom, 16px);
-        gap: 0;
     }
     .login-logo {
         font-size: 64px; line-height: 1; margin-bottom: 12px;
@@ -225,7 +218,7 @@ if not st.session_state.logged_in:
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="login-wrap">', unsafe_allow_html=True)
+    st.markdown('<div class="login-wrap"><div class="login-inner">', unsafe_allow_html=True)
     st.markdown('<div class="login-logo">📚</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-title">Rekxare Dami</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-sub">Your personal study companion</div>', unsafe_allow_html=True)
@@ -252,7 +245,7 @@ if not st.session_state.logged_in:
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="login-footer">Your data stays on this device · No account created</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div></div>', unsafe_allow_html=True)
     st.stop()
 
 # ══════════════════════════════════════════════════════════
