@@ -77,6 +77,8 @@ def load_data():
         st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
         st.session_state.lang                = data.get("lang", "english")
         st.session_state.student_name        = data.get("student_name", "")
+        st.session_state.xp_points = data.get("xp_points", 0)
+        st.session_state.xp_level  = data.get("xp_level", 1)
     else:
         st.session_state.lang = "english"
         st.session_state.dark_mode = True
@@ -97,6 +99,8 @@ def save_data():
             "daily_goal_seconds": st.session_state.daily_goal_seconds,
             "lang":               st.session_state.lang,
             "student_name":       st.session_state.get("student_name", ""),
+            "xp_points": st.session_state.xp_points,
+            "xp_level":  st.session_state.xp_level,
         }, f, ensure_ascii=False, indent=2)
 
 
@@ -310,6 +314,8 @@ DEFAULTS = {
     "daily_goal_seconds": 7200, "timer_running": False,
     "end_time": None, "total_seconds": 0, "paused": False,
     "remaining_at_pause": 0, "student_name": "", "lang": "english",
+    "xp_points": 0,
+    "xp_level": 1,
 }
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
@@ -853,6 +859,22 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
+    xp = st.session_state.xp_points
+    level = st.session_state.xp_level
+    xp_for_next = level * 1000
+    xp_current = xp - ((level - 1) * 1000)
+    xp_pct = min(100, int((xp_current / 1000) * 100))
+    st.markdown(f'<span class="sb-lbl">🎮 ئاست و خاڵ</span>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="stat-card">
+        <div style="font-size:28px;font-weight:900;color:#FF9800 !important;">⚡ {level}</div>
+        <div style="font-size:11px;color:{TEXT_MUTED};">ئاست</div>
+        <div class="goal-track" style="margin-top:8px;">
+            <div class="goal-fill" style="width:{xp_pct}%;background:#FF9800;"></div>
+        </div>
+        <div style="font-size:9px;color:{TEXT_MUTED};margin-top:4px;">{xp_current}/{xp_for_next} XP</div>
+    </div>
+    """, unsafe_allow_html=True)
     st.markdown(f'<span class="sb-lbl">{t("streak_section")}</span>', unsafe_allow_html=True)
     sv   = st.session_state.streak
     smsg = (t("streak_start") if sv == 0 else t("streak_ready") if sv < 3
@@ -1243,6 +1265,24 @@ if st.session_state.timer_running and st.session_state.end_time:
             f"{now_ts} - {subject_name} ({minutes} {t('minutes_unit')})"
         )
         save_data()
+            # --- XP Display ---
+        xp = st.session_state.xp_points
+        level = st.session_state.xp_level
+        xp_for_next = level * 1000
+        xp_current = xp - ((level - 1) * 1000)
+        xp_pct = min(100, int((xp_current / 1000) * 100))
+        
+        st.markdown(f'<span class="sb-lbl">🎮 {t("xp_title") if "xp_title" in TRANSLATIONS else "ئاست و خاڵ"}</span>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="stat-card">
+            <div style="font-size:28px;font-weight:900;color:#FF9800 !important;">⚡ {level}</div>
+            <div style="font-size:11px;color:{TEXT_MUTED};">ئاست</div>
+            <div class="goal-track" style="margin-top:8px;">
+                <div class="goal-fill" style="width:{xp_pct}%;background:#FF9800;"></div>
+            </div>
+            <div style="font-size:9px;color:{TEXT_MUTED};margin-top:4px;">{xp_current}/{xp_for_next} XP</div>
+        </div>
+        """, unsafe_allow_html=True)
         components.html("""
         <script>
         (function(){
