@@ -864,11 +864,11 @@ with st.sidebar:
     xp_for_next = level * 1000
     xp_current = xp - ((level - 1) * 1000)
     xp_pct = min(100, int((xp_current / 1000) * 100))
-    st.markdown(f'<span class="sb-lbl">🎮 ئاست و خاڵ</span>', unsafe_allow_html=True)
+    st.markdown(f'<span class="sb-lbl">🎮 {t("xp_title")}</span>', unsafe_allow_html=True)
     st.markdown(f"""
     <div class="stat-card">
         <div style="font-size:28px;font-weight:900;color:#FF9800 !important;">⚡ {level}</div>
-        <div style="font-size:11px;color:{TEXT_MUTED};">ئاست</div>
+        <div style="font-size:11px;color:{TEXT_MUTED};">{t("xp_level")}</div>
         <div class="goal-track" style="margin-top:8px;">
             <div class="goal-fill" style="width:{xp_pct}%;background:#FF9800;"></div>
         </div>
@@ -1265,24 +1265,16 @@ if st.session_state.timer_running and st.session_state.end_time:
             f"{now_ts} - {subject_name} ({minutes} {t('minutes_unit')})"
         )
         save_data()
-            # --- XP Display ---
-        xp = st.session_state.xp_points
-        level = st.session_state.xp_level
-        xp_for_next = level * 1000
-        xp_current = xp - ((level - 1) * 1000)
-        xp_pct = min(100, int((xp_current / 1000) * 100))
-        
-        st.markdown(f'<span class="sb-lbl">🎮 {t("xp_title") if "xp_title" in TRANSLATIONS else "ئاست و خاڵ"}</span>', unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="stat-card">
-            <div style="font-size:28px;font-weight:900;color:#FF9800 !important;">⚡ {level}</div>
-            <div style="font-size:11px;color:{TEXT_MUTED};">ئاست</div>
-            <div class="goal-track" style="margin-top:8px;">
-                <div class="goal-fill" style="width:{xp_pct}%;background:#FF9800;"></div>
-            </div>
-            <div style="font-size:9px;color:{TEXT_MUTED};margin-top:4px;">{xp_current}/{xp_for_next} XP</div>
-        </div>
-        """, unsafe_allow_html=True)
+              # --- XP System ---
+        minutes_studied = st.session_state.total_seconds // 60
+        st.session_state.xp_points += minutes_studied * 10
+        new_level = st.session_state.xp_points // 1000 + 1
+        if new_level > st.session_state.xp_level:
+            st.session_state.xp_level = new_level
+            st.balloons()
+            st.success(t("xp_level_up", level=new_level))
+        save_data()
+
         components.html("""
         <script>
         (function(){
