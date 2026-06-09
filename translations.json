@@ -82,12 +82,15 @@
     "about_links": "لینک",
     "link_live": "ئەپ زیندە",
     "about_footer": "© ٢٠٢٦ هيهات طاهر. سوپاس بو هەر کەسەک سەرەدانکری یان وێبسایت بکارئینای!.",
-    "hackathon_project": "پرۆژەی هاکاتۆن",
-    "hackathon_sub": "ب خوێندنا قوتابیان ل هەمی شوینان تێ دا.",
-    "stat_pages": "پەڕەکان",
+    "hackathon_project": "پرۆژەی هاکاثون",
+    "hackathon_sub": "بو خولندنا قوتابیان ل هەمی شوینان تێ دا.",
+    "stat_pages": "",
     "stat_languages": "زمان",
     "stat_sessions": "دانیشتن",
-    "made_with": "ب ❤️ بو هەمی قوتابیان"
+    "made_with": "ب ❤️ بو هەمی قوتابیان",
+    "xp_title": "ئاست و خاڵ",
+    "xp_level": "ئاست",
+    "xp_level_up": "پێرۆز بیت! تە گەیشتیە ئاستی {level}!"
   },
   "english": {
     "app_title": "📚 Rekxare Dami | For Students & Learners",
@@ -177,7 +180,10 @@
     "stat_pages": "Pages",
     "stat_languages": "Languages",
     "stat_sessions": "Sessions",
-    "made_with": "Made with ❤️ for students everywhere"
+    "made_with": "Made with ❤️ for students everywhere",
+    "xp_title": "Level & XP",
+    "xp_level": "Level",
+    "xp_level_up": "Congrats! You reached Level {level}!"
   },
   "arabic": {
     "app_title": "📚 Rekxare Dami | للطلاب والمتعلمين",
@@ -267,6 +273,9 @@
     "stat_pages": "الصفحات",
     "stat_languages": "اللغات",
     "stat_sessions": "الجلسات",
-    "made_with": "صُنع بـ ❤️ لجميع الطلاب"
+    "made_with": "صُنع بـ ❤️ لجميع الطلاب",
+    "xp_title": "المستوى والخبرة",
+    "xp_level": "المستوى",
+    "xp_level_up": "مبروك! وصلت إلى المستوى {level}!"
   }
 }
