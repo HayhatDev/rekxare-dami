@@ -83,14 +83,14 @@
     "link_live": "ئەپ زیندە",
     "about_footer": "© ٢٠٢٦ هيهات طاهر. سوپاس بو هەر کەسەک سەرەدانکری یان وێبسایت بکارئینای!.",
     "hackathon_project": "پرۆژەی هاکاثون",
-    "hackathon_sub": "بو خولندنا قوتابیان ل هەمی شوینان تێ دا.",
-    "stat_pages": "",
+    "hackathon_sub": "هاتە دروسترن بو وان قوتابيان یێن دڤێن ئاسێ خواندنا خوە زێدە بکەین.",
+    "stat_pages": "پەرێن سایتی",
     "stat_languages": "زمان",
     "stat_sessions": "دانیشتن",
     "made_with": "ب ❤️ بو هەمی قوتابیان",
     "xp_title": "ئاست و خاڵ",
     "xp_level": "ئاست",
-    "xp_level_up": "پێرۆز بیت! تە گەیشتیە ئاستی {level}!"
+    "xp_level_up": "پبرۆز بیت! تو گەهشتێ ئاستێ {level}!"
   },
   "english": {
     "app_title": "📚 Rekxare Dami | For Students & Learners",
