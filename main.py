@@ -22,8 +22,8 @@ if "user_email" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = True  
-    
+    st.session_state.dark_mode = False   #保持不变
+
 # ══════════════════════════════════════════════════════════
 #  PAGE CONFIG  ← must be the FIRST Streamlit call
 # ══════════════════════════════════════════════════════════
@@ -68,14 +68,14 @@ def load_data():
         st.session_state.completed_sessions  = data.get("sessions", 0)
         st.session_state.last_subject        = data.get("last_subject", "—")
         st.session_state.study_history       = data.get("history", [])
-        st.session_state.dark_mode           = data.get("dark_mode", st.session_state.dark_mode)
+        st.session_state.dark_mode           = data.get("dark_mode", False)
         st.session_state.streak              = data.get("streak", 0)
         st.session_state.last_study_date     = data.get("last_study_date", "")
         st.session_state.daily_seconds       = data.get("daily_seconds", 0)
         st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
         st.session_state.lang                = data.get("lang", "badini")
         st.session_state.student_name        = data.get("student_name", "")
-        
+
 
 def save_data():
     DATA_FILE = get_data_file()
@@ -236,7 +236,8 @@ if not st.session_state.logged_in:
     .stAlert { border-radius: 12px !important; }
     </style>
     """, unsafe_allow_html=True)
-    # Language selector for login page
+    
+    # ========== ADDED LANGUAGE BUTTONS ==========
     st.markdown("""
     <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 24px;">
         <button class="lang-btn" data-lang="badini">🏴 Badini</button>
@@ -258,6 +259,7 @@ if not st.session_state.logged_in:
         if st.button("🇸🇦 العربية", key="login_lang_ar", use_container_width=True):
             st.session_state.lang = "arabic"
             st.rerun()
+    # ========== END ADDED LANGUAGE BUTTONS ==========
 
     st.markdown('<div class="login-wrap">', unsafe_allow_html=True)
     st.markdown('<div class="login-logo">📚</div>', unsafe_allow_html=True)
@@ -343,7 +345,7 @@ def load_today_schedule():
 # ── Defaults
 DEFAULTS = {
     "total_study_seconds": 0, "completed_sessions": 0,
-    "last_subject": "—", "study_history": [], "dark_mode": True,
+    "last_subject": "—", "study_history": [], "dark_mode": False,
     "streak": 0, "last_study_date": "", "daily_seconds": 0,
     "daily_goal_seconds": 7200, "timer_running": False,
     "end_time": None, "total_seconds": 0, "paused": False,
