@@ -66,7 +66,7 @@ def load_data():
         st.session_state.completed_sessions  = data.get("sessions", 0)
         st.session_state.last_subject        = data.get("last_subject", "—")
         st.session_state.study_history       = data.get("history", [])
-        st.session_state.dark_mode           = data.get("dark_mode", False)
+        st.session_state.dark_mode           = data.get("dark_mode", True)
         st.session_state.streak              = data.get("streak", 0)
         st.session_state.last_study_date     = data.get("last_study_date", "")
         st.session_state.daily_seconds       = data.get("daily_seconds", 0)
@@ -343,7 +343,7 @@ def load_today_schedule():
 # ── Defaults
 DEFAULTS = {
     "total_study_seconds": 0, "completed_sessions": 0,
-    "last_subject": "—", "study_history": [], "dark_mode": False,
+    "last_subject": "—", "study_history": [], "dark_mode": True,
     "streak": 0, "last_study_date": "", "daily_seconds": 0,
     "daily_goal_seconds": 7200, "timer_running": False,
     "end_time": None, "total_seconds": 0, "paused": False,
