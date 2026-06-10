@@ -208,21 +208,22 @@ if not st.session_state.logged_in:
     }
     .stTextInput label { display: none !important; }
     
-    /* ── Language buttons (dark semi-transparent) ── */
+    /* ── Language buttons (green gradient, same as Start button) ── */
     .stButton > button {
-        background: rgba(30, 30, 50, 0.8) !important;
-        color: white !important;
-        border: 1.5px solid rgba(255,255,255,0.2) !important;
+        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
+        color: #fff !important;
+        border: none !important;
         border-radius: 40px !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         font-size: 14px !important;
         min-height: 44px !important;
+        box-shadow: 0 2px 8px rgba(76,175,80,0.3) !important;
         transition: all 0.18s ease !important;
     }
     .stButton > button:hover {
-        background: rgba(76, 175, 80, 0.3) !important;
-        border-color: #4CAF50 !important;
-        transform: translateY(-1px) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
+        filter: brightness(1.05) !important;
     }
     
     /* ── Login button (inside .login-card) – original green gradient ── */
