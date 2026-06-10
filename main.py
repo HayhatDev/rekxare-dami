@@ -21,7 +21,9 @@ if "user_email" not in st.session_state:
     st.session_state.user_email = ""
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = True  
+    
 # ══════════════════════════════════════════════════════════
 #  PAGE CONFIG  ← must be the FIRST Streamlit call
 # ══════════════════════════════════════════════════════════
