@@ -345,7 +345,7 @@ def load_today_schedule():
 # ── Defaults
 DEFAULTS = {
     "total_study_seconds": 0, "completed_sessions": 0,
-    "last_subject": "—", "study_history": [], "dark_mode": False,
+    "last_subject": "—", "study_history": [], "dark_mode": True,
     "streak": 0, "last_study_date": "", "daily_seconds": 0,
     "daily_goal_seconds": 7200, "timer_running": False,
     "end_time": None, "total_seconds": 0, "paused": False,
