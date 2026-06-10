@@ -626,6 +626,14 @@ button, input, select, textarea, label {{
 hr {{ border-color: {DIVIDER} !important; margin: 14px 0 !important; }}
 .stAlert {{ border-radius: 14px !important; font-size: 14px !important; }}
 
+{"""/* ── Arabic RTL ── */
+.page-header, .page-header-title, .page-header-sub,
+.week-card, .week-card-label,
+.day-card, .day-card-header, .day-title,
+.task-row, .task-label, .task-time,
+.ai-card, .ai-card-title { direction: rtl; text-align: right; }
+""" if st.session_state.lang == "arabic" else ""}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {{
     .stTimeInput input  {{ font-size: 14px !important; }}
@@ -745,9 +753,9 @@ week_time = fmt_minutes(sum(
 
 sub_parts = []
 if total_tasks_week:
-    sub_parts.append(f"{done_tasks_week}/{total_tasks_week} tasks ({week_pct}%)")
+    sub_parts.append(f"{done_tasks_week}/{total_tasks_week} {t('week_tasks')} ({week_pct}%)")
 if week_time:
-    sub_parts.append(f"{week_time} scheduled")
+    sub_parts.append(f"{week_time} {t('week_scheduled')}")
 sub_str = "  ·  ".join(sub_parts) if sub_parts else {
     "badini":  "هیچ کار نینە ئەمی حەفتیا",
     "english": "No tasks this week yet",
@@ -862,7 +870,7 @@ with st.expander(ai_lbl, expanded=False):
 if st.session_state.ai_loading and st.session_state.ai_input:
     api_key = st.secrets.get("GROQ_API_KEY", "")
     if not api_key:
-        st.error("🚨 Groq API key is missing. Add it to Streamlit secrets.")
+        st.error(t("ai_key_error"))
         st.session_state.ai_loading = False
         st.stop()
 
@@ -918,7 +926,7 @@ Use 24-hour format. Distribute hours per user preferences. Include breaks."""
     except requests.exceptions.RequestException as e:
         st.error(f"🚨 Network error: {str(e)}")
     except json.JSONDecodeError:
-        st.error("🚨 AI returned invalid format. Please try again.")
+        st.error(t("ai_format_error"))
     except Exception as e:
         st.error(f"🚨 Error: {str(e)}")
     st.session_state.ai_loading = False
