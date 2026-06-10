@@ -131,7 +131,7 @@ if not st.session_state.logged_in:
         display: none !important;
     }
     
-    /* ── Center the form (same as before) ── */
+    /* ── Center the form ── */
     .main .block-container {
         padding-top: max(20px, calc(50vh - 220px)) !important;
         padding-bottom: 40px !important;
@@ -140,7 +140,7 @@ if not st.session_state.logged_in:
         max-width: 440px !important;
     }
     
-    /* ── Login visual shell (same classes, now dark) ── */
+    /* ── Login visual shell ── */
     .login-wrap {
         width: 100%;
         display: flex; flex-direction: column; align-items: center;
@@ -163,7 +163,7 @@ if not st.session_state.logged_in:
         text-align: center; margin-bottom: 32px; font-weight: 500;
     }
     .login-card {
-        background: rgba(0, 0, 0, 0.5) !important;  /* dark semi-transparent */
+        background: rgba(0, 0, 0, 0.5) !important;
         border: 1.5px solid rgba(255,255,255,0.13);
         border-radius: 24px;
         padding: 32px 28px 28px;
@@ -208,7 +208,7 @@ if not st.session_state.logged_in:
     }
     .stTextInput label { display: none !important; }
     
-    /* ── Language buttons (Badini, English, العربية) ── */
+    /* ── Language buttons (dark semi-transparent) ── */
     .stButton > button {
         background: rgba(30, 30, 50, 0.8) !important;
         color: white !important;
@@ -225,17 +225,20 @@ if not st.session_state.logged_in:
         transform: translateY(-1px) !important;
     }
     
-    /* ── Login button (green gradient) ── */
-    .stButton:has(button:contains("🚀 دەستپێک")) button,
-    .stButton:has(button:contains("🚀 Enter")) button,
-    .stButton:has(button:contains("🚀 ادخل")) button {
-        background: linear-gradient(135deg, #2e7d32, #4caf50) !important;
+    /* ── Login button (inside .login-card) – original green gradient ── */
+    .login-card .stButton > button {
+        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
+        color: #fff !important;
         border: none !important;
+        border-radius: 14px !important;
+        font-weight: 700 !important;
+        font-size: 16px !important;
+        min-height: 52px !important;
+        width: 100% !important;
+        letter-spacing: 0.2px !important;
         box-shadow: 0 4px 18px rgba(76,175,80,0.35) !important;
     }
-    .stButton:has(button:contains("🚀 دەستپێک")) button:hover,
-    .stButton:has(button:contains("🚀 Enter")) button:hover,
-    .stButton:has(button:contains("🚀 ادخل")) button:hover {
+    .login-card .stButton > button:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0 8px 24px rgba(76,175,80,0.45) !important;
     }
