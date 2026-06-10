@@ -166,7 +166,7 @@ def copy_week_to_next():
 #  SESSION STATE INIT
 # ══════════════════════════════════════════════════════════
 if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = True
+    st.session_state.dark_mode = False
 
 if "schedule" not in st.session_state:
     loaded = load_schedule()
