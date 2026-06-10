@@ -56,25 +56,6 @@ def get_data_file():
     key = st.session_state.get("data_key", "default")
     return f"study_data_{key}.json"
 
-
-def load_data():
-    DATA_FILE = get_data_file()
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        st.session_state.total_study_seconds = data.get("total_seconds", 0)
-        st.session_state.completed_sessions  = data.get("sessions", 0)
-        st.session_state.last_subject        = data.get("last_subject", "—")
-        st.session_state.study_history       = data.get("history", [])
-        st.session_state.dark_mode           = data.get("dark_mode", False)
-        st.session_state.streak              = data.get("streak", 0)
-        st.session_state.last_study_date     = data.get("last_study_date", "")
-        st.session_state.daily_seconds       = data.get("daily_seconds", 0)
-        st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
-        st.session_state.lang                = data.get("lang", "badini")
-        st.session_state.student_name        = data.get("student_name", "")
-
-
 def save_data():
     DATA_FILE = get_data_file()
     with open(DATA_FILE, "w", encoding="utf-8") as f:
@@ -91,6 +72,29 @@ def save_data():
             "lang":               st.session_state.lang,
             "student_name":       st.session_state.get("student_name", ""),
         }, f, ensure_ascii=False, indent=2)
+
+
+
+def load_data():
+    DATA_FILE = get_data_file()
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        st.session_state.total_study_seconds = data.get("total_seconds", 0)
+        st.session_state.completed_sessions  = data.get("sessions", 0)
+        st.session_state.last_subject        = data.get("last_subject", "—")
+        st.session_state.study_history       = data.get("history", [])
+        st.session_state.dark_mode           = data.get("dark_mode", True)
+        st.session_state.streak              = data.get("streak", 0)
+        st.session_state.last_study_date     = data.get("last_study_date", "")
+        st.session_state.daily_seconds       = data.get("daily_seconds", 0)
+        st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
+        st.session_state.lang                = data.get("lang", "badini")
+        st.session_state.student_name        = data.get("student_name", "")
+    else:
+        
+        st.session_state.dark_mode = True
+        save_data()  
 
 
 # ══════════════════════════════════════════════════════════
@@ -234,6 +238,28 @@ if not st.session_state.logged_in:
     .stAlert { border-radius: 12px !important; }
     </style>
     """, unsafe_allow_html=True)
+    # Language selector for login page
+    st.markdown("""
+    <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 24px;">
+        <button class="lang-btn" data-lang="badini">🏴 Badini</button>
+        <button class="lang-btn" data-lang="english">🇬🇧 English</button>
+        <button class="lang-btn" data-lang="arabic">🇸🇦 العربية</button>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("🏴 Badini", key="login_lang_badini", use_container_width=True):
+            st.session_state.lang = "badini"
+            st.rerun()
+    with col2:
+        if st.button("🇬🇧 English", key="login_lang_en", use_container_width=True):
+            st.session_state.lang = "english"
+            st.rerun()
+    with col3:
+        if st.button("🇸🇦 العربية", key="login_lang_ar", use_container_width=True):
+            st.session_state.lang = "arabic"
+            st.rerun()
 
     st.markdown('<div class="login-wrap">', unsafe_allow_html=True)
     st.markdown('<div class="login-logo">📚</div>', unsafe_allow_html=True)
