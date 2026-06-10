@@ -14,20 +14,16 @@ with open("translations.json", "r", encoding="utf-8") as f:
 
 # ── Early session-state defaults (needed before login gate)
 if "lang" not in st.session_state:
-    st.session_state.lang = "english"
+    st.session_state.lang = "badini"
 if "data_key" not in st.session_state:
     st.session_state.data_key = "default"
 if "user_email" not in st.session_state:
     st.session_state.user_email = ""
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = True
-    
-
 
 # ══════════════════════════════════════════════════════════
-#  PAGE CONFIG
+#  PAGE CONFIG  ← must be the FIRST Streamlit call
 # ══════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="Rekxare Dami",
@@ -70,18 +66,13 @@ def load_data():
         st.session_state.completed_sessions  = data.get("sessions", 0)
         st.session_state.last_subject        = data.get("last_subject", "—")
         st.session_state.study_history       = data.get("history", [])
-        st.session_state.dark_mode           = data.get("dark_mode", True)
+        st.session_state.dark_mode           = data.get("dark_mode", False)
         st.session_state.streak              = data.get("streak", 0)
         st.session_state.last_study_date     = data.get("last_study_date", "")
         st.session_state.daily_seconds       = data.get("daily_seconds", 0)
         st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
-        st.session_state.lang                = data.get("lang", "english")
+        st.session_state.lang                = data.get("lang", "badini")
         st.session_state.student_name        = data.get("student_name", "")
-        st.session_state.xp_points = data.get("xp_points", 0)
-        st.session_state.xp_level  = data.get("xp_level", 1)
-    else:
-        st.session_state.lang = "english"
-        st.session_state.dark_mode = True
 
 
 def save_data():
@@ -99,9 +90,17 @@ def save_data():
             "daily_goal_seconds": st.session_state.daily_goal_seconds,
             "lang":               st.session_state.lang,
             "student_name":       st.session_state.get("student_name", ""),
-            "xp_points": st.session_state.xp_points,
-            "xp_level":  st.session_state.xp_level,
         }, f, ensure_ascii=False, indent=2)
+
+
+# ══════════════════════════════════════════════════════════
+#  TRANSLATION HELPER  (available before and after login)
+# ══════════════════════════════════════════════════════════
+def t(key, **kwargs):
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
+    if kwargs:
+        text = text.format(**kwargs)
+    return text
 
 
 # ══════════════════════════════════════════════════════════
@@ -111,31 +110,43 @@ if not st.session_state.logged_in:
     st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-    
     *, *::before, *::after { box-sizing: border-box; }
-    
-    /* ── 1. Dark gradient background on EVERY Streamlit layer ── */
-    html, body, .stApp, [data-testid="stAppViewContainer"], section[data-testid="stMain"], .main .block-container {
+
+    /* ── 1. Dark background on EVERY Streamlit layer ── */
+    html, body {
         background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
-        background-attachment: fixed !important;
+        margin: 0 !important; padding: 0 !important;
     }
-    
-    /* ── 2. Hide Streamlit chrome ── */
-    header[data-testid="stHeader"], #MainMenu, footer, [data-testid="stToolbar"], [data-testid="stDecoration"], [data-testid="stStatusWidget"], [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] {
-        display: none !important;
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    section[data-testid="stMain"],
+    .main, .main .block-container {
+        background: transparent !important;
     }
-    
-    /* ── 3. Center the login form ── */
+
+    /* ── 2. Hide every piece of Streamlit chrome ── */
+    header[data-testid="stHeader"],
+    #MainMenu, footer,
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"]    { display: none !important; }
+    [data-testid="stSidebar"],
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"]  { display: none !important; }
+
+    /* ── 3. Center the form WITHOUT touching Streamlit flex/display ──
+       padding-top: calc(50vh - 220px) places the ~440px-tall form in the
+       middle of the viewport on any screen size; clamped to 20px minimum. ── */
     .main .block-container {
-        padding-top: max(20px, calc(50vh - 220px)) !important;
-        padding-bottom: 40px !important;
-        padding-left: 20px !important;
-        padding-right: 20px !important;
+        padding-top:    max(20px, calc(50vh - 220px)) !important;
+        padding-bottom: 40px  !important;
+        padding-left:   20px  !important;
+        padding-right:  20px  !important;
         max-width: 440px !important;
         font-family: 'Inter', system-ui, sans-serif !important;
     }
-    
-    /* ── 4. Visual login shell ── */
+
+    /* ── 4. Login visual shell (decorative only — no flex tricks) ── */
     .login-wrap {
         width: 100%;
         display: flex; flex-direction: column; align-items: center;
@@ -220,26 +231,25 @@ if not st.session_state.logged_in:
         font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
         margin-bottom: 24px;
     }
-    .stAlert { border-radius: 12px !important; background: rgba(0,0,0,0.7) !important; color: #ffcccc !important; }
+    .stAlert { border-radius: 12px !important; }
     </style>
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="login-wrap">', unsafe_allow_html=True)
     st.markdown('<div class="login-logo">📚</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-title">Rekxare Dami</div>', unsafe_allow_html=True)
-    st.markdown('<div class="login-sub">Your personal study companion</div>', unsafe_allow_html=True)
-    st.markdown('<div class="login-badge">✨ Free · No password needed</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="login-sub">{t("login_sub")}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="login-badge">{t("login_badge")}</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="login-card">', unsafe_allow_html=True)
-    st.markdown('<span class="login-label">📧 Your Email</span>', unsafe_allow_html=True)
-    email = st.text_input("Email", placeholder="you@example.com", label_visibility="collapsed")
+    st.markdown(f'<span class="login-label">{t("login_email_label")}</span>', unsafe_allow_html=True)
+    email = st.text_input("Email", placeholder=t("login_placeholder"), label_visibility="collapsed")
 
-    # BUG FIX: use `or` so either missing @ OR missing . shows the error
     if email.strip() and ("@" not in email or "." not in email):
-        st.error("Please enter a valid email address.")
+        st.error(t("login_error_email"))
 
     st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
-    if st.button("🚀  Enter the App", use_container_width=True):
+    if st.button(t("login_btn"), use_container_width=True):
         if email.strip() and "@" in email and "." in email:
             st.session_state.user_email = email.strip()
             st.session_state.logged_in  = True
@@ -247,10 +257,10 @@ if not st.session_state.logged_in:
             load_data()
             st.rerun()
         else:
-            st.error("Please enter a valid email address.")
+            st.error(t("login_error_email"))
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="login-footer">Your data stays on this device · No account created</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="login-footer">{t("login_footer")}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
@@ -261,7 +271,7 @@ st.session_state.data_key = st.session_state.user_email.split("@")[0]
 
 
 def t(key, **kwargs):
-    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["english"]).get(key, key)
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
     if kwargs:
         text = text.format(**kwargs)
     return text
@@ -309,13 +319,11 @@ def load_today_schedule():
 # ── Defaults
 DEFAULTS = {
     "total_study_seconds": 0, "completed_sessions": 0,
-    "last_subject": "—", "study_history": [], "dark_mode": True,
+    "last_subject": "—", "study_history": [], "dark_mode": False,
     "streak": 0, "last_study_date": "", "daily_seconds": 0,
     "daily_goal_seconds": 7200, "timer_running": False,
     "end_time": None, "total_seconds": 0, "paused": False,
-    "remaining_at_pause": 0, "student_name": "", "lang": "english",
-    "xp_points": 0,
-    "xp_level": 1,
+    "remaining_at_pause": 0, "student_name": "",
 }
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
@@ -350,7 +358,7 @@ daily_goal_min = st.session_state.daily_goal_seconds // 60
 today_h        = st.session_state.daily_seconds // 3600
 today_m        = (st.session_state.daily_seconds % 3600) // 60
 
-_days_map = {"badini": "رۆژ", "english": "days", "arabic": "يوم"}
+_days_map = {"badini": "رۆژ", "english": "days", "arabic": "أيام"}
 days_lbl  = _days_map.get(st.session_state.lang, "رۆژ")
 
 # ══════════════════════════════════════════════════════════
@@ -784,6 +792,14 @@ hr {{ border-color: {DIVIDER} !important; margin: 18px 0 !important; }}
 /* ── Toasts / alerts ── */
 .stAlert {{ border-radius: 14px !important; font-size: 14px !important; }}
 
+{"""/* ── Arabic RTL ── */
+.greet-card, .greet-name, .greet-sub, .greet-time,
+.timer-card, .timer-subject, .stat-card, .stat-card-label,
+.activity-card, .goal-banner, .xp-card, .xp-label, .xp-bar-wrap,
+.streak-card, .streak-label, .goal-section, .quote-card,
+.sched-card, .sched-item, .no-sched { direction: rtl; text-align: right; }
+""" if st.session_state.lang == "arabic" else ""}
+
 /* ── Mobile ── */
 @media (max-width: 640px) {{
     .greet-card  {{ padding: 14px 16px; gap: 12px; border-radius: 16px; }}
@@ -859,22 +875,6 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    xp = st.session_state.xp_points
-    level = st.session_state.xp_level
-    xp_for_next = level * 1000
-    xp_current = xp - ((level - 1) * 1000)
-    xp_pct = min(100, int((xp_current / 1000) * 100))
-    st.markdown(f'<span class="sb-lbl">🎮 {t("xp_title")}</span>', unsafe_allow_html=True)
-    st.markdown(f"""
-    <div class="stat-card">
-        <div style="font-size:28px;font-weight:900;color:#FF9800 !important;">⚡ {level}</div>
-        <div style="font-size:11px;color:{TEXT_MUTED};">{t("xp_level")}</div>
-        <div class="goal-track" style="margin-top:8px;">
-            <div class="goal-fill" style="width:{xp_pct}%;background:#FF9800;"></div>
-        </div>
-        <div style="font-size:9px;color:{TEXT_MUTED};margin-top:4px;">{xp_current}/{xp_for_next} XP</div>
-    </div>
-    """, unsafe_allow_html=True)
     st.markdown(f'<span class="sb-lbl">{t("streak_section")}</span>', unsafe_allow_html=True)
     sv   = st.session_state.streak
     smsg = (t("streak_start") if sv == 0 else t("streak_ready") if sv < 3
@@ -953,7 +953,8 @@ with st.sidebar:
             if st.button("✓", use_container_width=True, key="confirm_yes"):
                 for k, v in [("total_study_seconds", 0), ("completed_sessions", 0),
                              ("last_subject", "—"), ("study_history", []),
-                             ("streak", 0), ("daily_seconds", 0), ("last_study_date", "")]:
+                             ("streak", 0), ("daily_seconds", 0), ("last_study_date", ""),
+                             ("xp_points", 0), ("xp_level", 1)]:
                     st.session_state[k] = v
                 st.session_state.confirm_clear = False
                 save_data()
@@ -995,7 +996,7 @@ st.markdown(f"""
 <div class="greet-card">
     <div class="greet-emoji">{greet_emoji}</div>
     <div style="min-width:0;">
-        <div class="greet-name">{kurd_greet}، {_effective_name}!</div>
+        <div class="greet-name">{kurd_greet}{t("greeting_comma")}{_effective_name}!</div>
         <div class="greet-sub">{eng_greet} — {t('welcome')} 📚</div>
         <div class="greet-time">{now_str}</div>
     </div>
@@ -1265,16 +1266,6 @@ if st.session_state.timer_running and st.session_state.end_time:
             f"{now_ts} - {subject_name} ({minutes} {t('minutes_unit')})"
         )
         save_data()
-              # --- XP System ---
-        minutes_studied = st.session_state.total_seconds // 60
-        st.session_state.xp_points += minutes_studied * 10
-        new_level = st.session_state.xp_points // 1000 + 1
-        if new_level > st.session_state.xp_level:
-            st.session_state.xp_level = new_level
-            st.balloons()
-            st.success(t("xp_level_up", level=new_level))
-        save_data()
-
         components.html("""
         <script>
         (function(){
