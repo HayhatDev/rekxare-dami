@@ -56,23 +56,6 @@ def get_data_file():
     key = st.session_state.get("data_key", "default")
     return f"study_data_{key}.json"
 
-def save_data():
-    DATA_FILE = get_data_file()
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump({
-            "total_seconds":      st.session_state.total_study_seconds,
-            "sessions":           st.session_state.completed_sessions,
-            "last_subject":       st.session_state.last_subject,
-            "history":            st.session_state.study_history,
-            "dark_mode":          st.session_state.dark_mode,
-            "streak":             st.session_state.streak,
-            "last_study_date":    st.session_state.last_study_date,
-            "daily_seconds":      st.session_state.daily_seconds,
-            "daily_goal_seconds": st.session_state.daily_goal_seconds,
-            "lang":               st.session_state.lang,
-            "student_name":       st.session_state.get("student_name", ""),
-        }, f, ensure_ascii=False, indent=2)
-
 
 def load_data():
     DATA_FILE = get_data_file()
@@ -83,16 +66,14 @@ def load_data():
         st.session_state.completed_sessions  = data.get("sessions", 0)
         st.session_state.last_subject        = data.get("last_subject", "—")
         st.session_state.study_history       = data.get("history", [])
-        st.session_state.dark_mode           = data.get("dark_mode", True)
+        st.session_state.dark_mode           = data.get("dark_mode", st.session_state.dark_mode)
         st.session_state.streak              = data.get("streak", 0)
         st.session_state.last_study_date     = data.get("last_study_date", "")
         st.session_state.daily_seconds       = data.get("daily_seconds", 0)
         st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
         st.session_state.lang                = data.get("lang", "badini")
         st.session_state.student_name        = data.get("student_name", "")
-    else:
-        st.session_state.dark_mode = True
-
+        
 
 def save_data():
     DATA_FILE = get_data_file()
