@@ -103,6 +103,9 @@ def t(key, **kwargs):
     return text
 
 
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = True
+
 # ══════════════════════════════════════════════════════════
 #  LOGIN GATE
 # ══════════════════════════════════════════════════════════
