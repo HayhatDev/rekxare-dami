@@ -253,14 +253,6 @@ if not st.session_state.logged_in:
     </style>
     """, unsafe_allow_html=True)
     
-    # ========== ADDED LANGUAGE BUTTONS ==========
-    st.markdown("""
-    <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 24px;">
-        <button class="lang-btn" data-lang="badini">🏴 Badini</button>
-        <button class="lang-btn" data-lang="english">🇬🇧 English</button>
-        <button class="lang-btn" data-lang="arabic">🇸🇦 العربية</button>
-    </div>
-    """, unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     with col1:
