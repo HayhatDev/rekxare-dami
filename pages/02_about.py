@@ -7,7 +7,7 @@ with open("translations.json", "r", encoding="utf-8") as f:
 if "lang" not in st.session_state:
     st.session_state.lang = "badini"
 if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = False
+    st.session_state.dark_mode = True
 
 def t(key, **kwargs):
     text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
