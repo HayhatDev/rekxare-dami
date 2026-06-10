@@ -307,6 +307,16 @@ hr {{ border-color: {DIVIDER} !important; margin: 20px 0 !important; }}
 .stAlert {{ border-radius: 14px !important; }}
 .stApp a {{ color: #4CAF50 !important; }}
 
+{"""/* ── Arabic RTL */
+.hero-card, .hero-tagline, .hackathon-banner, .hackathon-title, .hackathon-sub,
+.about-card, .about-card h3, .about-card p,
+.feat-card, .feat-title, .feat-desc,
+.dev-card, .dev-name, .dev-handle,
+.stat-box, .stat-label,
+.about-footer, .section-title, .tech-chip { direction: rtl; text-align: right; }
+.dev-card { flex-direction: row-reverse; }
+""" if st.session_state.lang == "arabic" else ""}
+
 /* ── Mobile ── */
 @media (max-width: 640px) {{
     .hero-card   {{ padding: 28px 18px 24px; border-radius: 22px; }}
@@ -339,7 +349,7 @@ st.markdown(f"""
     <span class="hero-icon">📚</span>
     <div class="hero-title">Rekxare Dami</div>
     <div class="hero-tagline">
-        {t('about_what_desc') if len(t('about_what_desc')) < 120 else 'Your personal study companion — track time, build habits, and stay consistent.'}
+        {t('app_tagline')}
     </div>
     <div class="hero-badge">✨ {t('about_features')}</div>
 </div>
