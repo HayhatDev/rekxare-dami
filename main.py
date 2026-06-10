@@ -21,8 +21,6 @@ if "user_email" not in st.session_state:
     st.session_state.user_email = ""
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = False   #保持不变
 
 # ══════════════════════════════════════════════════════════
 #  PAGE CONFIG  ← must be the FIRST Streamlit call
@@ -248,15 +246,15 @@ if not st.session_state.logged_in:
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("🏴 Badini", key="login_lang_badini", use_container_width=True):
+        if st.button("بادينى", key="login_lang_badini", use_container_width=True):
             st.session_state.lang = "badini"
             st.rerun()
     with col2:
-        if st.button("🇬🇧 English", key="login_lang_en", use_container_width=True):
+        if st.button("English", key="login_lang_en", use_container_width=True):
             st.session_state.lang = "english"
             st.rerun()
     with col3:
-        if st.button("🇸🇦 العربية", key="login_lang_ar", use_container_width=True):
+        if st.button("العربية", key="login_lang_ar", use_container_width=True):
             st.session_state.lang = "arabic"
             st.rerun()
     # ========== END ADDED LANGUAGE BUTTONS ==========
