@@ -113,43 +113,34 @@ if not st.session_state.logged_in:
     st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    
     *, *::before, *::after { box-sizing: border-box; }
-
-    /* ── 1. Dark background on EVERY Streamlit layer ── */
-    html, body {
+    
+    /* ── Base dark background ── */
+    html, body, .stApp, [data-testid="stAppViewContainer"],
+    section[data-testid="stMain"], .main, .main .block-container {
         background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
-        margin: 0 !important; padding: 0 !important;
-    }
-    .stApp,
-    [data-testid="stAppViewContainer"],
-    section[data-testid="stMain"],
-    .main, .main .block-container {
-        background: transparent !important;
-    }
-
-    /* ── 2. Hide every piece of Streamlit chrome ── */
-    header[data-testid="stHeader"],
-    #MainMenu, footer,
-    [data-testid="stToolbar"],
-    [data-testid="stDecoration"],
-    [data-testid="stStatusWidget"]    { display: none !important; }
-    [data-testid="stSidebar"],
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"]  { display: none !important; }
-
-    /* ── 3. Center the form WITHOUT touching Streamlit flex/display ──
-       padding-top: calc(50vh - 220px) places the ~440px-tall form in the
-       middle of the viewport on any screen size; clamped to 20px minimum. ── */
-    .main .block-container {
-        padding-top:    max(20px, calc(50vh - 220px)) !important;
-        padding-bottom: 40px  !important;
-        padding-left:   20px  !important;
-        padding-right:  20px  !important;
-        max-width: 440px !important;
         font-family: 'Inter', system-ui, sans-serif !important;
     }
-
-    /* ── 4. Login visual shell (decorative only — no flex tricks) ── */
+    
+    /* ── Hide Streamlit chrome ── */
+    header[data-testid="stHeader"], #MainMenu, footer,
+    [data-testid="stToolbar"], [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"], [data-testid="stSidebar"],
+    [data-testid="stSidebarCollapsedControl"], [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+    
+    /* ── Center the form (same as before) ── */
+    .main .block-container {
+        padding-top: max(20px, calc(50vh - 220px)) !important;
+        padding-bottom: 40px !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        max-width: 440px !important;
+    }
+    
+    /* ── Login visual shell (same classes, now dark) ── */
     .login-wrap {
         width: 100%;
         display: flex; flex-direction: column; align-items: center;
@@ -172,7 +163,7 @@ if not st.session_state.logged_in:
         text-align: center; margin-bottom: 32px; font-weight: 500;
     }
     .login-card {
-        background: rgba(255,255,255,0.07);
+        background: rgba(0, 0, 0, 0.5) !important;  /* dark semi-transparent */
         border: 1.5px solid rgba(255,255,255,0.13);
         border-radius: 24px;
         padding: 32px 28px 28px;
@@ -185,48 +176,6 @@ if not st.session_state.logged_in:
         text-transform: uppercase; color: rgba(255,255,255,0.5);
         margin-bottom: 8px; display: block;
     }
-    .stTextInput input {
-        background: rgba(255,255,255,0.09) !important;
-        border: 1.5px solid rgba(255,255,255,0.15) !important;
-        border-radius: 14px !important;
-        color: #ffffff !important;
-        font-size: 16px !important;
-        padding: 14px 16px !important;
-        font-family: 'Inter', system-ui, sans-serif !important;
-        transition: border-color 0.2s, box-shadow 0.2s !important;
-        min-height: 52px !important;
-    }
-    .stTextInput input:focus {
-        border-color: #4CAF50 !important;
-        box-shadow: 0 0 0 3px rgba(76,175,80,0.20) !important;
-    }
-    .stTextInput input::placeholder { color: rgba(255,255,255,0.30) !important; }
-    .stTextInput label { display: none !important; }
-    .stButton > button {
-        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
-        color: #fff !important;
-        border: none !important;
-        border-radius: 14px !important;
-        font-weight: 700 !important;
-        font-size: 16px !important;
-        min-height: 52px !important;
-        width: 100% !important;
-        letter-spacing: 0.2px !important;
-        box-shadow: 0 4px 18px rgba(76,175,80,0.35) !important;
-        transition: all 0.18s ease !important;
-        touch-action: manipulation !important;
-    }
-    .stButton > button:hover:not(:disabled) {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 24px rgba(76,175,80,0.45) !important;
-    }
-    .stButton > button:active:not(:disabled) {
-        transform: translateY(0) !important;
-    }
-    .login-footer {
-        font-size: 12px; color: rgba(255,255,255,0.30);
-        text-align: center; margin-top: 24px;
-    }
     .login-badge {
         display: inline-flex; align-items: center; gap: 6px;
         background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.25);
@@ -234,7 +183,69 @@ if not st.session_state.logged_in:
         font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
         margin-bottom: 24px;
     }
-    .stAlert { border-radius: 12px !important; }
+    .login-footer {
+        font-size: 12px; color: rgba(255,255,255,0.30);
+        text-align: center; margin-top: 24px;
+    }
+    
+    /* ── Email input (dark) ── */
+    .stTextInput input {
+        background: rgba(0, 0, 0, 0.6) !important;
+        border: 1.5px solid rgba(255,255,255,0.15) !important;
+        border-radius: 14px !important;
+        color: #ffffff !important;
+        font-size: 16px !important;
+        padding: 14px 16px !important;
+        font-family: 'Inter', system-ui, sans-serif !important;
+        min-height: 52px !important;
+    }
+    .stTextInput input:focus {
+        border-color: #4CAF50 !important;
+        box-shadow: 0 0 0 3px rgba(76,175,80,0.20) !important;
+    }
+    .stTextInput input::placeholder {
+        color: rgba(255,255,255,0.30) !important;
+    }
+    .stTextInput label { display: none !important; }
+    
+    /* ── Language buttons (Badini, English, العربية) ── */
+    .stButton > button {
+        background: rgba(30, 30, 50, 0.8) !important;
+        color: white !important;
+        border: 1.5px solid rgba(255,255,255,0.2) !important;
+        border-radius: 40px !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        min-height: 44px !important;
+        transition: all 0.18s ease !important;
+    }
+    .stButton > button:hover {
+        background: rgba(76, 175, 80, 0.3) !important;
+        border-color: #4CAF50 !important;
+        transform: translateY(-1px) !important;
+    }
+    
+    /* ── Login button (green gradient) ── */
+    .stButton:has(button:contains("🚀 دەستپێک")) button,
+    .stButton:has(button:contains("🚀 Enter")) button,
+    .stButton:has(button:contains("🚀 ادخل")) button {
+        background: linear-gradient(135deg, #2e7d32, #4caf50) !important;
+        border: none !important;
+        box-shadow: 0 4px 18px rgba(76,175,80,0.35) !important;
+    }
+    .stButton:has(button:contains("🚀 دەستپێک")) button:hover,
+    .stButton:has(button:contains("🚀 Enter")) button:hover,
+    .stButton:has(button:contains("🚀 ادخل")) button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 24px rgba(76,175,80,0.45) !important;
+    }
+    
+    /* ── Alerts (dark) ── */
+    .stAlert {
+        background: rgba(0,0,0,0.7) !important;
+        border-radius: 12px !important;
+        color: white !important;
+    }
     </style>
     """, unsafe_allow_html=True)
     
