@@ -5,6 +5,7 @@ import json
 import os
 import requests
 import time
+import hashlib
 
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (must load before set_page_config uses t())
@@ -57,7 +58,11 @@ DAYS = [
     ("sat", "🎉 شەمبی",   "Saturday"),
 ]
 DAY_EMOJIS  = {"sun":"☀️","mon":"📖","tue":"📖","wed":"📖","thu":"📖","fri":"🕌","sat":"🎉"}
-SCHEDULE_FILE = "schedule_data.json"
+
+def get_schedule_file():
+    email = st.session_state.get("user_email", "default")
+    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"schedule_data_{user_hash}.json"
 
 # ══════════════════════════════════════════════════════════
 #  HELPERS
@@ -133,7 +138,8 @@ def fmt_minutes(mins):
 
 
 def load_schedule():
-    if os.path.exists(SCHEDULE_FILE):
+    filename = get_schedule_file()
+    if os.path.exists(filename):
         with open(SCHEDULE_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
         if "dark_mode" in data:
@@ -143,7 +149,8 @@ def load_schedule():
 
 
 def save_schedule():
-    with open(SCHEDULE_FILE, "w", encoding="utf-8") as f:
+    filename = get_schedule_file()
+    with open(filename, "w") as f:
         json.dump({
             "schedule":  st.session_state.schedule,
             "dark_mode": st.session_state.dark_mode,
