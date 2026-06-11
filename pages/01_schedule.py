@@ -140,13 +140,12 @@ def fmt_minutes(mins):
 def load_schedule():
     filename = get_schedule_file()
     if os.path.exists(filename):
-        with open(SCHEDULE_FILE, "r", encoding="utf-8") as f:
+        with open(filename, "r", encoding="utf-8") as f:
             data = json.load(f)
         if "dark_mode" in data:
             st.session_state.dark_mode = data["dark_mode"]
         return data.get("schedule", None)
     return None
-
 
 def save_schedule():
     filename = get_schedule_file()
