@@ -757,7 +757,7 @@ if total_tasks_week:
 if week_time:
     sub_parts.append(f"{week_time} {t('week_scheduled')}")
 sub_str = "  ·  ".join(sub_parts) if sub_parts else {
-    "badini":  "هیچ کار نینە ئەمی حەفتیا",
+    "badini":  "هیچ کار نینە ئەڤێ حەفتیێ",
     "english": "No tasks this week yet",
     "arabic":  "لا توجد مهام هذا الأسبوع",
 }.get(st.session_state.lang, "No tasks this week yet")
