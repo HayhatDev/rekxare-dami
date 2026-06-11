@@ -5,7 +5,7 @@ from datetime import datetime, date, timedelta
 import json
 import os
 import streamlit.components.v1 as components
-
+import hashlib
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (load before set_page_config)
 # ══════════════════════════════════════════════════════════
@@ -22,6 +22,12 @@ if "user_email" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
+
+def get_schedule_file():
+    email = st.session_state.get("user_email", "default")
+    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"schedule_data_{user_hash}.json"
+    
 # ══════════════════════════════════════════════════════════
 #  PAGE CONFIG  ← must be the FIRST Streamlit call
 # ══════════════════════════════════════════════════════════
@@ -340,15 +346,15 @@ def get_greeting():
 def load_today_schedule():
     today_map = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat"}
     today_key = today_map[datetime.now().weekday()]
-    if os.path.exists(SCHEDULE_FILE):
+    filename = get_schedule_file()
+    if os.path.exists(filename):
         try:
-            with open(SCHEDULE_FILE, "r", encoding="utf-8") as f:
+            with open(filename, "r", encoding="utf-8") as f:
                 data = json.load(f)
             return today_key, data.get("schedule", {}).get(today_key, [])
         except Exception:
             return today_key, []
     return today_key, []
-
 
 # ── Defaults
 DEFAULTS = {
