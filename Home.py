@@ -264,23 +264,20 @@ if not st.session_state.get("logged_in", False):
     st.markdown(f'<span class="login-label">{t("login_email_label")}</span>', unsafe_allow_html=True)
     st.markdown('<div class="login-card">', unsafe_allow_html=True)
     
-    # This single line replaces your old email input and button
-    # It handles the login, the cookies, and the "Remember Me" logic
-    name, authentication_status, username = authenticator.login('Login', 'main')
+    # Corrected for version 0.4.x
+    authenticator.login(location='main', key='Login')
 
-    if authentication_status:
+    # In the new version, you check the status from st.session_state
+    if st.session_state["authentication_status"]:
         st.session_state.logged_in = True
-        st.session_state.user_email = config['credentials']['usernames'][username]['email']
-        st.session_state.student_name = name
+        st.session_state.user_email = config['credentials']['usernames'][st.session_state["username"]]['email']
+        st.session_state.student_name = st.session_state["name"]
         st.rerun()
-    elif authentication_status == False:
-        st.error(t("login_error_email")) # Or a custom error message
-
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="login-footer">{t("login_footer")}</div>', unsafe_allow_html=True)
+    elif st.session_state["authentication_status"] == False:
+        st.error("Username/password is incorrect")
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.stop()
 
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
