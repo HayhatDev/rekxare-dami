@@ -6,17 +6,58 @@ import json
 import os
 import streamlit.components.v1 as components
 import hashlib
-import extra_streamlit_components as stx
 
+# ══════════════════════════════════════════════════════════
+#  PERSISTENCE HELPERS (LocalStorage + Query Params)
+# ══════════════════════════════════════════════════════════
+
+def set_persistent_email(email):
+    """Saves the email to browser LocalStorage using JS."""
+    js_code = f"""
+    <script>
+        localStorage.setItem('rekxare_user_email', '{email}');
+        const url = new URL(window.location);
+        url.searchParams.set('user_email', '{email}');
+        window.history.push_state({{}}, '', url);
+    </script>
+    """
+    components.html(js_code, height=0)
+
+def get_persistent_email_js():
+    """Injects JS to read from LocalStorage and push it to Streamlit via query parameters."""
+    js_code = """
+    <script>
+        const savedEmail = localStorage.getItem('rekxare_user_email');
+        const urlParams = new URLSearchParams(window.location.search);
+        if (savedEmail && urlParams.get('user_email') !== savedEmail) {
+            urlParams.set('user_email', savedEmail);
+            window.location.search = urlParams.toString();
+        }
+    </script>
+    """
+    components.html(js_code, height=0)
+
+# ══════════════════════════════════════════════════════════
+#  INITIALIZATION
+# ══════════════════════════════════════════════════════════
+
+# 1. Try to get email from Query Parameters (set by our JS)
+query_params = st.query_params
+if "user_email" in query_params and not st.session_state.get("logged_in"):
+    email = query_params["user_email"]
+    st.session_state.user_email = email
+    st.session_state.logged_in = True
+    st.session_state.data_key = email.split("@")[0]
+
+# 2. If still not logged in, trigger the JS check
+if not st.session_state.get("logged_in"):
+    get_persistent_email_js()
 
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (load before set_page_config)
 # ══════════════════════════════════════════════════════════
-try:
-    with open("translations.json", "r", encoding="utf-8") as f:
-        TRANSLATIONS = json.load(f)
-except FileNotFoundError:
-    TRANSLATIONS = {"badini": {}, "english": {}, "arabic": {}}
+with open("translations.json", "r", encoding="utf-8") as f:
+    TRANSLATIONS = json.load(f)
 
 # ── Early session-state defaults
 if "lang" not in st.session_state:
@@ -27,24 +68,6 @@ if "user_email" not in st.session_state:
     st.session_state.user_email = ""
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-
-
-# ══════════════════════════════════════════════════════════
-#  COOKIE MANAGEMENT (Fixed: No caching on widget)
-# ══════════════════════════════════════════════════════════
-
-cookie_manager = stx.CookieManager()
-# Check if we have a saved email in cookies
-if not st.session_state.logged_in:
-
-    cookies = cookie_manager.get_all()
-    
-    if cookies:
-        saved_email = cookies.get("user_email")
-        if saved_email and saved_email != "":
-            st.session_state.user_email = saved_email
-            st.session_state.logged_in = True
-            st.session_state.data_key = saved_email.split("@")[0]
 
 
 def get_schedule_file():
@@ -120,7 +143,7 @@ def save_data():
 #  TRANSLATION HELPER
 # ══════════════════════════════════════════════════════════
 def t(key, **kwargs):
-    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS.get("badini", {})).get(key, key)
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
     if kwargs:
         text = text.format(**kwargs)
     return text
@@ -287,8 +310,8 @@ if not st.session_state.get("logged_in", False):
             st.session_state.logged_in = True
             st.session_state.data_key = email.split("@")[0]
             
-            # ── NEW: Save email to cookie for 30 days
-            cookie_manager.set("user_email", email, expires_at=datetime.now() + timedelta(days=30))
+            # ── SAVE TO BROWSER STORAGE
+            set_persistent_email(email)
             
             st.rerun()
         else:
@@ -300,13 +323,11 @@ if not st.session_state.get("logged_in", False):
 
     st.stop()
 
+
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
 # ══════════════════════════════════════════════════════════
 st.session_state.data_key = st.session_state.user_email.split("@")[0]
-
-# (Rest of your original code follows...)
-# I'll include the essential parts to make it functional.
 
 def t(key, **kwargs):
     text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS.get("badini", {})).get(key, key)
