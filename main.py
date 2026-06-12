@@ -1017,13 +1017,13 @@ with st.sidebar:
                 st.rerun()
 
     if st.button("🚪 Logout", use_container_width=True):
-    # Clear session state
-    for key in ["logged_in", "user_email", "data_key"]:
-        if key in st.session_state:
-            del st.session_state[key]
-    # Clear query params
-    st.query_params.clear()
-    st.rerun()
+        # Clear session state
+        for key in ["logged_in", "user_email", "data_key"]:
+            if key in st.session_state:
+                del st.session_state[key]
+        # Clear query params
+        st.query_params.clear()
+        st.rerun()
 
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
