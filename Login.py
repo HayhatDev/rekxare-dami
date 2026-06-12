@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import streamlit.components.v1 as components
 
 # Load translations
 with open("translations.json", "r", encoding="utf-8") as f:
@@ -92,18 +93,18 @@ if st.button(t("login_btn"), use_container_width=True):
         st.session_state.logged_in = True
         st.session_state.data_key = email.split("@")[0]
         
-        # Store email in localStorage using JavaScript
-        st.markdown(f"""
-            <script>
-                localStorage.setItem("rekxare_email", "{email}");
-            </script>
-        """, unsafe_allow_html=True)
+        # Set a cookie that expires in 30 days
+        components.html(f"""
+        <script>
+            document.cookie = "rekxare_email={email}; path=/; max-age=2592000";
+            window.parent.location.href = window.parent.location.origin + "/pages/00_Home.py";
+        </script>
+        """, height=0)
         
-        st.switch_page("pages/00_Home.py")
+        st.stop()  # Stop execution to allow redirect
     else:
         st.error(t("login_error_email"))
-
-
+        
 st.markdown('</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="login-footer">{t("login_footer")}</div>', unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
