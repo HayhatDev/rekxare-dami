@@ -10,21 +10,18 @@ import hashlib
 st.write("DEBUG: logged_in =", st.session_state.get("logged_in"))
 st.write("DEBUG: query_params =", st.query_params)
 
-# Check if we have a user_email in URL params
+# Get email from URL
 params = st.query_params
-if "user_email" in params and not st.session_state.get("logged_in", False):
-    email = params["user_email"]
-    if email and "@" in email:
-        st.session_state.user_email = email
-        st.session_state.logged_in = True
-        st.session_state.data_key = email.split("@")[0]
-        # Clear the param to keep URL clean (but keep it if you want visible)
-        st.query_params.clear()
-        st.rerun()
+user_email = params.get("user_email", None)
 
-# If still not logged in, go back to login
-if not st.session_state.get("logged_in", False):
+if not user_email:
+    # No email in URL, go to login
     st.switch_page("Login.py")
+else:
+    # Set session state for convenience (optional)
+    st.session_state.user_email = user_email
+    st.session_state.logged_in = True
+    st.session_state.data_key = user_email.split("@")[0]
 
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (load before set_page_config)
@@ -835,11 +832,11 @@ with st.sidebar:
                 st.rerun()
 
     if st.button("🚪 Logout"):
+        # Clear session and redirect to login without email
+        st.query_params.clear()
         for key in ["logged_in", "user_email", "data_key"]:
             st.session_state.pop(key, None)
-        st.query_params.clear()
         st.switch_page("Login.py")
-
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
 # ══════════════════════════════════════════════════════════
