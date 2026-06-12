@@ -92,16 +92,9 @@ if st.button(t("login_btn"), use_container_width=True):
         st.session_state.user_email = email
         st.session_state.logged_in = True
         st.session_state.data_key = email.split("@")[0]
-        
-        # Set a cookie that expires in 30 days
-        components.html(f"""
-        <script>
-            document.cookie = "rekxare_email={email}; path=/; max-age=2592000";
-            window.parent.location.href = "/pages/00_Home.py";
-        </script>
-        """, height=0)
-        
-        st.stop()  # Stop execution to allow redirect
+        # Add email to URL for persistence
+        st.query_params["user_email"] = email
+        st.switch_page("pages/00_Home.py")   # Streamlit's built-in page switch
     else:
         st.error(t("login_error_email"))
         
