@@ -7,6 +7,9 @@ import os
 import streamlit.components.v1 as components
 import hashlib
 
+st.write("DEBUG: logged_in =", st.session_state.get("logged_in"))
+st.write("DEBUG: query_params =", st.query_params)
+
 # Check if we have a user_email in URL params
 params = st.query_params
 if "user_email" in params and not st.session_state.get("logged_in", False):
