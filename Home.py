@@ -69,7 +69,7 @@ def load_data():
         st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
         st.session_state.lang                = data.get("lang", "badini")
         st.session_state.student_name        = data.get("student_name", "")
-        t.session_state.user_email = data.get("user_email", "")
+        st.session_state.user_email = data.get("user_email", "")
         if st.session_state.user_email:
             st.session_state.logged_in = True
             st.session_state.data_key = st.session_state.user_email.split("@")[0]
