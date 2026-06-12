@@ -6,15 +6,19 @@ import json
 import os
 import streamlit.components.v1 as components
 import hashlib
+import extra_streamlit_components as stx
 
 
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (load before set_page_config)
 # ══════════════════════════════════════════════════════════
-with open("translations.json", "r", encoding="utf-8") as f:
-    TRANSLATIONS = json.load(f)
+try:
+    with open("translations.json", "r", encoding="utf-8") as f:
+        TRANSLATIONS = json.load(f)
+except FileNotFoundError:
+    TRANSLATIONS = {"badini": {}, "english": {}, "arabic": {}}
 
-# ── Early session-state defaults (needed before login gate)
+# ── Early session-state defaults
 if "lang" not in st.session_state:
     st.session_state.lang = "badini"
 if "data_key" not in st.session_state:
@@ -24,13 +28,24 @@ if "user_email" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# ── Auto-login from saved query param
-if not st.session_state.get("logged_in", False):
-    _saved = st.query_params.get("u", "")
-    if _saved and "@" in _saved and "." in _saved:
-        st.session_state.user_email = _saved
-        st.session_state.logged_in  = True
-        st.session_state.data_key   = _saved.split("@")[0]
+
+# ══════════════════════════════════════════════════════════
+#  COOKIE MANAGEMENT (Persistence)
+# ══════════════════════════════════════════════════════════
+@st.cache_resource
+def get_cookie_manager():
+    return stx.CookieManager()
+
+cookie_manager = get_cookie_manager()
+
+# Check if we have a saved email in cookies
+if not st.session_state.logged_in:
+    saved_email = cookie_manager.get(cookie="user_email")
+    if saved_email and saved_email != "":
+        st.session_state.user_email = saved_email
+        st.session_state.logged_in = True
+        st.session_state.data_key = saved_email.split("@")[0]
+      
 
 def get_schedule_file():
     email = st.session_state.get("user_email", "default")
@@ -38,7 +53,7 @@ def get_schedule_file():
     return f"schedule_data_{user_hash}.json"
     
 # ══════════════════════════════════════════════════════════
-#  PAGE CONFIG  ← must be the FIRST Streamlit call
+#  PAGE CONFIG
 # ══════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="Rekxare Dami",
@@ -102,10 +117,10 @@ def save_data():
 
 
 # ══════════════════════════════════════════════════════════
-#  TRANSLATION HELPER  (available before and after login)
+#  TRANSLATION HELPER
 # ══════════════════════════════════════════════════════════
 def t(key, **kwargs):
-    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS.get("badini", {})).get(key, key)
     if kwargs:
         text = text.format(**kwargs)
     return text
@@ -271,7 +286,10 @@ if not st.session_state.get("logged_in", False):
             st.session_state.user_email = email
             st.session_state.logged_in = True
             st.session_state.data_key = email.split("@")[0]
-            st.query_params["u"] = email
+            
+            # ── NEW: Save email to cookie for 30 days
+            cookie_manager.set("user_email", email, expires_at=datetime.now() + timedelta(days=30))
+            
             st.rerun()
         else:
             st.error(t("login_error_email"))
@@ -287,9 +305,11 @@ if not st.session_state.get("logged_in", False):
 # ══════════════════════════════════════════════════════════
 st.session_state.data_key = st.session_state.user_email.split("@")[0]
 
+# (Rest of your original code follows...)
+# I'll include the essential parts to make it functional.
 
 def t(key, **kwargs):
-    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS.get("badini", {})).get(key, key)
     if kwargs:
         text = text.format(**kwargs)
     return text
