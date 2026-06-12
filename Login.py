@@ -91,10 +91,18 @@ if st.button(t("login_btn"), use_container_width=True):
         st.session_state.user_email = email
         st.session_state.logged_in = True
         st.session_state.data_key = email.split("@")[0]
-        st.query_params["user_email"] = email
+        
+        # Store email in localStorage using JavaScript
+        st.markdown(f"""
+            <script>
+                localStorage.setItem("rekxare_email", "{email}");
+            </script>
+        """, unsafe_allow_html=True)
+        
         st.switch_page("pages/00_Home.py")
     else:
         st.error(t("login_error_email"))
+
 
 st.markdown('</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="login-footer">{t("login_footer")}</div>', unsafe_allow_html=True)
