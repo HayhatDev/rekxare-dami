@@ -6,6 +6,9 @@ import json
 import os
 import streamlit.components.v1 as components
 import hashlib
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
 
 
 # ══════════════════════════════════════════════════════════
@@ -39,6 +42,19 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
     layout="centered",
 )
+
+# --- Professional Auth Setup ---
+with open('auth_config.yaml') as file:
+    config = yaml.load(file, Loader=SafeLoader)
+
+authenticator = stauth.Authenticate(
+    config['credentials'],
+    config['cookie']['name'],
+    config['cookie']['key'],
+    config['cookie']['expiry_days'],
+    config['preauthorized']
+)
+
     
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
@@ -257,16 +273,19 @@ if not st.session_state.get("logged_in", False):
 
     st.markdown('<div class="login-card">', unsafe_allow_html=True)
     st.markdown(f'<span class="login-label">{t("login_email_label")}</span>', unsafe_allow_html=True)
-    email = st.text_input("Email", placeholder=t("login_placeholder"), label_visibility="collapsed")
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+    
+    # This single line replaces your old email input and button
+    # It handles the login, the cookies, and the "Remember Me" logic
+    name, authentication_status, username = authenticator.login('Login', 'main')
 
-    if st.button(t("login_btn"), use_container_width=True):
-        if email and "@" in email and "." in email:
-            st.session_state.user_email = email
-            st.session_state.logged_in = True
-            st.session_state.data_key = email.split("@")[0]
-            st.rerun()
-        else:
-            st.error(t("login_error_email"))
+    if authentication_status:
+        st.session_state.logged_in = True
+        st.session_state.user_email = config['credentials']['usernames'][username]['email']
+        st.session_state.student_name = name
+        st.rerun()
+    elif authentication_status == False:
+        st.error(t("login_error_email")) # Or a custom error message
 
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="login-footer">{t("login_footer")}</div>', unsafe_allow_html=True)
@@ -972,6 +991,8 @@ with st.sidebar:
             if st.button("✗", use_container_width=True, key="confirm_no"):
                 st.session_state.confirm_clear = False
                 st.rerun()
+
+    authenticator.logout('Logout', 'sidebar')
 
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
