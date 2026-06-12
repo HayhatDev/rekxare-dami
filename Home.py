@@ -6,9 +6,6 @@ import json
 import os
 import streamlit.components.v1 as components
 import hashlib
-import streamlit_authenticator as stauth
-import yaml
-from yaml.loader import SafeLoader
 
 
 # ══════════════════════════════════════════════════════════
@@ -42,9 +39,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
     layout="centered",
 )
-
-authenticator = stauth.Authenticate('auth_config.yaml')
-
+    
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
 # ══════════════════════════════════════════════════════════
@@ -262,22 +257,22 @@ if not st.session_state.get("logged_in", False):
 
     st.markdown('<div class="login-card">', unsafe_allow_html=True)
     st.markdown(f'<span class="login-label">{t("login_email_label")}</span>', unsafe_allow_html=True)
-    st.markdown('<div class="login-card">', unsafe_allow_html=True)
-    
-    # Corrected for version 0.4.x
-    authenticator.login(location='main', key='Login')
+    email = st.text_input("Email", placeholder=t("login_placeholder"), label_visibility="collapsed")
 
-    # In the new version, you check the status from st.session_state
-    if st.session_state["authentication_status"]:
-        st.session_state.logged_in = True
-        st.session_state.user_email = config['credentials']['usernames'][st.session_state["username"]]['email']
-        st.session_state.student_name = st.session_state["name"]
-        st.rerun()
-    elif st.session_state["authentication_status"] == False:
-        st.error("Username/password is incorrect")
-    
+    if st.button(t("login_btn"), use_container_width=True):
+        if email and "@" in email and "." in email:
+            st.session_state.user_email = email
+            st.session_state.logged_in = True
+            st.session_state.data_key = email.split("@")[0]
+            st.rerun()
+        else:
+            st.error(t("login_error_email"))
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="login-footer">{t("login_footer")}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
+    st.stop()
 
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
@@ -977,8 +972,6 @@ with st.sidebar:
             if st.button("✗", use_container_width=True, key="confirm_no"):
                 st.session_state.confirm_clear = False
                 st.rerun()
-
-    authenticator.logout('Logout', 'sidebar')
 
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
