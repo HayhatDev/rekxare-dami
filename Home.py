@@ -39,49 +39,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
     layout="centered",
 )
-
-# ══════════════════════════════════════════════════════════
-#  PERSISTENCE LOGIC (LocalStorage + Query Params)
-# ══════════════════════════════════════════════════════════
-
-def set_persistent_email(email):
-    """Saves the email to browser LocalStorage using JS."""
-    js_code = f"""
-    <script>
-        localStorage.setItem('rekxare_user_email_v4', '{email}');
-        const url = new URL(window.location);
-        url.searchParams.set('user_email', '{email}');
-        window.history.push_state({{}}, '', url);
-    </script>
-    """
-    components.html(js_code, height=0)
-
-def get_persistent_email_js():
-    """Reads from LocalStorage and pushes to Streamlit via URL."""
-    js_code = """
-    <script>
-        const savedEmail = localStorage.getItem('rekxare_user_email_v4');
-        const urlParams = new URLSearchParams(window.location.search);
-        if (savedEmail && urlParams.get('user_email') !== savedEmail) {
-            urlParams.set('user_email', savedEmail);
-            window.location.search = urlParams.toString();
-        }
-    </script>
-    """
-    components.html(js_code, height=0)
-
-# 1. Check URL for email (set by our JS)
-query_params = st.query_params
-if "user_email" in query_params and not st.session_state.get("logged_in"):
-    email_from_url = query_params["user_email"]
-    if email_from_url:
-        st.session_state.user_email = email_from_url
-        st.session_state.logged_in = True
-        st.session_state.data_key = email_from_url.split("@")[0]
-
-# 2. If still not logged in, trigger JS to check LocalStorage
-if not st.session_state.get("logged_in"):
-    get_persistent_email_js()
     
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
@@ -300,16 +257,13 @@ if not st.session_state.get("logged_in", False):
 
     st.markdown('<div class="login-card">', unsafe_allow_html=True)
     st.markdown(f'<span class="login-label">{t("login_email_label")}</span>', unsafe_allow_html=True)
-    email_input = st.text_input("Email", placeholder=t("login_placeholder"), label_visibility="collapsed")
+    email = st.text_input("Email", placeholder=t("login_placeholder"), label_visibility="collapsed")
 
     if st.button(t("login_btn"), use_container_width=True):
-        if email_input and "@" in email_input and "." in email_input:
-            st.session_state.user_email = email_input
+        if email and "@" in email and "." in email:
+            st.session_state.user_email = email
             st.session_state.logged_in = True
-            st.session_state.data_key = email_input.split("@")[0]
-            
-            # ── PERSIST FOR NEXT TIME
-            set_persistent_email(email_input)
+            st.session_state.data_key = email.split("@")[0]
             st.rerun()
         else:
             st.error(t("login_error_email"))
@@ -317,6 +271,7 @@ if not st.session_state.get("logged_in", False):
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="login-footer">{t("login_footer")}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
+
     st.stop()
 
 # ══════════════════════════════════════════════════════════
