@@ -8,75 +8,7 @@ import streamlit.components.v1 as components
 import hashlib
 
 # ══════════════════════════════════════════════════════════
-#  PERSISTENCE HELPERS (LocalStorage + Query Params)
-# ══════════════════════════════════════════════════════════
-
-def set_persistent_email(email):
-    """Saves the email to browser LocalStorage using JS."""
-    js_code = f"""
-    <script>
-        localStorage.setItem('rekxare_user_email', '{email}');
-        const url = new URL(window.location);
-        url.searchParams.set('user_email', '{email}');
-        window.history.push_state({{}}, '', url);
-    </script>
-    """
-    components.html(js_code, height=0)
-
-def get_persistent_email_js():
-    """Injects JS to read from LocalStorage and push it to Streamlit via query parameters."""
-    js_code = """
-    <script>
-        const savedEmail = localStorage.getItem('rekxare_user_email');
-        const urlParams = new URLSearchParams(window.location.search);
-        if (savedEmail && urlParams.get('user_email') !== savedEmail) {
-            urlParams.set('user_email', savedEmail);
-            window.location.search = urlParams.toString();
-        }
-    </script>
-    """
-    components.html(js_code, height=0)
-
-# ══════════════════════════════════════════════════════════
-#  INITIALIZATION
-# ══════════════════════════════════════════════════════════
-
-# 1. Try to get email from Query Parameters (set by our JS)
-query_params = st.query_params
-if "user_email" in query_params and not st.session_state.get("logged_in"):
-    email = query_params["user_email"]
-    st.session_state.user_email = email
-    st.session_state.logged_in = True
-    st.session_state.data_key = email.split("@")[0]
-
-# 2. If still not logged in, trigger the JS check
-if not st.session_state.get("logged_in"):
-    get_persistent_email_js()
-
-# ══════════════════════════════════════════════════════════
-#  TRANSLATIONS  (load before set_page_config)
-# ══════════════════════════════════════════════════════════
-with open("translations.json", "r", encoding="utf-8") as f:
-    TRANSLATIONS = json.load(f)
-
-# ── Early session-state defaults
-if "lang" not in st.session_state:
-    st.session_state.lang = "badini"
-if "data_key" not in st.session_state:
-    st.session_state.data_key = "default"
-if "user_email" not in st.session_state:
-    st.session_state.user_email = ""
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-
-def get_schedule_file():
-    email = st.session_state.get("user_email", "default")
-    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
-    return f"schedule_data_{user_hash}.json"
-    
-# ══════════════════════════════════════════════════════════
-#  PAGE CONFIG
+#  PAGE CONFIG (MUST BE FIRST)
 # ══════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="Rekxare Dami",
@@ -86,96 +18,89 @@ st.set_page_config(
 )
 
 # ══════════════════════════════════════════════════════════
-#  CONSTANTS
+#  PERSISTENCE LOGIC (LocalStorage + Query Params)
 # ══════════════════════════════════════════════════════════
-SCHEDULE_FILE = "schedule_data.json"
 
-# ══════════════════════════════════════════════════════════
-#  DATA HELPERS
-# ══════════════════════════════════════════════════════════
-def get_data_file():
-    key = st.session_state.get("data_key", "default")
-    return f"study_data_{key}.json"
+def set_persistent_email(email):
+    """Saves the email to browser LocalStorage using JS."""
+    # We use a unique key to avoid conflicts with other apps
+    js_code = f"""
+    <script>
+        localStorage.setItem('rekxare_v3_email', '{email}');
+        const url = new URL(window.location);
+        url.searchParams.set('user_email', '{email}');
+        window.history.push_state({{}}, '', url);
+    </script>
+    """
+    components.html(js_code, height=0)
 
+def get_persistent_email_js():
+    """Reads from LocalStorage and triggers a reload with query params."""
+    js_code = """
+    <script>
+        const savedEmail = localStorage.getItem('rekxare_v3_email');
+        const urlParams = new URLSearchParams(window.location.search);
+        if (savedEmail && urlParams.get('user_email') !== savedEmail) {
+            urlParams.set('user_email', savedEmail);
+            window.location.search = urlParams.toString();
+        }
+    </script>
+    """
+    components.html(js_code, height=0)
 
-def load_data():
-    DATA_FILE = get_data_file()
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        st.session_state.total_study_seconds = data.get("total_seconds", 0)
-        st.session_state.completed_sessions  = data.get("sessions", 0)
-        st.session_state.last_subject        = data.get("last_subject", "—")
-        st.session_state.study_history       = data.get("history", [])
-        st.session_state.dark_mode           = data.get("dark_mode", True)
-        st.session_state.streak              = data.get("streak", 0)
-        st.session_state.last_study_date     = data.get("last_study_date", "")
-        st.session_state.daily_seconds       = data.get("daily_seconds", 0)
-        st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
-        st.session_state.lang                = data.get("lang", "badini")
-        st.session_state.student_name        = data.get("student_name", "")
-        st.session_state.user_email = data.get("user_email", "")
-        if st.session_state.user_email:
-            st.session_state.logged_in = True
-            st.session_state.data_key = st.session_state.user_email.split("@")[0]
+# ── 1. Check if we are already logged in via URL
+query_params = st.query_params
+if "user_email" in query_params:
+    email_from_url = query_params["user_email"]
+    if email_from_url:
+        st.session_state.user_email = email_from_url
+        st.session_state.logged_in = True
+        st.session_state.data_key = email_from_url.split("@")[0]
 
-
-def save_data():
-    DATA_FILE = get_data_file()
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump({
-            "total_seconds":      st.session_state.total_study_seconds,
-            "sessions":           st.session_state.completed_sessions,
-            "last_subject":       st.session_state.last_subject,
-            "history":            st.session_state.study_history,
-            "dark_mode":          st.session_state.dark_mode,
-            "streak":             st.session_state.streak,
-            "last_study_date":    st.session_state.last_study_date,
-            "daily_seconds":      st.session_state.daily_seconds,
-            "daily_goal_seconds": st.session_state.daily_goal_seconds,
-            "lang":               st.session_state.lang,
-            "student_name":       st.session_state.get("student_name", ""),
-            "user_email":         st.session_state.get("user_email", ""),
-        }, f, ensure_ascii=False, indent=2)
-
+# ── 2. If not logged in, try to fetch from browser storage
+if not st.session_state.get("logged_in"):
+    get_persistent_email_js()
 
 # ══════════════════════════════════════════════════════════
-#  TRANSLATION HELPER
+#  TRANSLATIONS & STATE DEFAULTS
 # ══════════════════════════════════════════════════════════
+with open("translations.json", "r", encoding="utf-8") as f:
+    TRANSLATIONS = json.load(f)
+
+if "lang" not in st.session_state: st.session_state.lang = "badini"
+if "logged_in" not in st.session_state: st.session_state.logged_in = False
+if "user_email" not in st.session_state: st.session_state.user_email = ""
+
+def get_schedule_file():
+    email = st.session_state.get("user_email", "default")
+    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"schedule_data_{user_hash}.json"
+
 def t(key, **kwargs):
     text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
-    if kwargs:
-        text = text.format(**kwargs)
+    if kwargs: text = text.format(**kwargs)
     return text
 
-
-if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = True
-
 # ══════════════════════════════════════════════════════════
-#  LOGIN GATE                                                
+#  LOGIN GATE
 # ══════════════════════════════════════════════════════════
 
 if not st.session_state.get("logged_in", False):
     st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
     *, *::before, *::after { box-sizing: border-box; }
-
     html, body, .stApp, [data-testid="stAppViewContainer"],
     section[data-testid="stMain"], .main, .main .block-container {
         background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
         font-family: 'Inter', system-ui, sans-serif !important;
     }
-
     header[data-testid="stHeader"], #MainMenu, footer,
     [data-testid="stToolbar"], [data-testid="stDecoration"],
     [data-testid="stStatusWidget"], [data-testid="stSidebar"],
     [data-testid="stSidebarCollapsedControl"], [data-testid="collapsedControl"] {
         display: none !important;
     }
-
     .main .block-container {
         padding-top: max(20px, calc(50vh - 220px)) !important;
         padding-bottom: 40px !important;
@@ -183,136 +108,66 @@ if not st.session_state.get("logged_in", False):
         padding-right: 20px !important;
         max-width: 440px !important;
     }
-
-    .login-wrap {
-        width: 100%;
-        display: flex; flex-direction: column; align-items: center;
-    }
-    .login-logo {
-        font-size: 64px; line-height: 1; margin-bottom: 12px;
-        filter: drop-shadow(0 4px 16px rgba(76,175,80,0.4));
-        animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float {
-        0%,100% { transform: translateY(0); }
-        50%      { transform: translateY(-8px); }
-    }
-    .login-title {
-        font-size: 30px; font-weight: 900; letter-spacing: -0.8px;
-        color: #ffffff; text-align: center; margin-bottom: 4px;
-    }
-    .login-sub {
-        font-size: 14px; color: rgba(255,255,255,0.55);
-        text-align: center; margin-bottom: 32px; font-weight: 500;
-    }
+    .login-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; }
+    .login-logo { font-size: 64px; line-height: 1; margin-bottom: 12px; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .login-title { font-size: 30px; font-weight: 900; color: #ffffff; text-align: center; margin-bottom: 4px; }
+    .login-sub { font-size: 14px; color: rgba(255,255,255,0.55); text-align: center; margin-bottom: 32px; font-weight: 500; }
     .login-card {
         background: rgba(0, 0, 0, 0.5) !important;
         border: 1.5px solid rgba(255,255,255,0.13);
-        border-radius: 24px;
-        padding: 32px 28px 28px;
-        width: 100%;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.40), 0 1px 0 rgba(255,255,255,0.06) inset;
-        backdrop-filter: blur(12px);
+        border-radius: 24px; padding: 32px 28px 28px; width: 100%;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.40); backdrop-filter: blur(12px);
     }
-    .login-label {
-        font-size: 12px; font-weight: 700; letter-spacing: 1px;
-        text-transform: uppercase; color: rgba(255,255,255,0.5);
-        margin-bottom: 8px; display: block;
-    }
+    .login-label { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.5); margin-bottom: 8px; display: block; }
     .login-badge {
         display: inline-flex; align-items: center; gap: 6px;
         background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.25);
-        color: #81c784; border-radius: 20px; padding: 5px 14px;
-        font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
-        margin-bottom: 24px;
+        color: #81c784; border-radius: 20px; padding: 5px 14px; font-size: 11px; font-weight: 700;
     }
-    .login-footer {
-        font-size: 12px; color: rgba(255,255,255,0.30);
-        text-align: center; margin-top: 24px;
-    }
-
     .stTextInput input {
         background: rgba(0, 0, 0, 0.6) !important;
         border: 1.5px solid rgba(255,255,255,0.15) !important;
-        border-radius: 14px !important;
-        color: #ffffff !important;
-        font-size: 16px !important;
-        padding: 14px 16px !important;
-        min-height: 52px !important;
+        border-radius: 14px !important; color: #ffffff !important;
+        font-size: 16px !important; padding: 14px 16px !important; min-height: 52px !important;
     }
-    .stTextInput input:focus {
-        border-color: #4CAF50 !important;
-        box-shadow: 0 0 0 3px rgba(76,175,80,0.20) !important;
-    }
-    .stTextInput input::placeholder {
-        color: rgba(255,255,255,0.30) !important;
-    }
-    .stTextInput label { display: none !important; }
-
     .stButton > button {
         background: linear-gradient(135deg, #388e3c, #4caf50) !important;
-        color: #fff !important;
-        border: none !important;
-        border-radius: 40px !important;
-        font-weight: 700 !important;
-        font-size: 14px !important;
-        min-height: 44px !important;
-        box-shadow: 0 2px 8px rgba(76,175,80,0.3) !important;
-        transition: all 0.18s ease !important;
-    }
-    .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
-        filter: brightness(1.05) !important;
-    }
-    .login-card .stButton > button {
-        font-size: 16px !important;
-        min-height: 52px !important;
-        box-shadow: 0 4px 18px rgba(76,175,80,0.35) !important;
-    }
-    .stAlert {
-        background: rgba(0,0,0,0.7) !important;
-        border-radius: 12px !important;
-        color: white !important;
+        color: #fff !important; border-radius: 40px !important;
+        font-weight: 700 !important; min-height: 44px !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # UI
     st.markdown('<div class="login-wrap">', unsafe_allow_html=True)
     st.markdown('<div class="login-logo">📚</div>', unsafe_allow_html=True)
     st.markdown('<div class="login-title">Rekxare Dami</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="login-sub">{t("login_sub")}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="login-badge">{t("login_badge")}</div>', unsafe_allow_html=True)
 
-    # Language buttons
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("بادينى", key="lang_badini", use_container_width=True):
-            st.session_state.lang = "badini"
-            st.rerun()
+            st.session_state.lang = "badini"; st.rerun()
     with col2:
         if st.button("English", key="lang_en", use_container_width=True):
-            st.session_state.lang = "english"
-            st.rerun()
+            st.session_state.lang = "english"; st.rerun()
     with col3:
         if st.button("العربية", key="lang_ar", use_container_width=True):
-            st.session_state.lang = "arabic"
-            st.rerun()
+            st.session_state.lang = "arabic"; st.rerun()
 
     st.markdown('<div class="login-card">', unsafe_allow_html=True)
     st.markdown(f'<span class="login-label">{t("login_email_label")}</span>', unsafe_allow_html=True)
-    email = st.text_input("Email", placeholder=t("login_placeholder"), label_visibility="collapsed")
+    email_input = st.text_input("Email", placeholder=t("login_placeholder"), label_visibility="collapsed")
 
     if st.button(t("login_btn"), use_container_width=True):
-        if email and "@" in email and "." in email:
-            st.session_state.user_email = email
+        if email_input and "@" in email_input and "." in email_input:
+            st.session_state.user_email = email_input
             st.session_state.logged_in = True
-            st.session_state.data_key = email.split("@")[0]
+            st.session_state.data_key = email_input.split("@")[0]
             
-            # ── SAVE TO BROWSER STORAGE
-            set_persistent_email(email)
-            
+            # ── PERSIST FOR NEXT TIME
+            set_persistent_email(email_input)
             st.rerun()
         else:
             st.error(t("login_error_email"))
@@ -320,9 +175,7 @@ if not st.session_state.get("logged_in", False):
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="login-footer">{t("login_footer")}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
-
     st.stop()
-
 
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
