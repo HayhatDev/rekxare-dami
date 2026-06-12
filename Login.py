@@ -97,7 +97,7 @@ if st.button(t("login_btn"), use_container_width=True):
         components.html(f"""
         <script>
             document.cookie = "rekxare_email={email}; path=/; max-age=2592000";
-            window.parent.location.href = window.parent.location.origin + "/pages/00_Home.py";
+            window.parent.location.href = "/pages/00_Home.py";
         </script>
         """, height=0)
         
