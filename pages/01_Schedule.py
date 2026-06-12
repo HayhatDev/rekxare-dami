@@ -7,6 +7,9 @@ import requests
 import time
 import hashlib
 
+if not st.session_state.get("logged_in", False):
+    st.switch_page("Login.py")
+    
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (must load before set_page_config uses t())
 # ══════════════════════════════════════════════════════════
