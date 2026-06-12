@@ -17,7 +17,7 @@ st.set_page_config(page_title="Login | Rekxare Dami", page_icon="🔐", layout="
 for key in ["logged_in", "user_email", "data_key"]:
     st.session_state.pop(key, None)
 
-# Custom CSS (same dark design as your original login gate)
+# Custom CSS 
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -67,7 +67,7 @@ st.markdown('<div class="login-title">Rekxare Dami</div>', unsafe_allow_html=Tru
 st.markdown(f'<div class="login-sub">{t("login_sub")}</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="login-badge">{t("login_badge")}</div>', unsafe_allow_html=True)
 
-# Language buttons (green)
+# Language buttons
 col1, col2, col3 = st.columns(3)
 with col1:
     if st.button("بادينى", key="lang_badini", use_container_width=True):
@@ -91,7 +91,7 @@ if st.button(t("login_btn"), use_container_width=True):
         st.session_state.user_email = email
         st.session_state.logged_in = True
         st.session_state.data_key = email.split("@")[0]
-        # Redirect to the main app (Home.py)
+        # Redirect to the main app
         st.switch_page("pages/Home.py")
     else:
         st.error(t("login_error_email"))
