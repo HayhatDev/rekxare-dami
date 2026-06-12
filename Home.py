@@ -43,19 +43,8 @@ st.set_page_config(
     layout="centered",
 )
 
-# --- Professional Auth Setup ---
-with open('auth_config.yaml') as file:
-    config = yaml.load(file, Loader=SafeLoader)
+authenticator = stauth.Authenticate('auth_config.yaml')
 
-authenticator = stauth.Authenticate(
-    config['credentials'],
-    config['cookie']['name'],
-    config['cookie']['key'],
-    config['cookie']['expiry_days'],
-    config['preauthorized']
-)
-
-    
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
 # ══════════════════════════════════════════════════════════
