@@ -1,9 +1,7 @@
 import streamlit as st
 import json
 
-if not st.session_state.get("logged_in", False):
-    st.switch_page("Login.py")
-    
+
 with open("translations.json", "r", encoding="utf-8") as f:
     TRANSLATIONS = json.load(f)
 
