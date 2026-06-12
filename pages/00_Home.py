@@ -7,23 +7,37 @@ import os
 import streamlit.components.v1 as components
 import hashlib
 
-# Auto-login from query param 
-query_params = st.query_params
-email_from_url = query_params.get("user_email", None)
+import streamlit as st
+import streamlit.components.v1 as components
 
-if email_from_url and not st.session_state.get("logged_in", False):
-    if "@" in email_from_url and "." in email_from_url:
-        st.session_state.user_email = email_from_url
+# Check if already logged in via session state
+if not st.session_state.get("logged_in", False):
+    # Try to restore from localStorage
+    # We'll use a small component to read localStorage and send back via query params
+    components.html("""
+    <script>
+        const email = localStorage.getItem("rekxare_email");
+        if (email && window.parent.location.search.indexOf('restored=') === -1) {
+            window.parent.location.href = window.parent.location.pathname + '?restored=' + encodeURIComponent(email);
+        }
+    </script>
+    """, height=0)
+    
+    # Now check if the URL contains a restored email
+    query_params = st.query_params
+    restored_email = query_params.get("restored", [None])[0] if hasattr(query_params, "get") else None
+    
+    if restored_email and "@" in restored_email and not st.session_state.get("logged_in", False):
+        # Restore session
+        st.session_state.user_email = restored_email
         st.session_state.logged_in = True
-        st.session_state.data_key = email_from_url.split("@")[0]
-        # Clear the query param to keep URL clean
+        st.session_state.data_key = restored_email.split("@")[0]
+        # Remove the query param to keep URL clean
         st.query_params.clear()
         st.rerun()
-
-# Redirect to login if not authenticated
-if not st.session_state.get("logged_in", False):
-    st.switch_page("Login.py")
-
+    elif not restored_email:
+        # No login found, redirect to login page
+        st.switch_page("Login.py")
 
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (load before set_page_config)
