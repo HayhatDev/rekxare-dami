@@ -89,7 +89,6 @@ email = st.text_input("Email", placeholder=t("login_placeholder"), label_visibil
 
 if st.button(t("login_btn"), use_container_width=True):
     if email and "@" in email and "." in email:
-        # Redirect to home page with email in URL
         st.query_params["user_email"] = email
         st.switch_page("pages/00_Home.py")
     else:
