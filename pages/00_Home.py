@@ -6,6 +6,12 @@ import json
 import os
 import streamlit.components.v1 as components
 import hashlib
+
+# Redirect to login if not authenticated
+if not st.session_state.get("logged_in", False):
+    st.switch_page("Login.py")
+
+
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (load before set_page_config)
 # ══════════════════════════════════════════════════════════
