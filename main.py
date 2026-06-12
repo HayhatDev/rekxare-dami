@@ -115,14 +115,21 @@ if "dark_mode" not in st.session_state:
 # ══════════════════════════════════════════════════════════
 #  LOGIN GATE
 # ══════════════════════════════════════════════════════════
-# Auto-login from query parameter (persists across refreshes)
-query_params = st.query_params
-if "user_email" in query_params and not st.session_state.logged_in:
-    email = query_params["user_email"]
-    if "@" in email and "." in email:
-        st.session_state.user_email = email
+# Auto-login from query params (supports old and new Streamlit)
+try:
+    # For Streamlit >= 1.30
+    query_params = st.query_params
+    email_from_url = query_params.get("user_email", [None])[0] if hasattr(query_params, "get") else None
+except AttributeError:
+    # Fallback for older Streamlit
+    params = st.experimental_get_query_params()
+    email_from_url = params.get("user_email", [None])[0]
+
+if email_from_url and not st.session_state.get("logged_in", False):
+    if "@" in email_from_url and "." in email_from_url:
+        st.session_state.user_email = email_from_url
         st.session_state.logged_in = True
-        st.session_state.data_key = email.split("@")[0]
+        st.session_state.data_key = email_from_url.split("@")[0]
         load_data()
         st.rerun()
 if not st.session_state.logged_in:
@@ -305,8 +312,11 @@ if not st.session_state.logged_in:
             st.session_state.logged_in = True
             st.session_state.data_key = email.split("@")[0]
             load_data()
-            # Save email to URL for persistent login
-            st.query_params["user_email"] = email.strip()
+            # Save to URL (compatible method)
+            try:
+                st.query_params["user_email"] = email.strip()
+            except AttributeError:
+                st.experimental_set_query_params(user_email=email.strip())
             st.rerun()
         else:
             st.error(t("login_error_email"))
@@ -1017,12 +1027,14 @@ with st.sidebar:
                 st.rerun()
 
     if st.button("🚪 Logout", use_container_width=True):
-        # Clear session state
+        # Clear session
         for key in ["logged_in", "user_email", "data_key"]:
-            if key in st.session_state:
-                del st.session_state[key]
-        # Clear query params
-        st.query_params.clear()
+            st.session_state.pop(key, None)
+        # Clear URL params
+        try:
+            st.query_params.clear()
+        except AttributeError:
+            st.experimental_set_query_params()
         st.rerun()
 
 # ══════════════════════════════════════════════════════════
