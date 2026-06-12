@@ -24,6 +24,13 @@ if "user_email" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
+# ── Auto-login from saved query param
+if not st.session_state.get("logged_in", False):
+    _saved = st.query_params.get("u", "")
+    if _saved and "@" in _saved and "." in _saved:
+        st.session_state.user_email = _saved
+        st.session_state.logged_in  = True
+        st.session_state.data_key   = _saved.split("@")[0]
 
 def get_schedule_file():
     email = st.session_state.get("user_email", "default")
@@ -264,6 +271,7 @@ if not st.session_state.get("logged_in", False):
             st.session_state.user_email = email
             st.session_state.logged_in = True
             st.session_state.data_key = email.split("@")[0]
+            st.query_params["u"] = email
             st.rerun()
         else:
             st.error(t("login_error_email"))
