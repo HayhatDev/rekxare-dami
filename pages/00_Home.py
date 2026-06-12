@@ -7,37 +7,39 @@ import os
 import streamlit.components.v1 as components
 import hashlib
 
-import streamlit as st
-import streamlit.components.v1 as components
-
 # Check if already logged in via session state
 if not st.session_state.get("logged_in", False):
-    # Try to restore from localStorage
-    # We'll use a small component to read localStorage and send back via query params
-    components.html("""
+    # Try to read cookie using JavaScript
+    cookie_reader = components.html("""
     <script>
-        const email = localStorage.getItem("rekxare_email");
-        if (email && window.parent.location.search.indexOf('restored=') === -1) {
-            window.parent.location.href = window.parent.location.pathname + '?restored=' + encodeURIComponent(email);
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length == 2) return parts.pop().split(";").shift();
+        }
+        const email = getCookie("rekxare_email");
+        if (email) {
+            window.parent.location.href = window.parent.location.origin + "/pages/00_Home.py?restored=" + encodeURIComponent(email);
+        } else {
+            window.parent.location.href = window.parent.location.origin + "/Login.py";
         }
     </script>
     """, height=0)
-    
-    # Now check if the URL contains a restored email
-    query_params = st.query_params
-    restored_email = query_params.get("restored", [None])[0] if hasattr(query_params, "get") else None
-    
-    if restored_email and "@" in restored_email and not st.session_state.get("logged_in", False):
-        # Restore session
-        st.session_state.user_email = restored_email
-        st.session_state.logged_in = True
-        st.session_state.data_key = restored_email.split("@")[0]
-        # Remove the query param to keep URL clean
-        st.query_params.clear()
-        st.rerun()
-    elif not restored_email:
-        # No login found, redirect to login page
-        st.switch_page("Login.py")
+    st.stop()
+else:
+    # User is logged in via session state, proceed normally
+    pass
+
+# Handle restoration from cookie
+query_params = st.query_params
+restored_email = query_params.get("restored", None)
+if restored_email and not st.session_state.get("logged_in", False):
+    st.session_state.user_email = restored_email
+    st.session_state.logged_in = True
+    st.session_state.data_key = restored_email.split("@")[0]
+    # Clear the query param to keep URL clean
+    st.query_params.clear()
+    st.rerun()
 
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (load before set_page_config)
@@ -848,15 +850,17 @@ with st.sidebar:
                 st.rerun()
 
     if st.button("🚪 Logout", use_container_width=True):
-        # Clear session
+        # Clear session state
         for key in ["logged_in", "user_email", "data_key"]:
             st.session_state.pop(key, None)
-        # Clear URL params
-        try:
-            st.query_params.clear()
-        except AttributeError:
-            st.experimental_set_query_params()
-        st.rerun()
+        # Clear cookie via JavaScript
+        components.html("""
+        <script>
+            document.cookie = "rekxare_email=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            window.parent.location.href = window.parent.location.origin + "/Login.py";
+        </script>
+        """, height=0)
+        st.stop()
 
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
