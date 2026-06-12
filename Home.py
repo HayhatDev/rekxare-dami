@@ -968,10 +968,6 @@ with st.sidebar:
             if st.button("✗", use_container_width=True, key="confirm_no"):
                 st.session_state.confirm_clear = False
                 st.rerun()
-    if st.button("🚪 Logout"):
-        for key in ["logged_in", "user_email", "data_key"]:
-            st.session_state.pop(key, None)
-        st.rerun()
 
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
