@@ -30,22 +30,22 @@ if "logged_in" not in st.session_state:
 
 
 # ══════════════════════════════════════════════════════════
-#  COOKIE MANAGEMENT (Persistence)
+#  COOKIE MANAGEMENT (Fixed: No caching on widget)
 # ══════════════════════════════════════════════════════════
-@st.cache_resource
-def get_cookie_manager():
-    return stx.CookieManager()
 
-cookie_manager = get_cookie_manager()
-
+cookie_manager = stx.CookieManager()
 # Check if we have a saved email in cookies
 if not st.session_state.logged_in:
-    saved_email = cookie_manager.get(cookie="user_email")
-    if saved_email and saved_email != "":
-        st.session_state.user_email = saved_email
-        st.session_state.logged_in = True
-        st.session_state.data_key = saved_email.split("@")[0]
-      
+
+    cookies = cookie_manager.get_all()
+    
+    if cookies:
+        saved_email = cookies.get("user_email")
+        if saved_email and saved_email != "":
+            st.session_state.user_email = saved_email
+            st.session_state.logged_in = True
+            st.session_state.data_key = saved_email.split("@")[0]
+
 
 def get_schedule_file():
     email = st.session_state.get("user_email", "default")
