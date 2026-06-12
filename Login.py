@@ -89,12 +89,9 @@ email = st.text_input("Email", placeholder=t("login_placeholder"), label_visibil
 
 if st.button(t("login_btn"), use_container_width=True):
     if email and "@" in email and "." in email:
-        st.session_state.user_email = email
-        st.session_state.logged_in = True
-        st.session_state.data_key = email.split("@")[0]
-        # Add email to URL for persistence
+        # Redirect to home page with email in URL
         st.query_params["user_email"] = email
-        st.switch_page("pages/00_Home.py")   # Streamlit's built-in page switch
+        st.switch_page("pages/00_Home.py")
     else:
         st.error(t("login_error_email"))
         
