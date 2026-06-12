@@ -115,6 +115,16 @@ if "dark_mode" not in st.session_state:
 # ══════════════════════════════════════════════════════════
 #  LOGIN GATE
 # ══════════════════════════════════════════════════════════
+# Auto-login from query parameter (persists across refreshes)
+query_params = st.query_params
+if "user_email" in query_params and not st.session_state.logged_in:
+    email = query_params["user_email"]
+    if "@" in email and "." in email:
+        st.session_state.user_email = email
+        st.session_state.logged_in = True
+        st.session_state.data_key = email.split("@")[0]
+        load_data()
+        st.rerun()
 if not st.session_state.logged_in:
     st.markdown("""
     <style>
@@ -292,9 +302,11 @@ if not st.session_state.logged_in:
     if st.button(t("login_btn"), use_container_width=True):
         if email.strip() and "@" in email and "." in email:
             st.session_state.user_email = email.strip()
-            st.session_state.logged_in  = True
-            st.session_state.data_key   = email.split("@")[0]
+            st.session_state.logged_in = True
+            st.session_state.data_key = email.split("@")[0]
             load_data()
+            # Save email to URL for persistent login
+            st.query_params["user_email"] = email.strip()
             st.rerun()
         else:
             st.error(t("login_error_email"))
@@ -1003,6 +1015,15 @@ with st.sidebar:
             if st.button("✗", use_container_width=True, key="confirm_no"):
                 st.session_state.confirm_clear = False
                 st.rerun()
+
+    if st.button("🚪 Logout", use_container_width=True):
+    # Clear session state
+    for key in ["logged_in", "user_email", "data_key"]:
+        if key in st.session_state:
+            del st.session_state[key]
+    # Clear query params
+    st.query_params.clear()
+    st.rerun()
 
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
