@@ -300,7 +300,7 @@ if not st.session_state.get("logged_in", False):
 
     st.markdown('<div class="login-card">', unsafe_allow_html=True)
     st.markdown(f'<span class="login-label">{t("login_email_label")}</span>', unsafe_allow_html=True)
-    email = st.text_input("Email", placeholder=t("login_placeholder"), label_visibility="collapsed")
+    email_input = st.text_input("Email", placeholder=t("login_placeholder"), label_visibility="collapsed")
 
     if st.button(t("login_btn"), use_container_width=True):
         if email_input and "@" in email_input and "." in email_input:
