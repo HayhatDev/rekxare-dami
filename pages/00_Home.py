@@ -7,21 +7,6 @@ import os
 import streamlit.components.v1 as components
 import hashlib
 
-st.write("DEBUG: logged_in =", st.session_state.get("logged_in"))
-st.write("DEBUG: query_params =", st.query_params)
-
-# Get email from URL
-params = st.query_params
-user_email = params.get("user_email", None)
-
-if not user_email:
-    # No email in URL, go to login
-    st.switch_page("Login.py")
-else:
-    # Set session state for convenience (optional)
-    st.session_state.user_email = user_email
-    st.session_state.logged_in = True
-    st.session_state.data_key = user_email.split("@")[0]
 
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (load before set_page_config)
@@ -36,8 +21,6 @@ if "data_key" not in st.session_state:
     st.session_state.data_key = "default"
 if "user_email" not in st.session_state:
     st.session_state.user_email = ""
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
 
 
 def get_schedule_file():
@@ -54,6 +37,23 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
     layout="centered",
 )
+
+# ══════════════════════════════════════════════════════════
+#  LOGIN CHECK (after page config)
+# ══════════════════════════════════════════════════════════
+# Get email from URL query param
+params = st.query_params
+user_email = params.get("user_email", None)
+
+if not user_email:
+    # No email in URL → redirect to login page
+    st.switch_page("Login.py")
+    st.stop()
+
+# If we have an email, set session state
+st.session_state.user_email = user_email
+st.session_state.logged_in = True
+st.session_state.data_key = user_email.split("@")[0]
 
 # ── PWA / viewport (after set_page_config)
 st.markdown("""
