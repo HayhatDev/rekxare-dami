@@ -7,6 +7,19 @@ import os
 import streamlit.components.v1 as components
 import hashlib
 
+# Auto-login from query param 
+query_params = st.query_params
+email_from_url = query_params.get("user_email", None)
+
+if email_from_url and not st.session_state.get("logged_in", False):
+    if "@" in email_from_url and "." in email_from_url:
+        st.session_state.user_email = email_from_url
+        st.session_state.logged_in = True
+        st.session_state.data_key = email_from_url.split("@")[0]
+        # Clear the query param to keep URL clean
+        st.query_params.clear()
+        st.rerun()
+
 # Redirect to login if not authenticated
 if not st.session_state.get("logged_in", False):
     st.switch_page("Login.py")
