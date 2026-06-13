@@ -1121,42 +1121,11 @@ st.markdown(f"""
 # ── Setup card
 st.markdown('<div class="setup-card">', unsafe_allow_html=True)
 
-# ── Subject selection with persistence (safe) ──
 subjects_list = t("subjects")
 if not isinstance(subjects_list, list):
     subjects_list = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("subjects", [])
 
-# Store the selected subject INDEX (not the name) in session state
-if "selected_subject_index" not in st.session_state:
-    st.session_state.selected_subject_index = 0
-
-# If language has changed, the list may have different order; we need to keep the same subject
-# But to avoid index mismatch, we also store the base English name of the subject
-if "selected_subject_key" not in st.session_state:
-    # Get default English subject list for mapping
-    default_subjects = TRANSLATIONS["english"]["subjects"]
-    # Remove emojis for comparison? Simpler: store index and trust same order.
-    # Languages keep same order? Yes, all subject lists have same order (Math, Physics, ...)
-    pass
-
-# Ensure index is within bounds
-if st.session_state.selected_subject_index >= len(subjects_list):
-    st.session_state.selected_subject_index = 0
-
-# Use a fixed key – no language dependency
-ders = st.selectbox(
-    t("select_subject"),
-    subjects_list,
-    index=st.session_state.selected_subject_index,
-    key="subject_selector"
-)
-
-# Update stored index when user selects a different subject
-new_index = subjects_list.index(ders)
-if new_index != st.session_state.selected_subject_index:
-    st.session_state.selected_subject_index = new_index
-
-# Subject color and pill
+ders = st.selectbox(t("select_subject"), subjects_list)
 arc_color = subject_color(ders)
 subj_name = ders.split(" ", 1)[1] if " " in ders else ders
 st.markdown(
