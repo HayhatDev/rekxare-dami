@@ -52,9 +52,12 @@ SCHEDULE_FILE = "schedule_data.json"
 #  DATA HELPERS
 # ══════════════════════════════════════════════════════════
 def get_data_file():
-    key = st.session_state.get("data_key", "default")
+    if st.user.is_logged_in:
+        email = st.user.email
+    else:
+        email = st.session_state.get("user_email", "default")
+    key = hashlib.md5(email.encode()).hexdigest()[:8]
     return f"study_data_{key}.json"
-
 
 def load_data():
     DATA_FILE = get_data_file()
@@ -866,14 +869,22 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown('<span class="sb-lbl">زمان | Language</span>', unsafe_allow_html=True)
-    lang = st.radio("", ["badini", "english", "arabic"],
-                    index=["badini", "english", "arabic"].index(st.session_state.lang),
-                    horizontal=True, label_visibility="collapsed")
-    if lang != st.session_state.lang:
-        st.session_state.lang = lang
-        save_data()
-        st.rerun()
-
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
+        if st.button("بادينى", key="lang_badini_sidebar", use_container_width=True):
+            st.session_state.lang = "badini"
+            save_data()
+            st.rerun()
+    with col_b:
+        if st.button("English", key="lang_en_sidebar", use_container_width=True):
+            st.session_state.lang = "english"
+            save_data()
+            st.rerun()
+    with col_c:
+        if st.button("العربية", key="lang_ar_sidebar", use_container_width=True):
+            st.session_state.lang = "arabic"
+            save_data()
+            st.rerun()
     st.markdown(f'<span class="sb-lbl">{t("sidebar_title")}</span>', unsafe_allow_html=True)
     st.markdown(f"""
     <div class="stat-row">
