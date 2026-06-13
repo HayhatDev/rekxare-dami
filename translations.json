@@ -104,7 +104,8 @@
     "week_tasks": "ئەرک",
     "week_scheduled": "پلانکریه",
     "ai_key_error": "🚨 کلیلا Groq نینە. زێدە بکە ل سیکرێتسێن Streamlit.",
-    "ai_format_error": "🚨 AI خەلەتیەک هنارت، جارەکا دی بکاربینە"
+    "ai_format_error": "🚨 AI خەلەتیەک هنارت، جارەکا دی بکاربینە",
+    "login_divider": "چوونا ژور بکارئینانا"
   },
   "english": {
     "app_title": "📚 Rekxare Dami | For Students & Learners",
@@ -211,7 +212,8 @@
     "week_tasks": "tasks",
     "week_scheduled": "scheduled",
     "ai_key_error": "🚨 Groq API key is missing. Add it to Streamlit secrets.",
-    "ai_format_error": "🚨 AI returned invalid format. Please try again."
+    "ai_format_error": "🚨 AI returned invalid format. Please try again.",
+    "login_divider": "Sign in with"
   },
   "arabic": {
     "app_title": "📚 Rekxare Dami | للطلاب والمتعلمين",
@@ -318,6 +320,7 @@
     "week_tasks": "مهام",
     "week_scheduled": "مجدول",
     "ai_key_error": "🚨 مفتاح Groq API غير موجود. أضفه إلى أسرار Streamlit.",
-    "ai_format_error": "🚨 أعاد الذكاء الاصطناعي صيغة غير صحيحة. حاول مرة أخرى."
+    "ai_format_error": "🚨 أعاد الذكاء الاصطناعي صيغة غير صحيحة. حاول مرة أخرى.",
+    "login_divider": "تسجيل الدخول باستخدام"
   }
 }
