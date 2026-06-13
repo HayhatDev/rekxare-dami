@@ -1121,19 +1121,31 @@ st.markdown(f"""
 # ── Setup card
 st.markdown('<div class="setup-card">', unsafe_allow_html=True)
 
+# Get subjects list in current language
 subjects_list = t("subjects")
 if not isinstance(subjects_list, list):
     subjects_list = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("subjects", [])
 
-ders      = st.selectbox(t("select_subject"), subjects_list)
-arc_color = subject_color(ders)
-subj_name = ders.split(" ", 1)[1] if " " in ders else ders
-st.markdown(
-    f'<div class="subject-pill">'
-    f'<span class="subject-color-dot" style="background:{arc_color};"></span>'
-    f'{subj_name}</div>',
-    unsafe_allow_html=True,
+# Initialize selected subject index if not exists
+if "selected_subject_index" not in st.session_state:
+    st.session_state.selected_subject_index = 0  # Default to first subject (Math)
+
+# Ensure index is within bounds (safety)
+if st.session_state.selected_subject_index >= len(subjects_list):
+    st.session_state.selected_subject_index = 0
+
+# Create selectbox with the stored index
+ders = st.selectbox(
+    t("select_subject"),
+    subjects_list,
+    index=st.session_state.selected_subject_index,
+    key="subject_selector"
 )
+
+# Update stored index when user selects a different subject
+new_index = subjects_list.index(ders)
+if new_index != st.session_state.selected_subject_index:
+    st.session_state.selected_subject_index = new_index
 
 duration_lbl = {
     "badini": "⏱ دەمێ خواندنێ",
