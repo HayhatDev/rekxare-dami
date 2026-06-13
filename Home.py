@@ -247,8 +247,8 @@ if not st.user.is_logged_in:
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Divider (optional)
-    st.markdown('<div class="divider">Sign in with</div>', unsafe_allow_html=True)
+    # Divider (translated via your JSON)
+    st.markdown(f'<div class="divider">{t("login_divider")}</div>', unsafe_allow_html=True)
     
     # Google login button (centered)
     col1, col2, col3 = st.columns([1, 2, 1])
