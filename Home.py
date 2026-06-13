@@ -39,6 +39,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
     layout="centered",
 )
+
+# --- المصادقة (Authentication) ---
+if not st.user.is_logged_in:
+    st.markdown("## 📚 Rekxare Dami")
+    st.button("تسجيل الدخول باستخدام Google 🚀", on_click=st.login)
+    st.stop()
+else:
+    # نجح تسجيل الدخول – الآن يمكنك الوصول إلى بيانات المستخدم
+    st.session_state.user_email = st.user.email
+    st.session_state.logged_in = True
+    # أكمل باقي تطبيقك هنا...
+    st.write(f"مرحبًا {st.user.name}!")
     
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
