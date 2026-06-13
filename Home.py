@@ -869,56 +869,60 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown('<span class="sb-lbl">زمان | Language</span>', unsafe_allow_html=True)
-    # Custom CSS to make buttons green and match the login style
+    
+    # Custom CSS to style the radio as green buttons
     st.markdown("""
     <style>
-    /* Sidebar language buttons – green gradient, same as login */
-    .sidebar-lang-btn .stButton > button {
+    /* Sidebar language radio - green button style */
+    [data-testid="stSidebar"] [data-testid="stRadio"] > div {
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label {
         background: linear-gradient(135deg, #388e3c, #4caf50) !important;
         color: #fff !important;
         border: none !important;
         border-radius: 40px !important;
         font-weight: 700 !important;
         font-size: 13px !important;
+        padding: 8px 16px !important;
         min-height: 44px !important;
         box-shadow: 0 2px 8px rgba(76,175,80,0.3) !important;
         transition: all 0.18s ease !important;
-        width: 100% !important;
+        cursor: pointer;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
     }
-    .sidebar-lang-btn .stButton > button:hover {
+    [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
         filter: brightness(1.05) !important;
     }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label > div:first-child {
+        display: none;  /* hide the radio circle */
+    }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] {
+        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-checked="true"] {
+        background: linear-gradient(135deg, #2e7d32, #43a047) !important;
+        box-shadow: 0 4px 12px rgba(76,175,80,0.4) !important;
+    }
     </style>
     """, unsafe_allow_html=True)
     
-    # Three green buttons in a row
-    col_a, col_b, col_c = st.columns(3)
-    with col_a:
-        with st.container():
-            st.markdown('<div class="sidebar-lang-btn">', unsafe_allow_html=True)
-            if st.button("بادينى", key="lang_badini_sidebar", use_container_width=True):
-                st.session_state.lang = "badini"
-                save_data()
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-    with col_b:
-        with st.container():
-            st.markdown('<div class="sidebar-lang-btn">', unsafe_allow_html=True)
-            if st.button("English", key="lang_en_sidebar", use_container_width=True):
-                st.session_state.lang = "english"
-                save_data()
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-    with col_c:
-        with st.container():
-            st.markdown('<div class="sidebar-lang-btn">', unsafe_allow_html=True)
-            if st.button("العربية", key="lang_ar_sidebar", use_container_width=True):
-                st.session_state.lang = "arabic"
-                save_data()
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+    lang = st.radio(
+        "",
+        ["badini", "english", "arabic"],
+        index=["badini", "english", "arabic"].index(st.session_state.lang),
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+    if lang != st.session_state.lang:
+        st.session_state.lang = lang
+        save_data()
+        st.rerun()
     st.markdown(f'<span class="sb-lbl">{t("sidebar_title")}</span>', unsafe_allow_html=True)
     st.markdown(f"""
     <div class="stat-row">
