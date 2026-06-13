@@ -1125,7 +1125,7 @@ subjects_list = t("subjects")
 if not isinstance(subjects_list, list):
     subjects_list = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("subjects", [])
 
-ders = st.selectbox(t("select_subject"), subjects_list)
+ders      = st.selectbox(t("select_subject"), subjects_list)
 arc_color = subject_color(ders)
 subj_name = ders.split(" ", 1)[1] if " " in ders else ders
 st.markdown(
