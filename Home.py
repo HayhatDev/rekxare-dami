@@ -26,7 +26,10 @@ if "logged_in" not in st.session_state:
 
 
 def get_schedule_file():
-    email = st.session_state.get("user_email", "default")
+    if st.user.is_logged_in:
+        email = st.user.email
+    else:
+        email = st.session_state.get("user_email", "default")
     user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
     return f"schedule_data_{user_hash}.json"
     
@@ -981,11 +984,11 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True) 
-    
     if st.button("🚪 " + t("logout"), use_container_width=True):
+        for key in ["user_email", "data_key", "logged_in"]:
+            st.session_state.pop(key, None)
         st.logout()
         st.rerun()
-
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
 # ══════════════════════════════════════════════════════════
