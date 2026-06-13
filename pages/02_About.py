@@ -1,7 +1,10 @@
 import streamlit as st
 import json
 
-
+if not st.user.is_logged_in:
+    st.switch_page("00_Home.py")  # توجيه المستخدم لصفحة تسجيل الدخول الرئيسية
+    st.stop()
+    
 with open("translations.json", "r", encoding="utf-8") as f:
     TRANSLATIONS = json.load(f)
 
