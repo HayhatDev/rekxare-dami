@@ -869,22 +869,56 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown('<span class="sb-lbl">زمان | Language</span>', unsafe_allow_html=True)
+    # Custom CSS to make buttons green and match the login style
+    st.markdown("""
+    <style>
+    /* Sidebar language buttons – green gradient, same as login */
+    .sidebar-lang-btn .stButton > button {
+        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 40px !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+        min-height: 44px !important;
+        box-shadow: 0 2px 8px rgba(76,175,80,0.3) !important;
+        transition: all 0.18s ease !important;
+        width: 100% !important;
+    }
+    .sidebar-lang-btn .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
+        filter: brightness(1.05) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Three green buttons in a row
     col_a, col_b, col_c = st.columns(3)
     with col_a:
-        if st.button("بادينى", key="lang_badini_sidebar", use_container_width=True):
-            st.session_state.lang = "badini"
-            save_data()
-            st.rerun()
+        with st.container():
+            st.markdown('<div class="sidebar-lang-btn">', unsafe_allow_html=True)
+            if st.button("بادينى", key="lang_badini_sidebar", use_container_width=True):
+                st.session_state.lang = "badini"
+                save_data()
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
     with col_b:
-        if st.button("English", key="lang_en_sidebar", use_container_width=True):
-            st.session_state.lang = "english"
-            save_data()
-            st.rerun()
+        with st.container():
+            st.markdown('<div class="sidebar-lang-btn">', unsafe_allow_html=True)
+            if st.button("English", key="lang_en_sidebar", use_container_width=True):
+                st.session_state.lang = "english"
+                save_data()
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
     with col_c:
-        if st.button("العربية", key="lang_ar_sidebar", use_container_width=True):
-            st.session_state.lang = "arabic"
-            save_data()
-            st.rerun()
+        with st.container():
+            st.markdown('<div class="sidebar-lang-btn">', unsafe_allow_html=True)
+            if st.button("العربية", key="lang_ar_sidebar", use_container_width=True):
+                st.session_state.lang = "arabic"
+                save_data()
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
     st.markdown(f'<span class="sb-lbl">{t("sidebar_title")}</span>', unsafe_allow_html=True)
     st.markdown(f"""
     <div class="stat-row">
