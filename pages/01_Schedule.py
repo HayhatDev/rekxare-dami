@@ -7,6 +7,9 @@ import requests
 import time
 import hashlib
 
+if not st.user.is_logged_in:
+    st.switch_page("00_Home.py")  # توجيه المستخدم لصفحة تسجيل الدخول الرئيسية
+    st.stop()
     
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (must load before set_page_config uses t())
