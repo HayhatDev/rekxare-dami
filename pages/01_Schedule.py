@@ -64,7 +64,10 @@ DAYS = [
 DAY_EMOJIS  = {"sun":"☀️","mon":"📖","tue":"📖","wed":"📖","thu":"📖","fri":"🕌","sat":"🎉"}
 
 def get_schedule_file():
-    email = st.session_state.get("user_email", "default")
+    if st.user.is_logged_in:
+        email = st.user.email
+    else:
+        email = st.session_state.get("user_email", "default")
     user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
     return f"schedule_data_{user_hash}.json"
 
