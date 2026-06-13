@@ -120,7 +120,7 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
-# ========== MULTILINGUAL LOGIN GATE (Google OAuth) ==========
+# ========== LOGIN GATE (Google OAuth) ==========
 if not st.user.is_logged_in:
     st.markdown(f"""
     <style>
@@ -272,7 +272,15 @@ if not st.user.is_logged_in:
     st.markdown(f'<div class="login-footer">{t("login_footer")}</div>', unsafe_allow_html=True)
     st.markdown('</div></div>', unsafe_allow_html=True)
     st.stop()
-    
+
+
+if st.user.is_logged_in and "user_email" not in st.session_state:
+    st.session_state.user_email = st.user.email
+    st.session_state.data_key = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
+    st.session_state.logged_in = True
+    # Load the user's existing data
+    load_data()
+    st.rerun()
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
 # ══════════════════════════════════════════════════════════
