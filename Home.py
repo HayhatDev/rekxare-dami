@@ -1121,33 +1121,33 @@ st.markdown(f"""
 # ── Setup card
 st.markdown('<div class="setup-card">', unsafe_allow_html=True)
 
-# ── Subject selection with persistence ──
+# ── Subject selection with persistence and language refresh ──
 subjects_list = t("subjects")
 if not isinstance(subjects_list, list):
     subjects_list = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("subjects", [])
 
-# Initialize session state for subject index if not exists
+# Initialize stored subject index if not exists
 if "selected_subject_index" not in st.session_state:
     st.session_state.selected_subject_index = 0
 
-# Ensure index is within current subjects list length
+# Ensure index is within current list length
 if st.session_state.selected_subject_index >= len(subjects_list):
     st.session_state.selected_subject_index = 0
 
-# Create the selectbox using stored index
+# Create selectbox with language-dependent key → forces refresh on language change
 ders = st.selectbox(
     t("select_subject"),
     subjects_list,
     index=st.session_state.selected_subject_index,
-    key="subject_selector"
+    key=f"subject_selector_{st.session_state.lang}"  # ← key changes when language changes
 )
 
-# Update stored index when changed
+# Update stored index when user makes a different selection
 current_index = subjects_list.index(ders)
 if current_index != st.session_state.selected_subject_index:
     st.session_state.selected_subject_index = current_index
 
-# Rest of the subject color and UI
+# Subject color and pill display
 arc_color = subject_color(ders)
 subj_name = ders.split(" ", 1)[1] if " " in ders else ders
 st.markdown(
