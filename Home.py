@@ -40,16 +40,6 @@ st.set_page_config(
     layout="centered",
 )
 
-if not st.user.is_logged_in:
-    if st.button("تسجيل الدخول باستخدام Google"):
-        st.login()
-else:
-    st.write(f"مرحباً، {st.user.name}!")
-    st.write(f"بريدك الإلكتروني: {st.user.email}")
-    if st.button("تسجيل الخروج"):
-        st.logout()
-        st.rerun()
-        
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
 # ══════════════════════════════════════════════════════════
