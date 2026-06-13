@@ -277,12 +277,12 @@ if not st.user.is_logged_in:
     st.stop()
 
 
+# ========== AFTER LOGIN: SET USER SESSION ==========
 if st.user.is_logged_in and "user_email" not in st.session_state:
     st.session_state.user_email = st.user.email
     st.session_state.data_key = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
     st.session_state.logged_in = True
-    # Load the user's existing data
-    load_data()
+    load_data()   # load their existing data (if any)
     st.rerun()
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
