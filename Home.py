@@ -117,122 +117,131 @@ def t(key, **kwargs):
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = True
 
-# ========== LOGIN GATE (Google OAuth) ==========
+# ========== MULTILINGUAL LOGIN GATE (Google OAuth) ==========
 if not st.user.is_logged_in:
-
     st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    .stApp, .stApp > header, .main .block-container {
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    
+    *, *::before, *::after { box-sizing: border-box; }
+    
+    html, body, .stApp, [data-testid="stAppViewContainer"],
+    section[data-testid="stMain"], .main, .main .block-container {
         background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Inter', system-ui, sans-serif !important;
     }
-    header, footer, [data-testid="stToolbar"], [data-testid="stDecoration"] {
+    
+    header[data-testid="stHeader"], #MainMenu, footer,
+    [data-testid="stToolbar"], [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"], [data-testid="stSidebar"],
+    [data-testid="stSidebarCollapsedControl"], [data-testid="collapsedControl"] {
         display: none !important;
     }
-    .login-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        padding: 1rem;
+    
+    .main .block-container {
+        padding-top: max(20px, calc(50vh - 260px)) !important;
+        padding-bottom: 40px !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        max-width: 480px !important;
     }
-    .login-card {
-        background: rgba(0, 0, 0, 0.55);
-        backdrop-filter: blur(14px);
-        border-radius: 32px;
-        border: 1px solid rgba(76, 175, 80, 0.3);
-        padding: 48px 40px;
-        text-align: center;
-        max-width: 480px;
+    
+    .login-wrap {
         width: 100%;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        transition: all 0.3s ease;
+        display: flex; flex-direction: column; align-items: center;
     }
+    
     .login-logo {
-        font-size: 72px;
-        margin-bottom: 16px;
-        filter: drop-shadow(0 4px 12px rgba(76,175,80,0.4));
+        font-size: 72px; line-height: 1; margin-bottom: 12px;
+        filter: drop-shadow(0 4px 16px rgba(76,175,80,0.4));
         animation: float 3s ease-in-out infinite;
     }
     @keyframes float {
         0%,100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
+        50%      { transform: translateY(-8px); }
     }
+    
     .login-title {
-        font-size: 32px;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        color: white;
-        margin-bottom: 8px;
+        font-size: 32px; font-weight: 900; letter-spacing: -0.8px;
+        color: #ffffff; text-align: center; margin-bottom: 4px;
     }
+    
     .login-sub {
-        font-size: 14px;
-        color: rgba(255,255,255,0.6);
+        font-size: 14px; color: rgba(255,255,255,0.55);
+        text-align: center; margin-bottom: 24px; font-weight: 500;
+    }
+    
+    .login-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.25);
+        color: #81c784; border-radius: 20px; padding: 5px 14px;
+        font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
         margin-bottom: 24px;
     }
-    .badge {
-        display: inline-block;
-        background: rgba(76,175,80,0.15);
-        border: 1px solid rgba(76,175,80,0.3);
-        border-radius: 40px;
-        padding: 6px 16px;
-        font-size: 12px;
-        color: #81c784;
-        margin-bottom: 24px;
+    
+    .login-card {
+        background: rgba(0, 0, 0, 0.5);
+        border: 1.5px solid rgba(255,255,255,0.13);
+        border-radius: 28px;
+        padding: 32px 28px 28px;
+        width: 100%;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 8px 40px rgba(0,0,0,0.40);
     }
-    .lang-buttons {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        margin-bottom: 32px;
+    
+    /* Language buttons - green gradient + hover effect */
+    .stButton > button {
+        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 40px !important;
+        font-weight: 700 !important;
+        font-size: 14px !important;
+        min-height: 44px !important;
+        box-shadow: 0 2px 8px rgba(76,175,80,0.3) !important;
+        transition: all 0.18s ease !important;
+        width: 100% !important;
     }
-    .lang-btn {
-        background: rgba(30,30,50,0.8);
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 40px;
-        padding: 8px 20px;
-        color: white;
-        font-weight: 600;
-        font-size: 13px;
-        cursor: pointer;
-        transition: all 0.2s;
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
+        filter: brightness(1.05) !important;
     }
-    .lang-btn:hover {
-        background: rgba(76,175,80,0.3);
-        border-color: #4caf50;
+    
+    /* The Google sign-in button (inside the card) gets the same style + bigger */
+    .login-card .stButton > button {
+        font-size: 16px !important;
+        min-height: 52px !important;
+        box-shadow: 0 4px 18px rgba(76,175,80,0.35) !important;
     }
+    
     .divider {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin: 24px 0;
-        color: rgba(255,255,255,0.3);
-        font-size: 12px;
+        display: flex; align-items: center; gap: 12px;
+        margin: 24px 0 20px;
+        color: rgba(255,255,255,0.35);
+        font-size: 12px; font-weight: 600;
     }
     .divider::before, .divider::after {
-        content: "";
-        flex: 1;
-        height: 1px;
+        content: ""; flex: 1; height: 1px;
         background: rgba(255,255,255,0.15);
     }
-    .footer {
-        margin-top: 28px;
-        font-size: 11px;
-        color: rgba(255,255,255,0.3);
+    
+    .login-footer {
+        font-size: 12px; color: rgba(255,255,255,0.30);
+        text-align: center; margin-top: 24px;
     }
     </style>
-    <div class="login-wrapper">
+    
+    <div class="login-wrap">
+        <div class="login-logo">📚</div>
+        <div class="login-title">Rekxare Dami</div>
+        <div class="login-sub">{t('login_sub')}</div>
+        <div class="login-badge">{t('login_badge')}</div>
         <div class="login-card">
-            <div class="login-logo">📚</div>
-            <div class="login-title">Rekxare Dami</div>
-            <div class="login-sub">{t('login_sub')}</div>
-            <div class="badge">{t('login_badge')}</div>
     """, unsafe_allow_html=True)
-
-    # Language switcher (three buttons)
-    st.markdown('<div class="lang-buttons">', unsafe_allow_html=True)
+    
+    # Language switcher (three green buttons side by side)
+    st.markdown('<div style="display: flex; gap: 12px; margin-bottom: 28px;">', unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("بادينى", key="lang_badini_login", use_container_width=True):
@@ -247,20 +256,19 @@ if not st.user.is_logged_in:
             st.session_state.lang = "arabic"
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
-
-    # Divider
-    st.markdown(f'<div class="divider">{t("login_divider") if "login_divider" in TRANSLATIONS.get(st.session_state.lang, {}) else "Sign in with"}</div>', unsafe_allow_html=True)
-
-    # Google sign-in button
+    
+    # Divider (optional)
+    st.markdown('<div class="divider">Sign in with</div>', unsafe_allow_html=True)
+    
+    # Google login button (centered)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.button("🔐  Google  🚀", on_click=st.login, use_container_width=True)
-
+        st.button("🔐 Google", on_click=st.login, use_container_width=True)
+    
     # Footer
-    st.markdown(f'<div class="footer">{t("login_footer")}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="login-footer">{t("login_footer")}</div>', unsafe_allow_html=True)
     st.markdown('</div></div>', unsafe_allow_html=True)
     st.stop()
-
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
 # ══════════════════════════════════════════════════════════
