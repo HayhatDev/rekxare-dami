@@ -869,49 +869,6 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown('<span class="sb-lbl">زمان | Language</span>', unsafe_allow_html=True)
-    
-    # Custom CSS to style the radio as green buttons
-    st.markdown("""
-    <style>
-    /* Sidebar language radio - green button style */
-    [data-testid="stSidebar"] [data-testid="stRadio"] > div {
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-    [data-testid="stSidebar"] [data-testid="stRadio"] label {
-        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
-        color: #fff !important;
-        border: none !important;
-        border-radius: 40px !important;
-        font-weight: 700 !important;
-        font-size: 13px !important;
-        padding: 8px 16px !important;
-        min-height: 44px !important;
-        box-shadow: 0 2px 8px rgba(76,175,80,0.3) !important;
-        transition: all 0.18s ease !important;
-        cursor: pointer;
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-    }
-    [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
-        filter: brightness(1.05) !important;
-    }
-    [data-testid="stSidebar"] [data-testid="stRadio"] label > div:first-child {
-        display: none;  /* hide the radio circle */
-    }
-    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] {
-        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
-    }
-    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-checked="true"] {
-        background: linear-gradient(135deg, #2e7d32, #43a047) !important;
-        box-shadow: 0 4px 12px rgba(76,175,80,0.4) !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
     lang = st.radio(
         "",
         ["badini", "english", "arabic"],
