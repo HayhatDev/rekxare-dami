@@ -869,17 +869,14 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown('<span class="sb-lbl">زمان | Language</span>', unsafe_allow_html=True)
-    lang = st.radio(
-        "",
-        ["badini", "english", "arabic"],
-        index=["badini", "english", "arabic"].index(st.session_state.lang),
-        horizontal=True,
-        label_visibility="collapsed",
-    )
+    lang = st.radio("", ["badini", "english", "arabic"],
+                    index=["badini", "english", "arabic"].index(st.session_state.lang),
+                    horizontal=True, label_visibility="collapsed")
     if lang != st.session_state.lang:
         st.session_state.lang = lang
         save_data()
         st.rerun()
+
     st.markdown(f'<span class="sb-lbl">{t("sidebar_title")}</span>', unsafe_allow_html=True)
     st.markdown(f"""
     <div class="stat-row">
