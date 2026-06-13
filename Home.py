@@ -107,69 +107,82 @@ def t(key, **kwargs):
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = True
 
+# ========== LOAD TRANSLATIONS & DEFINE t() ==========
+with open("translations.json", "r", encoding="utf-8") as f:
+    TRANSLATIONS = json.load(f)
+
+if "lang" not in st.session_state:
+    st.session_state.lang = "badini"
+
+def t(key, **kwargs):
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
+    if kwargs:
+        text = text.format(**kwargs)
+    return text
+
 # ========== MULTILINGUAL LOGIN GATE (Google OAuth) ==========
 if not st.user.is_logged_in:
-    st.markdown("""
+    st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     
-    *, *::before, *::after { box-sizing: border-box; }
+    *, *::before, *::after {{ box-sizing: border-box; }}
     
     html, body, .stApp, [data-testid="stAppViewContainer"],
-    section[data-testid="stMain"], .main, .main .block-container {
+    section[data-testid="stMain"], .main, .main .block-container {{
         background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e) !important;
         font-family: 'Inter', system-ui, sans-serif !important;
-    }
+    }}
     
     header[data-testid="stHeader"], #MainMenu, footer,
     [data-testid="stToolbar"], [data-testid="stDecoration"],
     [data-testid="stStatusWidget"], [data-testid="stSidebar"],
-    [data-testid="stSidebarCollapsedControl"], [data-testid="collapsedControl"] {
+    [data-testid="stSidebarCollapsedControl"], [data-testid="collapsedControl"] {{
         display: none !important;
-    }
+    }}
     
-    .main .block-container {
+    .main .block-container {{
         padding-top: max(20px, calc(50vh - 260px)) !important;
         padding-bottom: 40px !important;
         padding-left: 20px !important;
         padding-right: 20px !important;
         max-width: 480px !important;
-    }
+    }}
     
-    .login-wrap {
+    .login-wrap {{
         width: 100%;
         display: flex; flex-direction: column; align-items: center;
-    }
+    }}
     
-    .login-logo {
+    .login-logo {{
         font-size: 72px; line-height: 1; margin-bottom: 12px;
         filter: drop-shadow(0 4px 16px rgba(76,175,80,0.4));
         animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float {
-        0%,100% { transform: translateY(0); }
-        50%      { transform: translateY(-8px); }
-    }
+    }}
+    @keyframes float {{
+        0%,100% {{ transform: translateY(0); }}
+        50%      {{ transform: translateY(-8px); }}
+    }}
     
-    .login-title {
+    .login-title {{
         font-size: 32px; font-weight: 900; letter-spacing: -0.8px;
         color: #ffffff; text-align: center; margin-bottom: 4px;
-    }
+    }}
     
-    .login-sub {
+    .login-sub {{
         font-size: 14px; color: rgba(255,255,255,0.55);
         text-align: center; margin-bottom: 24px; font-weight: 500;
-    }
+    }}
     
-    .login-badge {
+    .login-badge {{
         display: inline-flex; align-items: center; gap: 6px;
         background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.25);
         color: #81c784; border-radius: 20px; padding: 5px 14px;
         font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
         margin-bottom: 24px;
-    }
+    }}
     
-    .login-card {
+    .login-card {{
         background: rgba(0, 0, 0, 0.5);
         border: 1.5px solid rgba(255,255,255,0.13);
         border-radius: 28px;
@@ -177,10 +190,10 @@ if not st.user.is_logged_in:
         width: 100%;
         backdrop-filter: blur(12px);
         box-shadow: 0 8px 40px rgba(0,0,0,0.40);
-    }
+    }}
     
     /* Language buttons - green gradient + hover effect */
-    .stButton > button {
+    .stButton > button {{
         background: linear-gradient(135deg, #388e3c, #4caf50) !important;
         color: #fff !important;
         border: none !important;
@@ -191,35 +204,35 @@ if not st.user.is_logged_in:
         box-shadow: 0 2px 8px rgba(76,175,80,0.3) !important;
         transition: all 0.18s ease !important;
         width: 100% !important;
-    }
-    .stButton > button:hover {
+    }}
+    .stButton > button:hover {{
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
         filter: brightness(1.05) !important;
-    }
+    }}
     
     /* The Google sign-in button (inside the card) gets the same style + bigger */
-    .login-card .stButton > button {
+    .login-card .stButton > button {{
         font-size: 16px !important;
         min-height: 52px !important;
         box-shadow: 0 4px 18px rgba(76,175,80,0.35) !important;
-    }
+    }}
     
-    .divider {
+    .divider {{
         display: flex; align-items: center; gap: 12px;
         margin: 24px 0 20px;
         color: rgba(255,255,255,0.35);
         font-size: 12px; font-weight: 600;
-    }
-    .divider::before, .divider::after {
+    }}
+    .divider::before, .divider::after {{
         content: ""; flex: 1; height: 1px;
         background: rgba(255,255,255,0.15);
-    }
+    }}
     
-    .login-footer {
+    .login-footer {{
         font-size: 12px; color: rgba(255,255,255,0.30);
         text-align: center; margin-top: 24px;
-    }
+    }}
     </style>
     
     <div class="login-wrap">
@@ -259,6 +272,7 @@ if not st.user.is_logged_in:
     st.markdown(f'<div class="login-footer">{t("login_footer")}</div>', unsafe_allow_html=True)
     st.markdown('</div></div>', unsafe_allow_html=True)
     st.stop()
+    
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
 # ══════════════════════════════════════════════════════════
