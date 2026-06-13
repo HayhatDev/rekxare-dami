@@ -40,17 +40,15 @@ st.set_page_config(
     layout="centered",
 )
 
-# --- المصادقة (Authentication) ---
-if not st.user.is_logged_in:
-    st.markdown("## 📚 Rekxare Dami")
-    st.button("تسجيل الدخول باستخدام Google 🚀", on_click=st.login)
-    st.stop()
+if not st.experimental_user.is_logged_in:
+    if st.button("تسجيل الدخول باستخدام Google"):
+        st.login()
 else:
-    # نجح تسجيل الدخول – الآن يمكنك الوصول إلى بيانات المستخدم
-    st.session_state.user_email = st.user.email
-    st.session_state.logged_in = True
-    # أكمل باقي تطبيقك هنا...
-    st.write(f"مرحبًا {st.user.name}!")
+    st.write(f"مرحباً، {st.experimental_user.name}!")
+    st.write(f"بريدك الإلكتروني: {st.experimental_user.email}")
+    if st.button("تسجيل الخروج"):
+        st.logout()
+        st.rerun()
     
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
