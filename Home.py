@@ -972,6 +972,12 @@ with st.sidebar:
                 st.session_state.confirm_clear = False
                 st.rerun()
 
+    st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True) 
+    
+    if st.button("🚪 " + t("logout"), use_container_width=True):
+        st.logout()
+        st.rerun()
+
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
 # ══════════════════════════════════════════════════════════
