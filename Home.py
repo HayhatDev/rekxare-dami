@@ -1026,7 +1026,7 @@ with st.sidebar:
     
     # Download button
     st.download_button(
-        label="📥 " + t("export_data") if "export_data" in TRANSLATIONS.get(st.session_state.lang, {}) else "📥 Export Data",
+        label="" + t("export_data") if "export_data" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export Data",
         data=json_str,
         file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
         mime="application/json",
