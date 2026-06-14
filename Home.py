@@ -6,6 +6,8 @@ import json
 import os
 import streamlit.components.v1 as components
 import hashlib
+import zipfile
+import io
 
 
 # ══════════════════════════════════════════════════════════
@@ -1011,41 +1013,12 @@ with st.sidebar:
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True)
     st.markdown('<span class="sb-lbl">📥 Export Data</span>', unsafe_allow_html=True)
     
-    # Prepare export data (JSON) – always needed
-    export_data = {
-        "export_info": {
-            "generated": datetime.now().isoformat(),
-            "app_version": "Rekxare Dami 1.0",
-            "user": st.session_state.get("user_email", "unknown")
-        },
-        "study_summary": {
-            "total_time_minutes": st.session_state.total_study_seconds // 60,
-            "completed_sessions": st.session_state.completed_sessions,
-            "current_streak_days": st.session_state.streak,
-            "daily_goal_minutes": st.session_state.daily_goal_seconds // 60,
-            "today_study_minutes": st.session_state.daily_seconds // 60,
-            "last_subject": st.session_state.last_subject
-        },
-        "preferences": {
-            "dark_mode": st.session_state.dark_mode,
-            "language": st.session_state.lang,
-            "student_name": st.session_state.get("student_name", "")
-        },
-        "study_history": st.session_state.study_history,
-        "weekly_schedule": {}
-    }
+    # Prepare JSON data (same as before)
+    export_data = { ... }  # your existing dictionary
+    json_str = json.dumps(export_data, indent=2, ensure_ascii=False)
+    json_filename = f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json"
     
-    # Load schedule data
-    try:
-        schedule_file = get_schedule_file()
-        if os.path.exists(schedule_file):
-            with open(schedule_file, "r", encoding="utf-8") as f:
-                schedule_data = json.load(f)
-                export_data["weekly_schedule"] = schedule_data.get("schedule", {})
-    except Exception as e:
-        export_data["schedule_error"] = str(e)
-    
-    # Prepare CSV data (study history)
+    # Prepare CSV data
     csv_lines = ["timestamp,subject,minutes"]
     if st.session_state.study_history:
         for entry in st.session_state.study_history:
@@ -1058,31 +1031,21 @@ with st.sidebar:
     else:
         csv_lines.append("No history,,")
     csv_data = "\n".join(csv_lines)
+    csv_filename = f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv"
     
-    # Choose format
-    export_format = st.selectbox(
-        "Format",
-        options=["JSON (All Data)", "CSV (Study History)"],
-        key="export_format",
-        label_visibility="collapsed"
-    )
-    
-    # Prepare the appropriate data and file name
-    if export_format == "JSON (All Data)":
-        export_data_str = json.dumps(export_data, indent=2, ensure_ascii=False)
-        file_name = f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json"
-        mime_type = "application/json"
-    else:
-        export_data_str = csv_data
-        file_name = f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv"
-        mime_type = "text/csv"
+    # Create ZIP in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.writestr(json_filename, json_str)
+        zip_file.writestr(csv_filename, csv_data)
+    zip_buffer.seek(0)
     
     st.download_button(
-        label=f"📥 Download {export_format.split(' ')[0]}",
-        data=export_data_str,
-        file_name=file_name,
-        mime=mime_type,
-        key="export_btn",
+        label="📦 Export All Data (ZIP)",
+        data=zip_buffer,
+        file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.zip",
+        mime="application/zip",
+        key="export_zip_btn",
         use_container_width=True
     )
             
