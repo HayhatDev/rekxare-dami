@@ -1042,46 +1042,19 @@ with st.sidebar:
     
     json_str = json.dumps(export_data, indent=2, ensure_ascii=False)
     
-    # Custom CSS to style download buttons like the rest of the sidebar buttons
-    st.markdown("""
-    <style>
-    .sidebar-download-btn .stDownloadButton button {
-        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 40px !important;
-        font-weight: 700 !important;
-        font-size: 13px !important;
-        min-height: 44px !important;
-        box-shadow: 0 2px 8px rgba(76,175,80,0.3) !important;
-        transition: all 0.18s ease !important;
-        width: 100% !important;
-        margin-bottom: 8px !important;
-    }
-    .sidebar-download-btn .stDownloadButton button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
-        filter: brightness(1.05) !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
     # JSON download button
-    with st.container():
-        st.markdown('<div class="sidebar-download-btn">', unsafe_allow_html=True)
-        st.download_button(
-            label="📥 " + (t("export_data") if "export_data" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export All Data (JSON)"),
-            data=json_str,
-            file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
-            mime="application/json",
-            key="export_json_btn",
-            use_container_width=True
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.download_button(
+        label="📥 " + (t("export_data") if "export_data" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export All Data (JSON)"),
+        data=json_str,
+        file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
+        mime="application/json",
+        key="export_json_btn",
+        use_container_width=True
+    )
     
-    # CSV download for study history (only if history exists)
+    # CSV download for study history
+    csv_lines = ["timestamp,subject,minutes"]
     if st.session_state.study_history:
-        csv_lines = ["timestamp,subject,minutes"]
         for entry in st.session_state.study_history:
             parts = entry.split(" - ")
             time_part = parts[0] if len(parts) > 0 else ""
@@ -1089,21 +1062,19 @@ with st.sidebar:
             subject_part = rest.split(" (")[0] if "(" in rest else rest
             minutes_part = rest.split("(")[1].split(" ")[0] if "(" in rest else "0"
             csv_lines.append(f"{time_part},{subject_part},{minutes_part}")
-        csv_data = "\n".join(csv_lines)
-        
-        with st.container():
-            st.markdown('<div class="sidebar-download-btn">', unsafe_allow_html=True)
-            st.download_button(
-                label="📊 " + (t("export_csv") if "export_csv" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export History as CSV"),
-                data=csv_data,
-                file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
-                mime="text/csv",
-                key="export_csv_btn",
-                use_container_width=True
-            )
-            st.markdown('</div>', unsafe_allow_html=True)
     else:
-        st.info("📭 No study history to export")
+        csv_lines.append("No history,,")  # placeholder row
+    
+    csv_data = "\n".join(csv_lines)
+    
+    st.download_button(
+        label="📊 " + (t("export_csv") if "export_csv" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export History CSV"),
+        data=csv_data,
+        file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
+        mime="text/csv",
+        key="export_csv_btn",
+        use_container_width=True
+    )
             
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True) 
     if st.button("🚪 " + t("logout"), use_container_width=True):
