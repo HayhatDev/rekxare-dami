@@ -1009,12 +1009,48 @@ with st.sidebar:
                 
     # ========== EXPORT DATA SECTION ==========
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True)
-    st.markdown('<span class="sb-lbl">📥 Export Data</span>', unsafe_allow_html=True)
     
-    # Prepare JSON data (same as before)
-    export_data = { ... }  # your existing dictionary
+    # Helper for JSON serialization
+    def json_serial(obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        raise TypeError(f"Type {type(obj)} not serializable")
+    
+    # Prepare JSON data
+    export_data = {
+        "export_info": {
+            "generated": datetime.now().isoformat(),
+            "app_version": "Rekxare Dami 1.0",
+            "user": st.session_state.get("user_email", "unknown")
+        },
+        "study_summary": {
+            "total_time_minutes": st.session_state.total_study_seconds // 60,
+            "completed_sessions": st.session_state.completed_sessions,
+            "current_streak_days": st.session_state.streak,
+            "daily_goal_minutes": st.session_state.daily_goal_seconds // 60,
+            "today_study_minutes": st.session_state.daily_seconds // 60,
+            "last_subject": st.session_state.last_subject
+        },
+        "preferences": {
+            "dark_mode": st.session_state.dark_mode,
+            "language": st.session_state.lang,
+            "student_name": st.session_state.get("student_name", "")
+        },
+        "study_history": st.session_state.study_history,
+        "weekly_schedule": {}
+    }
+    
+    # Load schedule data
+    try:
+        schedule_file = get_schedule_file()
+        if os.path.exists(schedule_file):
+            with open(schedule_file, "r", encoding="utf-8") as f:
+                schedule_data = json.load(f)
+                export_data["weekly_schedule"] = schedule_data.get("schedule", {})
+    except Exception as e:
+        export_data["schedule_error"] = str(e)
+    
     json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=json_serial)
-    json_filename = f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json"
     
     # Prepare CSV data
     csv_lines = ["timestamp,subject,minutes"]
@@ -1029,23 +1065,28 @@ with st.sidebar:
     else:
         csv_lines.append("No history,,")
     csv_data = "\n".join(csv_lines)
-    csv_filename = f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv"
     
-    # Create ZIP in memory
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        zip_file.writestr(json_filename, json_str)
-        zip_file.writestr(csv_filename, csv_data)
-    zip_buffer.seek(0)
-    
-    st.download_button(
-        label="📦 Export All Data (ZIP)",
-        data=zip_buffer,
-        file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.zip",
-        mime="application/zip",
-        key="export_zip_btn",
-        use_container_width=True
-    )
+    # Expander with two download buttons
+    with st.expander("📥 Export Data", expanded=False):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.download_button(
+                label="📄 JSON (All Data)",
+                data=json_str,
+                file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
+                mime="application/json",
+                key="export_json_btn",
+                use_container_width=True
+            )
+        with col2:
+            st.download_button(
+                label="📊 CSV (History)",
+                data=csv_data,
+                file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
+                mime="text/csv",
+                key="export_csv_btn",
+                use_container_width=True
+            )
             
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True) 
     if st.button("🚪 " + t("logout"), use_container_width=True):
