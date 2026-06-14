@@ -984,32 +984,10 @@ with st.sidebar:
         with cc2:
             if st.button("✗", use_container_width=True, key="confirm_no"):
                 st.session_state.confirm_clear = False
-                st.rerun()
-
+            st.rerun()
+                
     # ========== EXPORT DATA SECTION ==========
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True)
-    
-    st.markdown("""
-    <style>
-    .download-btn .stDownloadButton button {
-        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
-        color: #fff !important;
-        border: none !important;
-        border-radius: 40px !important;
-        font-weight: 700 !important;
-        font-size: 14px !important;
-        min-height: 44px !important;
-        box-shadow: 0 2px 8px rgba(76,175,80,0.3) !important;
-        transition: all 0.18s ease !important;
-        width: 100% !important;
-    }
-    .download-btn .stDownloadButton button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
-        filter: brightness(1.05) !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
     
     # Prepare export data (JSON)
     export_data = {
@@ -1047,11 +1025,35 @@ with st.sidebar:
     
     json_str = json.dumps(export_data, indent=2, ensure_ascii=False)
     
+    # Custom CSS to style download buttons like the rest of the sidebar buttons
+    st.markdown("""
+    <style>
+    .sidebar-download-btn .stDownloadButton button {
+        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 40px !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+        min-height: 44px !important;
+        box-shadow: 0 2px 8px rgba(76,175,80,0.3) !important;
+        transition: all 0.18s ease !important;
+        width: 100% !important;
+        margin-bottom: 8px !important;
+    }
+    .sidebar-download-btn .stDownloadButton button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
+        filter: brightness(1.05) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     # JSON download button
     with st.container():
-        st.markdown('<div class="download-btn">', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-download-btn">', unsafe_allow_html=True)
         st.download_button(
-            label="📥 " + (t("export_data") if "export_data" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export Data (JSON)"),
+            label="📥 " + (t("export_data") if "export_data" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export All Data (JSON)"),
             data=json_str,
             file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
             mime="application/json",
@@ -1060,11 +1062,10 @@ with st.sidebar:
         )
         st.markdown('</div>', unsafe_allow_html=True)
     
-    # CSV download for study history
+    # CSV download for study history (only if history exists)
     if st.session_state.study_history:
         csv_lines = ["timestamp,subject,minutes"]
         for entry in st.session_state.study_history:
-            # Expected format: "HH:MM - Subject (XX min)"
             parts = entry.split(" - ")
             time_part = parts[0] if len(parts) > 0 else ""
             rest = parts[1] if len(parts) > 1 else ""
@@ -1074,9 +1075,9 @@ with st.sidebar:
         csv_data = "\n".join(csv_lines)
         
         with st.container():
-            st.markdown('<div class="download-btn">', unsafe_allow_html=True)
+            st.markdown('<div class="sidebar-download-btn">', unsafe_allow_html=True)
             st.download_button(
-                label="📊 " + (t("export_csv") if "export_csv" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export History CSV"),
+                label="📊 " + (t("export_csv") if "export_csv" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export History as CSV"),
                 data=csv_data,
                 file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
                 mime="text/csv",
@@ -1084,6 +1085,8 @@ with st.sidebar:
                 use_container_width=True
             )
             st.markdown('</div>', unsafe_allow_html=True)
+    else:
+        st.info("📭 No study history to export")
             
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True) 
     if st.button("🚪 " + t("logout"), use_container_width=True):
