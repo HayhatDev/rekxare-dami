@@ -109,8 +109,6 @@
     "logout": "دەرکەفتن",
     "export_data": "داتایێن خوە دەرکە",
     "export_csv": "📊 دەرکە CSV"
-
-
   },
   "english": {
     "app_title": "📚 Rekxare Dami | For Students & Learners",
@@ -221,7 +219,7 @@
     "login_divider": "Sign in with",
     "logout": "Logout",
     "export_data": "📥 Export Data",
-    "📊 Export History CSV"
+    "export_csv": "📊 Export History CSV"
   },
   "arabic": {
     "app_title": "📚 Rekxare Dami | للطلاب والمتعلمين",
