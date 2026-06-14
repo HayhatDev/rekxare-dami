@@ -986,53 +986,105 @@ with st.sidebar:
                 st.session_state.confirm_clear = False
                 st.rerun()
 
-    # ── Export Data button ──
+    # ========== EXPORT DATA SECTION ==========
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True)
     
-    # Prepare export data on every sidebar render (cheap operation)
+    st.markdown("""
+    <style>
+    .download-btn .stDownloadButton button {
+        background: linear-gradient(135deg, #388e3c, #4caf50) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 40px !important;
+        font-weight: 700 !important;
+        font-size: 14px !important;
+        min-height: 44px !important;
+        box-shadow: 0 2px 8px rgba(76,175,80,0.3) !important;
+        transition: all 0.18s ease !important;
+        width: 100% !important;
+    }
+    .download-btn .stDownloadButton button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
+        filter: brightness(1.05) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Prepare export data (JSON)
     export_data = {
-        "export_date": datetime.now().isoformat(),
-        "user_email": st.session_state.get("user_email", ""),
-        "study_stats": {
-            "total_minutes": st.session_state.total_study_seconds // 60,
-            "total_seconds": st.session_state.total_study_seconds,
-            "sessions": st.session_state.completed_sessions,
-            "streak": st.session_state.streak,
+        "export_info": {
+            "generated": datetime.now().isoformat(),
+            "app_version": "Rekxare Dami 1.0",
+            "user": st.session_state.get("user_email", "unknown")
+        },
+        "study_summary": {
+            "total_time_minutes": st.session_state.total_study_seconds // 60,
+            "completed_sessions": st.session_state.completed_sessions,
+            "current_streak_days": st.session_state.streak,
             "daily_goal_minutes": st.session_state.daily_goal_seconds // 60,
-            "daily_achieved_minutes": st.session_state.daily_seconds // 60,
-            "last_subject": st.session_state.last_subject,
-            "study_history": st.session_state.study_history,
+            "today_study_minutes": st.session_state.daily_seconds // 60,
+            "last_subject": st.session_state.last_subject
         },
         "preferences": {
             "dark_mode": st.session_state.dark_mode,
             "language": st.session_state.lang,
-            "student_name": st.session_state.get("student_name", ""),
+            "student_name": st.session_state.get("student_name", "")
         },
-        "schedule": {}
+        "study_history": st.session_state.study_history,
+        "weekly_schedule": {}
     }
     
-    # Load current user's schedule
+    # Load schedule data
     try:
         schedule_file = get_schedule_file()
         if os.path.exists(schedule_file):
             with open(schedule_file, "r", encoding="utf-8") as f:
                 schedule_data = json.load(f)
-                export_data["schedule"] = schedule_data.get("schedule", {})
+                export_data["weekly_schedule"] = schedule_data.get("schedule", {})
     except Exception as e:
         export_data["schedule_error"] = str(e)
     
-    # Create JSON string
     json_str = json.dumps(export_data, indent=2, ensure_ascii=False)
     
-    # Download button
-    st.download_button(
-        label="" + t("export_data") if "export_data" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export Data",
-        data=json_str,
-        file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
-        mime="application/json",
-        key="export_data_btn",
-        use_container_width=True
-    )
+    # JSON download button
+    with st.container():
+        st.markdown('<div class="download-btn">', unsafe_allow_html=True)
+        st.download_button(
+            label="📥 " + (t("export_data") if "export_data" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export Data (JSON)"),
+            data=json_str,
+            file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
+            mime="application/json",
+            key="export_json_btn",
+            use_container_width=True
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # CSV download for study history
+    if st.session_state.study_history:
+        csv_lines = ["timestamp,subject,minutes"]
+        for entry in st.session_state.study_history:
+            # Expected format: "HH:MM - Subject (XX min)"
+            parts = entry.split(" - ")
+            time_part = parts[0] if len(parts) > 0 else ""
+            rest = parts[1] if len(parts) > 1 else ""
+            subject_part = rest.split(" (")[0] if "(" in rest else rest
+            minutes_part = rest.split("(")[1].split(" ")[0] if "(" in rest else "0"
+            csv_lines.append(f"{time_part},{subject_part},{minutes_part}")
+        csv_data = "\n".join(csv_lines)
+        
+        with st.container():
+            st.markdown('<div class="download-btn">', unsafe_allow_html=True)
+            st.download_button(
+                label="📊 " + (t("export_csv") if "export_csv" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export History CSV"),
+                data=csv_data,
+                file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
+                mime="text/csv",
+                key="export_csv_btn",
+                use_container_width=True
+            )
+            st.markdown('</div>', unsafe_allow_html=True)
+            
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True) 
     if st.button("🚪 " + t("logout"), use_container_width=True):
         for key in ["user_email", "data_key", "logged_in"]:
