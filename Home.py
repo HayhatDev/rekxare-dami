@@ -285,7 +285,7 @@ if st.user.is_logged_in and "user_email" not in st.session_state:
     st.session_state.user_email = st.user.email
     st.session_state.data_key = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
     st.session_state.logged_in = True
-    load_data()   # load their existing data (if any)
+    load_data()   # load their existing data
     st.rerun()
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
@@ -986,6 +986,53 @@ with st.sidebar:
                 st.session_state.confirm_clear = False
                 st.rerun()
 
+    # ── Export Data button ──
+    st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True)
+    
+    # Prepare export data on every sidebar render (cheap operation)
+    export_data = {
+        "export_date": datetime.now().isoformat(),
+        "user_email": st.session_state.get("user_email", ""),
+        "study_stats": {
+            "total_minutes": st.session_state.total_study_seconds // 60,
+            "total_seconds": st.session_state.total_study_seconds,
+            "sessions": st.session_state.completed_sessions,
+            "streak": st.session_state.streak,
+            "daily_goal_minutes": st.session_state.daily_goal_seconds // 60,
+            "daily_achieved_minutes": st.session_state.daily_seconds // 60,
+            "last_subject": st.session_state.last_subject,
+            "study_history": st.session_state.study_history,
+        },
+        "preferences": {
+            "dark_mode": st.session_state.dark_mode,
+            "language": st.session_state.lang,
+            "student_name": st.session_state.get("student_name", ""),
+        },
+        "schedule": {}
+    }
+    
+    # Load current user's schedule
+    try:
+        schedule_file = get_schedule_file()
+        if os.path.exists(schedule_file):
+            with open(schedule_file, "r", encoding="utf-8") as f:
+                schedule_data = json.load(f)
+                export_data["schedule"] = schedule_data.get("schedule", {})
+    except Exception as e:
+        export_data["schedule_error"] = str(e)
+    
+    # Create JSON string
+    json_str = json.dumps(export_data, indent=2, ensure_ascii=False)
+    
+    # Download button
+    st.download_button(
+        label="📥 " + t("export_data") if "export_data" in TRANSLATIONS.get(st.session_state.lang, {}) else "📥 Export Data",
+        data=json_str,
+        file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
+        mime="application/json",
+        key="export_data_btn",
+        use_container_width=True
+    )
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True) 
     if st.button("🚪 " + t("logout"), use_container_width=True):
         for key in ["user_email", "data_key", "logged_in"]:
