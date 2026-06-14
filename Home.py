@@ -626,7 +626,28 @@ button, input, select, textarea, label {{
     color: #fff !important; border-color: #e65100 !important;
     box-shadow: 0 3px 12px rgba(239,108,0,0.30) !important;
 }}
-
+/* Style download buttons to match default .stButton */
+.stDownloadButton button {{
+    background-color: {BTN_BG} !important;
+    color: {BTN_COLOR} !important;
+    border: 1.5px solid {BTN_BORDER} !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    padding: 12px 16px !important;
+    min-height: 48px !important;
+    transition: all 0.18s ease !important;
+    width: 100% !important;
+}}
+.stDownloadButton button:hover {{
+    filter: brightness(1.07) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12) !important;
+}}
+.stDownloadButton button:active {{
+    transform: translateY(0px) !important;
+    box-shadow: none !important;
+}}
 /* ── Preset buttons ── */
 .preset-anchor {{ display: none !important; }}
 .element-container:has(.preset-anchor) + div
