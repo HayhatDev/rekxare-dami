@@ -6,8 +6,6 @@ import json
 import os
 import streamlit.components.v1 as components
 import hashlib
-import zipfile
-import io
 
 
 # ══════════════════════════════════════════════════════════
@@ -101,12 +99,7 @@ def save_data():
             "user_email":         st.session_state.get("user_email", ""),
         }, f, ensure_ascii=False, indent=2)
 
-def json_serial(obj):
-    """Convert non‑serializable objects to string."""
-    if isinstance(obj, datetime):
-        return obj.isoformat()
-    raise TypeError(f"Type {type(obj)} not serializable")
-    
+
 # ══════════════════════════════════════════════════════════
 #  TRANSLATION HELPER  (available before and after login)
 # ══════════════════════════════════════════════════════════
