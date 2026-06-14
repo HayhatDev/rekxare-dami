@@ -106,7 +106,8 @@
     "ai_key_error": "🚨 کلیلا Groq نینە. زێدە بکە ل سیکرێتسێن Streamlit.",
     "ai_format_error": "🚨 AI خەلەتیەک هنارت، جارەکا دی بکاربینە",
     "login_divider": "چوونا ژور بکارئینانا",
-    "logout": "دەرکەفتن"
+    "logout": "دەرکەفتن",
+    "export_data": "📥 داتایێن خوە دەرکە"
   },
   "english": {
     "app_title": "📚 Rekxare Dami | For Students & Learners",
@@ -215,7 +216,8 @@
     "ai_key_error": "🚨 Groq API key is missing. Add it to Streamlit secrets.",
     "ai_format_error": "🚨 AI returned invalid format. Please try again.",
     "login_divider": "Sign in with",
-    "logout": "Logout"
+    "logout": "Logout",
+    "export_data": "📥 Export Data"
   },
   "arabic": {
     "app_title": "📚 Rekxare Dami | للطلاب والمتعلمين",
@@ -324,6 +326,7 @@
     "ai_key_error": "🚨 مفتاح Groq API غير موجود. أضفه إلى أسرار Streamlit.",
     "ai_format_error": "🚨 أعاد الذكاء الاصطناعي صيغة غير صحيحة. حاول مرة أخرى.",
     "login_divider": "تسجيل الدخول باستخدام",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "export_data": "📥 تصدير البيانات"
   }
 }
