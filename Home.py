@@ -101,7 +101,12 @@ def save_data():
             "user_email":         st.session_state.get("user_email", ""),
         }, f, ensure_ascii=False, indent=2)
 
-
+def json_serial(obj):
+    """Convert non‑serializable objects to string."""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError(f"Type {type(obj)} not serializable")
+    
 # ══════════════════════════════════════════════════════════
 #  TRANSLATION HELPER  (available before and after login)
 # ══════════════════════════════════════════════════════════
@@ -1015,7 +1020,7 @@ with st.sidebar:
     
     # Prepare JSON data (same as before)
     export_data = { ... }  # your existing dictionary
-    json_str = json.dumps(export_data, indent=2, ensure_ascii=False)
+    json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=json_serial)
     json_filename = f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json"
     
     # Prepare CSV data
