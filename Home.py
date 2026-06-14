@@ -1009,8 +1009,9 @@ with st.sidebar:
                 
     # ========== EXPORT DATA SECTION ==========
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True)
+    st.markdown('<span class="sb-lbl">📥 Export Data</span>', unsafe_allow_html=True)
     
-    # Prepare export data (JSON)
+    # Prepare export data (JSON) – always needed
     export_data = {
         "export_info": {
             "generated": datetime.now().isoformat(),
@@ -1044,19 +1045,7 @@ with st.sidebar:
     except Exception as e:
         export_data["schedule_error"] = str(e)
     
-    json_str = json.dumps(export_data, indent=2, ensure_ascii=False)
-    
-    # JSON download button
-    st.download_button(
-        label="📥 " + (t("export_data") if "export_data" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export All Data (JSON)"),
-        data=json_str,
-        file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
-        mime="application/json",
-        key="export_json_btn",
-        use_container_width=True
-    )
-    
-    # CSV download for study history
+    # Prepare CSV data (study history)
     csv_lines = ["timestamp,subject,minutes"]
     if st.session_state.study_history:
         for entry in st.session_state.study_history:
@@ -1067,16 +1056,33 @@ with st.sidebar:
             minutes_part = rest.split("(")[1].split(" ")[0] if "(" in rest else "0"
             csv_lines.append(f"{time_part},{subject_part},{minutes_part}")
     else:
-        csv_lines.append("No history,,")  # placeholder row
-    
+        csv_lines.append("No history,,")
     csv_data = "\n".join(csv_lines)
     
+    # Choose format
+    export_format = st.selectbox(
+        "Format",
+        options=["JSON (All Data)", "CSV (Study History)"],
+        key="export_format",
+        label_visibility="collapsed"
+    )
+    
+    # Prepare the appropriate data and file name
+    if export_format == "JSON (All Data)":
+        export_data_str = json.dumps(export_data, indent=2, ensure_ascii=False)
+        file_name = f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json"
+        mime_type = "application/json"
+    else:
+        export_data_str = csv_data
+        file_name = f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv"
+        mime_type = "text/csv"
+    
     st.download_button(
-        label="📊 " + (t("export_csv") if "export_csv" in TRANSLATIONS.get(st.session_state.lang, {}) else "Export History CSV"),
-        data=csv_data,
-        file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
-        mime="text/csv",
-        key="export_csv_btn",
+        label=f"📥 Download {export_format.split(' ')[0]}",
+        data=export_data_str,
+        file_name=file_name,
+        mime=mime_type,
+        key="export_btn",
         use_container_width=True
     )
             
