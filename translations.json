@@ -107,7 +107,10 @@
     "ai_format_error": "🚨 AI خەلەتیەک هنارت، جارەکا دی بکاربینە",
     "login_divider": "چوونا ژور بکارئینانا",
     "logout": "دەرکەفتن",
-    "export_data": "📥 داتایێن خوە دەرکە"
+    "export_data": "داتایێن خوە دەرکە",
+    "export_csv": "📊 دەرکە CSV"
+
+
   },
   "english": {
     "app_title": "📚 Rekxare Dami | For Students & Learners",
@@ -217,7 +220,8 @@
     "ai_format_error": "🚨 AI returned invalid format. Please try again.",
     "login_divider": "Sign in with",
     "logout": "Logout",
-    "export_data": "📥 Export Data"
+    "export_data": "📥 Export Data",
+    "📊 Export History CSV"
   },
   "arabic": {
     "app_title": "📚 Rekxare Dami | للطلاب والمتعلمين",
@@ -327,6 +331,8 @@
     "ai_format_error": "🚨 أعاد الذكاء الاصطناعي صيغة غير صحيحة. حاول مرة أخرى.",
     "login_divider": "تسجيل الدخول باستخدام",
     "logout": "تسجيل الخروج",
-    "export_data": "📥 تصدير البيانات"
+    "export_data": "📥 تصدير البيانات",
+    "export_csv": "📊 تصدير السجل CSV"
+    
   }
 }
