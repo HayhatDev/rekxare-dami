@@ -626,8 +626,8 @@ button, input, select, textarea, label {{
     color: #fff !important; border-color: #e65100 !important;
     box-shadow: 0 3px 12px rgba(239,108,0,0.30) !important;
 }}
-/* Style download buttons like regular buttons */
-.stDownloadButton > button {{
+/* Make download buttons look exactly like regular buttons */
+.stDownloadButton button {{
     background: linear-gradient(135deg, #388e3c, #4caf50) !important;
     color: white !important;
     border: none !important;
@@ -639,7 +639,7 @@ button, input, select, textarea, label {{
     transition: all 0.18s ease !important;
     width: 100% !important;
 }}
-.stDownloadButton > button:hover {{
+.stDownloadButton button:hover {{
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 16px rgba(76,175,80,0.45) !important;
     filter: brightness(1.05) !important;
