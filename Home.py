@@ -1007,6 +1007,14 @@ with st.sidebar:
                 st.session_state.confirm_clear = False
             st.rerun()
                 
+            
+    st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True) 
+    if st.button("🚪 " + t("logout"), use_container_width=True):
+        for key in ["user_email", "data_key", "logged_in"]:
+            st.session_state.pop(key, None)
+        st.logout()
+        st.rerun()
+
     # ========== EXPORT DATA SECTION ==========
     st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True)
     
@@ -1066,12 +1074,12 @@ with st.sidebar:
         csv_lines.append("No history,,")
     csv_data = "\n".join(csv_lines)
     
-    # Expander with two download buttons
-    with st.expander("📥 Export Data", expanded=False):
+    # Expander with translated title
+    with st.expander(t("export_data"), expanded=False):
         col1, col2 = st.columns(2)
         with col1:
             st.download_button(
-                label="📄 JSON (All Data)",
+                label="📄 JSON",
                 data=json_str,
                 file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
                 mime="application/json",
@@ -1080,20 +1088,13 @@ with st.sidebar:
             )
         with col2:
             st.download_button(
-                label="📊 CSV (History)",
+                label="📊 CSV",
                 data=csv_data,
                 file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
                 mime="text/csv",
                 key="export_csv_btn",
                 use_container_width=True
             )
-            
-    st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True) 
-    if st.button("🚪 " + t("logout"), use_container_width=True):
-        for key in ["user_email", "data_key", "logged_in"]:
-            st.session_state.pop(key, None)
-        st.logout()
-        st.rerun()
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
 # ══════════════════════════════════════════════════════════
