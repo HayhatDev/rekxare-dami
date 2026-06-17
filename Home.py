@@ -6,8 +6,6 @@ import json
 import os
 import streamlit.components.v1 as components
 import hashlib
-from supabase import create_client
-
 
 
 # ══════════════════════════════════════════════════════════
@@ -25,6 +23,15 @@ if "user_email" not in st.session_state:
     st.session_state.user_email = ""
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+
+
+def get_schedule_file():
+    if st.user.is_logged_in:
+        email = st.user.email
+    else:
+        email = st.session_state.get("user_email", "default")
+    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"schedule_data_{user_hash}.json"
     
 # ══════════════════════════════════════════════════════════
 #  PAGE CONFIG  ← must be the FIRST Streamlit call
@@ -44,115 +51,54 @@ SCHEDULE_FILE = "schedule_data.json"
 # ══════════════════════════════════════════════════════════
 #  DATA HELPERS
 # ══════════════════════════════════════════════════════════
-def get_schedule_data():
-    email = st.session_state.get("user_email", "")
-    if not email:
-        return {}
-    
-    supabase = get_supabase_client()
-    if not supabase:
-        return {}
-    
-    try:
-        result = supabase.table("user_data").select("data->schedule").eq("email", email).execute()
-        if result.data and len(result.data) > 0:
-            data = result.data[0].get("data", {})
-            return data.get("schedule", {})
-    except Exception as e:
-        print(f"Error loading schedule: {e}")
-    return {}
-    
-def get_supabase_client():
-    url = st.secrets.get("SUPABASE_URL")
-    key = st.secrets.get("SUPABASE_KEY")
-    if url and key:
-        return create_client(url, key)
-    return None
-
-def load_user_data(email):
-    if not email:
-        return None
-    supabase = get_supabase_client()
-    if not supabase:
-        return None
-    try:
-        result = supabase.table("user_data").select("data").eq("email", email).execute()
-        if result.data and len(result.data) > 0:
-            return result.data[0].get("data", {})
-    except Exception as e:
-        print(f"Error loading data: {e}")
-    return None
-
-def save_user_data(email, data):
-    if not email:
-        return False
-    supabase = get_supabase_client()
-    if not supabase:
-        return False
-    try:
-        supabase.table("user_data").upsert({
-            "email": email,
-            "data": data
-        }).execute()
-        return True
-    except Exception as e:
-        print(f"Error saving data: {e}")
-        return False
+def get_data_file():
+    if st.user.is_logged_in:
+        email = st.user.email
+    else:
+        email = st.session_state.get("user_email", "default")
+    key = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"study_data_{key}.json"
 
 def load_data():
-    email = st.session_state.get("user_email", "")
-    if not email:
-        return
-    
-    data = load_user_data(email)
-    if not data:
-        return
-    
-    st.session_state.total_study_seconds = data.get("total_seconds", 0)
-    st.session_state.completed_sessions  = data.get("sessions", 0)
-    st.session_state.last_subject        = data.get("last_subject", "—")
-    st.session_state.study_history       = data.get("history", [])
-    st.session_state.dark_mode           = data.get("dark_mode", True)
-    st.session_state.streak              = data.get("streak", 0)
-    st.session_state.last_study_date     = data.get("last_study_date", "")
-    st.session_state.daily_seconds       = data.get("daily_seconds", 0)
-    st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
-    st.session_state.lang                = data.get("lang", "badini")
-    st.session_state.student_name        = data.get("student_name", "")
+    DATA_FILE = get_data_file()
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        st.session_state.total_study_seconds = data.get("total_seconds", 0)
+        st.session_state.completed_sessions  = data.get("sessions", 0)
+        st.session_state.last_subject        = data.get("last_subject", "—")
+        st.session_state.study_history       = data.get("history", [])
+        st.session_state.dark_mode           = data.get("dark_mode", True)
+        st.session_state.streak              = data.get("streak", 0)
+        st.session_state.last_study_date     = data.get("last_study_date", "")
+        st.session_state.daily_seconds       = data.get("daily_seconds", 0)
+        st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
+        st.session_state.lang                = data.get("lang", "badini")
+        st.session_state.student_name        = data.get("student_name", "")
+        st.session_state.user_email = data.get("user_email", "")
+        if st.session_state.user_email:
+            st.session_state.logged_in = True
+            st.session_state.data_key = st.session_state.user_email.split("@")[0]
+
 
 def save_data():
-    email = st.session_state.get("user_email", "")
-    if not email:
-        return
-    
-    data = {
-        "total_seconds": st.session_state.total_study_seconds,
-        "sessions": st.session_state.completed_sessions,
-        "last_subject": st.session_state.last_subject,
-        "history": st.session_state.study_history,
-        "dark_mode": st.session_state.dark_mode,
-        "streak": st.session_state.streak,
-        "last_study_date": st.session_state.last_study_date,
-        "daily_seconds": st.session_state.daily_seconds,
-        "daily_goal_seconds": st.session_state.daily_goal_seconds,
-        "lang": st.session_state.lang,
-        "student_name": st.session_state.get("student_name", ""),
-    }
-    save_user_data(email, data)
+    DATA_FILE = get_data_file()
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump({
+            "total_seconds":      st.session_state.total_study_seconds,
+            "sessions":           st.session_state.completed_sessions,
+            "last_subject":       st.session_state.last_subject,
+            "history":            st.session_state.study_history,
+            "dark_mode":          st.session_state.dark_mode,
+            "streak":             st.session_state.streak,
+            "last_study_date":    st.session_state.last_study_date,
+            "daily_seconds":      st.session_state.daily_seconds,
+            "daily_goal_seconds": st.session_state.daily_goal_seconds,
+            "lang":               st.session_state.lang,
+            "student_name":       st.session_state.get("student_name", ""),
+            "user_email":         st.session_state.get("user_email", ""),
+        }, f, ensure_ascii=False, indent=2)
 
-def init_session_state():
-    # التحقق مما إذا كان المستخدم مسجلاً للدخول
-    if st.user.is_logged_in:
-        # التحقق مما إذا كانت الجلسة قد مُسحت بسبب تحديث الصفحة
-        if "user_email" not in st.session_state or not st.session_state.user_email:
-            st.session_state.user_email = st.user.email
-            st.session_state.data_key = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
-            st.session_state.logged_in = True
-            load_data() 
-            st.session_state.data_loaded = True
-
-# تشغيل الدالة فوراً عند فتح أو تحديث الصفحة
-init_session_state()
 
 # ══════════════════════════════════════════════════════════
 #  TRANSLATION HELPER  (available before and after login)
@@ -335,12 +281,11 @@ if not st.user.is_logged_in:
 
 
 # ========== AFTER LOGIN: SET USER SESSION ==========
-if st.user.is_logged_in and not st.session_state.get("logged_in", False):
+if st.user.is_logged_in and "user_email" not in st.session_state:
     st.session_state.user_email = st.user.email
     st.session_state.data_key = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
     st.session_state.logged_in = True
     load_data()   # load their existing data
-    st.session_state.data_loaded = True
     st.rerun()
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
@@ -383,22 +328,14 @@ def get_greeting():
 def load_today_schedule():
     today_map = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat"}
     today_key = today_map[datetime.now().weekday()]
-    email = st.session_state.get("user_email", "")
-    if not email:
-        return today_key, []
-    
-    supabase = get_supabase_client()
-    if not supabase:
-        return today_key, []
-    
-    try:
-        result = supabase.table("user_data").select("data->schedule").eq("email", email).execute()
-        if result.data and len(result.data) > 0:
-            data = result.data[0].get("data", {})
-            schedule = data.get("schedule", {})
-            return today_key, schedule.get(today_key, [])
-    except Exception as e:
-        print(f"Error loading today's schedule: {e}")
+    filename = get_schedule_file()
+    if os.path.exists(filename):
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return today_key, data.get("schedule", {}).get(today_key, [])
+        except Exception:
+            return today_key, []
     return today_key, []
 
 # ── Defaults
@@ -1111,13 +1048,16 @@ with st.sidebar:
         "weekly_schedule": {}
     }
     
-    # Load schedule data from Supabase
+    # Load schedule data
     try:
-        schedule_data = get_schedule_data()
-        export_data["weekly_schedule"] = schedule_data
+        schedule_file = get_schedule_file()
+        if os.path.exists(schedule_file):
+            with open(schedule_file, "r", encoding="utf-8") as f:
+                schedule_data = json.load(f)
+                export_data["weekly_schedule"] = schedule_data.get("schedule", {})
     except Exception as e:
         export_data["schedule_error"] = str(e)
-        
+    
     json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=json_serial)
     
     # Prepare CSV data
