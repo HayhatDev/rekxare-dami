@@ -87,13 +87,6 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 
-def get_schedule_file():
-    if st.user.is_logged_in:
-        email = st.user.email
-    else:
-        email = st.session_state.get("user_email", "default")
-    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
-    return f"schedule_data_{user_hash}.json"
     
 # ══════════════════════════════════════════════════════════
 #  PAGE CONFIG  ← must be the FIRST Streamlit call
@@ -105,10 +98,6 @@ st.set_page_config(
     layout="centered",
 )
 
-# ══════════════════════════════════════════════════════════
-#  CONSTANTS
-# ══════════════════════════════════════════════════════════
-SCHEDULE_FILE = "schedule_data.json"
 
 # ══════════════════════════════════════════════════════════
 #  DATA HELPERS (SUPABASE ONLY - NO JSON FILES)
