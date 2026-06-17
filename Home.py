@@ -409,6 +409,17 @@ DEFAULTS = {
     "end_time": None, "total_seconds": 0, "paused": False,
     "remaining_at_pause": 0, "student_name": "",
 }
+# مثال عند إنهاء جلسة دراسية بنجاح:
+current_data = {
+    "all_sessions": st.session_state.all_sessions,
+    "total_time": st.session_state.total_time,
+    "xp_level": st.session_state.xp_level
+}
+
+# حفظ التعديلات فوراً في السحاب لضمان أمانها
+save_user_data_to_db(st.session_state.user_email, current_data)
+
+
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
         st.session_state[k] = v
