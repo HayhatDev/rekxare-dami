@@ -46,6 +46,11 @@ st.set_page_config(
     layout="centered",
 )
 
+# إسترجاع بيانات الجلسة إذا قام المستخدم بتحديث الصفحة مباشرة من هنا
+if st.user.is_logged_in and not st.session_state.get("user_email"):
+    st.session_state.user_email = st.user.email
+    st.session_state.logged_in = True
+
 # ── PWA manifest (after set_page_config)
 st.markdown("""
 <link rel="manifest" href="/manifest.json">
