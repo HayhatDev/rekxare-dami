@@ -127,14 +127,6 @@ DAYS = [
 ]
 DAY_EMOJIS  = {"sun":"☀️","mon":"📖","tue":"📖","wed":"📖","thu":"📖","fri":"🕌","sat":"🎉"}
 
-def get_schedule_file():
-    if st.user.is_logged_in:
-        email = st.user.email
-    else:
-        email = st.session_state.get("user_email", "default")
-    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
-    return f"schedule_data_{user_hash}.json"
-
 # ══════════════════════════════════════════════════════════
 #  HELPERS
 # ══════════════════════════════════════════════════════════
@@ -208,23 +200,33 @@ def fmt_minutes(mins):
     return f"{h}h {m}m" if m else f"{h}h"
 
 
+# ══════════════════════════════════════════════════════════
+#  HELPERS (SUPABASE ONLY - NO JSON FILES)
+# ══════════════════════════════════════════════════════════
 def load_schedule():
-    filename = get_schedule_file()
-    if os.path.exists(filename):
-        with open(filename, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        if "dark_mode" in data:
-            st.session_state.dark_mode = data["dark_mode"]
-        return data.get("schedule", None)
-    return None
+    if not st.user.is_logged_in:
+        return None
+        
+    data = load_user_data_from_db(st.user.email) or {}
+    
+    if "dark_mode" in data:
+        st.session_state.dark_mode = data["dark_mode"]
+        
+    return data.get("schedule", None)
 
 def save_schedule():
-    filename = get_schedule_file()
-    with open(filename, "w") as f:
-        json.dump({
-            "schedule":  st.session_state.schedule,
-            "dark_mode": st.session_state.dark_mode,
-        }, f, ensure_ascii=False, indent=2)
+    if not st.user.is_logged_in:
+        return
+        
+    # نجلب البيانات القديمة أولاً حتى لا نمسح إحصائيات الصفحة الرئيسية
+    current_data = load_user_data_from_db(st.user.email) or {}
+    
+    # نحدث بيانات الجدول والوضع الليلي فقط
+    current_data["schedule"] = st.session_state.schedule
+    current_data["dark_mode"] = st.session_state.dark_mode
+    
+    # حفظ في Supabase
+    save_user_data_to_db(st.user.email, current_data)
 
 
 def copy_week_to_next():
