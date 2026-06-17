@@ -43,13 +43,6 @@ SCHEDULE_FILE = "schedule_data.json"
 # ══════════════════════════════════════════════════════════
 #  DATA HELPERS
 # ══════════════════════════════════════════════════════════
-def get_supabase_client():
-    url = st.secrets.get("SUPABASE_URL")
-    key = st.secrets.get("SUPABASE_KEY")
-    if url and key:
-        return create_client(url, key)
-    return None
-
 def get_schedule_data():
     email = st.session_state.get("user_email", "")
     if not email:
@@ -68,6 +61,13 @@ def get_schedule_data():
         print(f"Error loading schedule: {e}")
     return {}
     
+def get_supabase_client():
+    url = st.secrets.get("SUPABASE_URL")
+    key = st.secrets.get("SUPABASE_KEY")
+    if url and key:
+        return create_client(url, key)
+    return None
+
 def load_user_data(email):
     if not email:
         return None
@@ -321,13 +321,13 @@ if not st.user.is_logged_in:
 
 
 # ========== AFTER LOGIN: SET USER SESSION ==========
-if st.user.is_logged_in:
-    if not st.session_state.get("user_email"):
-        st.session_state.user_email = st.user.email
-        st.session_state.data_key = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
-        st.session_state.logged_in = True
-    load_data()
-    
+if st.user.is_logged_in and not st.session_state.get("logged_in", False):
+    st.session_state.user_email = st.user.email
+    st.session_state.data_key = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
+    st.session_state.logged_in = True
+    load_data()   # load their existing data
+    st.session_state.data_loaded = True
+    st.rerun()
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
 # ══════════════════════════════════════════════════════════
@@ -400,6 +400,9 @@ for k, v in DEFAULTS.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
+if "data_loaded" not in st.session_state:
+    load_data()
+    st.session_state.data_loaded = True
 
 if "confirm_clear" not in st.session_state:
     st.session_state.confirm_clear = False
