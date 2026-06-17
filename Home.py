@@ -322,15 +322,12 @@ if not st.user.is_logged_in:
 
 # ========== AFTER LOGIN: SET USER SESSION ==========
 if st.user.is_logged_in:
-    # Ensure user_email is set
     if not st.session_state.get("user_email"):
         st.session_state.user_email = st.user.email
+        st.session_state.data_key = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
         st.session_state.logged_in = True
-    
-    # Always load data from Supabase
     load_data()
-else:
-    pass
+    
 # ══════════════════════════════════════════════════════════
 #  POST-LOGIN SETUP
 # ══════════════════════════════════════════════════════════
@@ -403,9 +400,6 @@ for k, v in DEFAULTS.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-if "data_loaded" not in st.session_state:
-    load_data()
-    st.session_state.data_loaded = True
 
 if "confirm_clear" not in st.session_state:
     st.session_state.confirm_clear = False
