@@ -220,11 +220,11 @@ def copy_week_to_next():
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = True
 
-if "schedule" not in st.session_state:
-    loaded = load_schedule()
-    base   = {dk: [] for dk, _, _ in DAYS}
-    if loaded: base.update(loaded)
-    st.session_state.schedule = base
+# Always load schedule from Supabase
+loaded = load_schedule()
+base = {dk: [] for dk, _, _ in DAYS}
+if loaded: base.update(loaded)
+st.session_state.schedule = base
 
 for dk, _, _ in DAYS:
     if dk not in st.session_state.schedule:
