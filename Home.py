@@ -374,17 +374,23 @@ def get_greeting():
 
 
 def load_today_schedule():
-    today_map = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat"}
+    # 1. تحديد مفتاح اليوم الحالي
+    today_map = {6:"sun", 0:"mon", 1:"tue", 2:"wed", 3:"thu", 4:"fri", 5:"sat"}
     today_key = today_map[datetime.now().weekday()]
-    filename = get_schedule_file()
-    if os.path.exists(filename):
-        try:
-            with open(filename, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            return today_key, data.get("schedule", {}).get(today_key, [])
-        except Exception:
-            return today_key, []
-    return today_key, []
+    
+    # 2. جلب بيانات المستخدم من Supabase
+    if not st.user.is_logged_in:
+        return today_key, []
+        
+    data = load_user_data_from_db(st.user.email) or {}
+    
+    # 3. استخراج الجدول من البيانات
+    schedule = data.get("schedule", {})
+    
+    # 4. إرجاع مهام اليوم الحالي (إذا لم توجد مهام، نرجع قائمة فارغة)
+    today_tasks = schedule.get(today_key, [])
+    
+    return today_key, today_tasks
 
 # ── Defaults
 DEFAULTS = {
