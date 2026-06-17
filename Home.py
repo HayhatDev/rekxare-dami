@@ -111,55 +111,52 @@ st.set_page_config(
 SCHEDULE_FILE = "schedule_data.json"
 
 # ══════════════════════════════════════════════════════════
-#  DATA HELPERS
+#  DATA HELPERS (SUPABASE ONLY - NO JSON FILES)
 # ══════════════════════════════════════════════════════════
-def get_data_file():
-    if st.user.is_logged_in:
-        email = st.user.email
-    else:
-        email = st.session_state.get("user_email", "default")
-    key = hashlib.md5(email.encode()).hexdigest()[:8]
-    return f"study_data_{key}.json"
-
 def load_data():
-    DATA_FILE = get_data_file()
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        st.session_state.total_study_seconds = data.get("total_seconds", 0)
-        st.session_state.completed_sessions  = data.get("sessions", 0)
-        st.session_state.last_subject        = data.get("last_subject", "—")
-        st.session_state.study_history       = data.get("history", [])
-        st.session_state.dark_mode           = data.get("dark_mode", True)
-        st.session_state.streak              = data.get("streak", 0)
-        st.session_state.last_study_date     = data.get("last_study_date", "")
-        st.session_state.daily_seconds       = data.get("daily_seconds", 0)
-        st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
-        st.session_state.lang                = data.get("lang", "badini")
-        st.session_state.student_name        = data.get("student_name", "")
-        st.session_state.user_email = data.get("user_email", "")
-        if st.session_state.user_email:
-            st.session_state.logged_in = True
-            st.session_state.data_key = st.session_state.user_email.split("@")[0]
-
+    if not st.user.is_logged_in:
+        return
+    
+    # جلب البيانات من Supabase
+    data = load_user_data_from_db(st.user.email) or {}
+    
+    st.session_state.total_study_seconds = data.get("total_seconds", 0)
+    st.session_state.completed_sessions  = data.get("sessions", 0)
+    st.session_state.last_subject        = data.get("last_subject", "—")
+    st.session_state.study_history       = data.get("history", [])
+    st.session_state.dark_mode           = data.get("dark_mode", True)
+    st.session_state.streak              = data.get("streak", 0)
+    st.session_state.last_study_date     = data.get("last_study_date", "")
+    st.session_state.daily_seconds       = data.get("daily_seconds", 0)
+    st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
+    st.session_state.lang                = data.get("lang", "badini")
+    st.session_state.student_name        = data.get("student_name", "")
+    st.session_state.user_email          = st.user.email
 
 def save_data():
-    DATA_FILE = get_data_file()
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump({
-            "total_seconds":      st.session_state.total_study_seconds,
-            "sessions":           st.session_state.completed_sessions,
-            "last_subject":       st.session_state.last_subject,
-            "history":            st.session_state.study_history,
-            "dark_mode":          st.session_state.dark_mode,
-            "streak":             st.session_state.streak,
-            "last_study_date":    st.session_state.last_study_date,
-            "daily_seconds":      st.session_state.daily_seconds,
-            "daily_goal_seconds": st.session_state.daily_goal_seconds,
-            "lang":               st.session_state.lang,
-            "student_name":       st.session_state.get("student_name", ""),
-            "user_email":         st.session_state.get("user_email", ""),
-        }, f, ensure_ascii=False, indent=2)
+    if not st.user.is_logged_in:
+        return
+    
+    # نجلب البيانات القديمة أولاً حتى لا نمسح جدول المهام (Schedule)
+    current_data = load_user_data_from_db(st.user.email) or {}
+    
+    # نحدث الإحصائيات الخاصة بالصفحة الرئيسية فقط
+    current_data.update({
+        "total_seconds":      st.session_state.total_study_seconds,
+        "sessions":           st.session_state.completed_sessions,
+        "last_subject":       st.session_state.last_subject,
+        "history":            st.session_state.study_history,
+        "dark_mode":          st.session_state.dark_mode,
+        "streak":             st.session_state.streak,
+        "last_study_date":    st.session_state.last_study_date,
+        "daily_seconds":      st.session_state.daily_seconds,
+        "daily_goal_seconds": st.session_state.daily_goal_seconds,
+        "lang":               st.session_state.lang,
+        "student_name":       st.session_state.get("student_name", ""),
+    })
+    
+    # حفظ في Supabase
+    save_user_data_to_db(st.user.email, current_data)
 
 
 # ══════════════════════════════════════════════════════════
@@ -409,16 +406,6 @@ DEFAULTS = {
     "end_time": None, "total_seconds": 0, "paused": False,
     "remaining_at_pause": 0, "student_name": "",
 }
-# مثال عند إنهاء جلسة دراسية بنجاح:
-current_data = {
-    "all_sessions": st.session_state.all_sessions,
-    "total_time": st.session_state.total_time,
-    "xp_level": st.session_state.xp_level
-}
-
-# حفظ التعديلات فوراً في السحاب لضمان أمانها
-save_user_data_to_db(st.session_state.user_email, current_data)
-
 
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
