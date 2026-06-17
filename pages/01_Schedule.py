@@ -6,75 +6,11 @@ import os
 import requests
 import time
 import hashlib
-from supabase import create_client
-
 
 if not st.user.is_logged_in:
     st.switch_page("Home.py")  # توجيه المستخدم لصفحة تسجيل الدخول الرئيسية
     st.stop()
-
-# 1. الاتصال بقاعدة البيانات
-def get_supabase_client():
-    url = st.secrets.get("SUPABASE_URL")
-    key = st.secrets.get("SUPABASE_KEY")
-    if url and key:
-        return create_client(url, key)
-    return None
-
-# 2. دالة جلب البيانات من Supabase
-def load_user_data_from_db(email):
-    supabase = get_supabase_client()
-    if not supabase:
-        return None
-    try:
-        # البحث عن السجل الخاص بإيميل المستخدم
-        response = supabase.table("user_schedules").select("schedule_data").eq("email", email).execute()
-        if response.data:
-            return response.data[0]["schedule_data"]
-    except Exception as e:
-        st.error(f"حدث خطأ أثناء تحميل البيانات: {e}")
-    return None
-
-# 3. دالة حفظ/تحديث البيانات في Supabase
-def save_user_data_to_db(email, data_dict):
-    supabase = get_supabase_client()
-    if not supabase:
-        return
-    try:
-        # استخدام upsert لتحديث البيانات إذا كان الإيميل موجوداً، أو إنشائه إن لم يكن موجوداً
-        supabase.table("user_schedules").upsert({
-            "email": email,
-            "schedule_data": data_dict
-        }, on_conflict="email").execute()
-    except Exception as e:
-        st.error(f"حدث خطأ أثناء حفظ البيانات: {e}")
-
-# دالة تهيئة الجلسة وجلب البيانات فوراً عند تحديث الصفحة
-def sync_session_with_db():
-    # التحقق مما إذا كان المستخدم مسجلاً للدخول عبر النظام الأساسي
-    if st.user.is_logged_in:
-        # إذا تم تحديث الصفحة ومسحت متغيرات الـ session_state، نقوم بإعادة بنائها فوراً
-        if "user_email" not in st.session_state or not st.session_state.user_email:
-            st.session_state.user_email = st.user.email
-            st.session_state.logged_in = True
-            
-            # جلب البيانات المخزنة لهذا المستخدم من قاعدة البيانات
-            db_data = load_user_data_from_db(st.user.email)
-            
-            if db_data:
-                # إذا وجدت بيانات سابقة، املأ الـ session_state بها
-                st.session_state.all_sessions = db_data.get("all_sessions", [])
-                st.session_state.total_time = db_data.get("total_time", 0)
-                st.session_state.xp_level = db_data.get("xp_level", 1)
-                # أضف هنا باقي المتغيرات التي تستخدمها في تطبيقك لضمان عودتها
-            else:
-                # إذا كان مستخدماً جديداً، ضع القيم الافتراضية
-                st.session_state.all_sessions = []
-                st.session_state.total_time = 0
-                st.session_state.xp_level = 1
-
-# تشغيل الدالة تلقائياً في أعلى الملف
-sync_session_with_db()
+    
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (must load before set_page_config uses t())
 # ══════════════════════════════════════════════════════════
@@ -126,6 +62,14 @@ DAYS = [
     ("sat", "🎉 شەمبی",   "Saturday"),
 ]
 DAY_EMOJIS  = {"sun":"☀️","mon":"📖","tue":"📖","wed":"📖","thu":"📖","fri":"🕌","sat":"🎉"}
+
+def get_schedule_file():
+    if st.user.is_logged_in:
+        email = st.user.email
+    else:
+        email = st.session_state.get("user_email", "default")
+    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"schedule_data_{user_hash}.json"
 
 # ══════════════════════════════════════════════════════════
 #  HELPERS
@@ -200,33 +144,23 @@ def fmt_minutes(mins):
     return f"{h}h {m}m" if m else f"{h}h"
 
 
-# ══════════════════════════════════════════════════════════
-#  HELPERS (SUPABASE ONLY - NO JSON FILES)
-# ══════════════════════════════════════════════════════════
 def load_schedule():
-    if not st.user.is_logged_in:
-        return None
-        
-    data = load_user_data_from_db(st.user.email) or {}
-    
-    if "dark_mode" in data:
-        st.session_state.dark_mode = data["dark_mode"]
-        
-    return data.get("schedule", None)
+    filename = get_schedule_file()
+    if os.path.exists(filename):
+        with open(filename, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if "dark_mode" in data:
+            st.session_state.dark_mode = data["dark_mode"]
+        return data.get("schedule", None)
+    return None
 
 def save_schedule():
-    if not st.user.is_logged_in:
-        return
-        
-    # نجلب البيانات القديمة أولاً حتى لا نمسح إحصائيات الصفحة الرئيسية
-    current_data = load_user_data_from_db(st.user.email) or {}
-    
-    # نحدث بيانات الجدول والوضع الليلي فقط
-    current_data["schedule"] = st.session_state.schedule
-    current_data["dark_mode"] = st.session_state.dark_mode
-    
-    # حفظ في Supabase
-    save_user_data_to_db(st.user.email, current_data)
+    filename = get_schedule_file()
+    with open(filename, "w") as f:
+        json.dump({
+            "schedule":  st.session_state.schedule,
+            "dark_mode": st.session_state.dark_mode,
+        }, f, ensure_ascii=False, indent=2)
 
 
 def copy_week_to_next():
@@ -975,7 +909,7 @@ Use 24-hour format. Distribute hours per user preferences. Include breaks."""
     try:
         with st.spinner("⏳ " + {
             "english": "Generating your schedule…",
-            "badini":  "خشتە دروست دکت…",
+            "badini":  "خشتە دروست دکرێت…",
             "arabic":  "جاري إنشاء الجدول…",
         }.get(st.session_state.lang, "Generating…")):
             response = requests.post(
