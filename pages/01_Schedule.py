@@ -6,11 +6,75 @@ import os
 import requests
 import time
 import hashlib
+from supabase import create_client
+
 
 if not st.user.is_logged_in:
     st.switch_page("Home.py")  # توجيه المستخدم لصفحة تسجيل الدخول الرئيسية
     st.stop()
-    
+
+# 1. الاتصال بقاعدة البيانات
+def get_supabase_client():
+    url = st.secrets.get("SUPABASE_URL")
+    key = st.secrets.get("SUPABASE_KEY")
+    if url and key:
+        return create_client(url, key)
+    return None
+
+# 2. دالة جلب البيانات من Supabase
+def load_user_data_from_db(email):
+    supabase = get_supabase_client()
+    if not supabase:
+        return None
+    try:
+        # البحث عن السجل الخاص بإيميل المستخدم
+        response = supabase.table("user_schedules").select("schedule_data").eq("email", email).execute()
+        if response.data:
+            return response.data[0]["schedule_data"]
+    except Exception as e:
+        st.error(f"حدث خطأ أثناء تحميل البيانات: {e}")
+    return None
+
+# 3. دالة حفظ/تحديث البيانات في Supabase
+def save_user_data_to_db(email, data_dict):
+    supabase = get_supabase_client()
+    if not supabase:
+        return
+    try:
+        # استخدام upsert لتحديث البيانات إذا كان الإيميل موجوداً، أو إنشائه إن لم يكن موجوداً
+        supabase.table("user_schedules").upsert({
+            "email": email,
+            "schedule_data": data_dict
+        }, on_conflict="email").execute()
+    except Exception as e:
+        st.error(f"حدث خطأ أثناء حفظ البيانات: {e}")
+
+# دالة تهيئة الجلسة وجلب البيانات فوراً عند تحديث الصفحة
+def sync_session_with_db():
+    # التحقق مما إذا كان المستخدم مسجلاً للدخول عبر النظام الأساسي
+    if st.user.is_logged_in:
+        # إذا تم تحديث الصفحة ومسحت متغيرات الـ session_state، نقوم بإعادة بنائها فوراً
+        if "user_email" not in st.session_state or not st.session_state.user_email:
+            st.session_state.user_email = st.user.email
+            st.session_state.logged_in = True
+            
+            # جلب البيانات المخزنة لهذا المستخدم من قاعدة البيانات
+            db_data = load_user_data_from_db(st.user.email)
+            
+            if db_data:
+                # إذا وجدت بيانات سابقة، املأ الـ session_state بها
+                st.session_state.all_sessions = db_data.get("all_sessions", [])
+                st.session_state.total_time = db_data.get("total_time", 0)
+                st.session_state.xp_level = db_data.get("xp_level", 1)
+                # أضف هنا باقي المتغيرات التي تستخدمها في تطبيقك لضمان عودتها
+            else:
+                # إذا كان مستخدماً جديداً، ضع القيم الافتراضية
+                st.session_state.all_sessions = []
+                st.session_state.total_time = 0
+                st.session_state.xp_level = 1
+
+# تشغيل الدالة تلقائياً في أعلى الملف
+sync_session_with_db()
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (must load before set_page_config uses t())
 # ══════════════════════════════════════════════════════════
