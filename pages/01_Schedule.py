@@ -975,7 +975,7 @@ Use 24-hour format. Distribute hours per user preferences. Include breaks."""
     try:
         with st.spinner("⏳ " + {
             "english": "Generating your schedule…",
-            "badini":  "خشتە دروست دکرێت…",
+            "badini":  "خشتە دروست دکت…",
             "arabic":  "جاري إنشاء الجدول…",
         }.get(st.session_state.lang, "Generating…")):
             response = requests.post(
