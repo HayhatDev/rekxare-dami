@@ -13,19 +13,7 @@ if not st.user.is_logged_in:
     st.switch_page("Home.py")  # توجيه المستخدم لصفحة تسجيل الدخول الرئيسية
     st.stop()
 
-def init_session_state():
-    # التحقق مما إذا كان المستخدم مسجلاً للدخول
-    if st.user.is_logged_in:
-        # التحقق مما إذا كانت الجلسة قد مُسحت بسبب تحديث الصفحة
-        if "user_email" not in st.session_state or not st.session_state.user_email:
-            st.session_state.user_email = st.user.email
-            st.session_state.data_key = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
-            st.session_state.logged_in = True
-            load_data() 
-            st.session_state.data_loaded = True
 
-# تشغيل الدالة فوراً عند فتح أو تحديث الصفحة
-init_session_state()
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (must load before set_page_config uses t())
 # ══════════════════════════════════════════════════════════
@@ -226,7 +214,19 @@ def copy_week_to_next():
     st.session_state.active_day = today_key
     save_schedule()
 
+def init_session_state():
+    # التحقق مما إذا كان المستخدم مسجلاً للدخول
+    if st.user.is_logged_in:
+        # التحقق مما إذا كانت الجلسة قد مُسحت بسبب تحديث الصفحة
+        if "user_email" not in st.session_state or not st.session_state.user_email:
+            st.session_state.user_email = st.user.email
+            st.session_state.data_key = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
+            st.session_state.logged_in = True
+            load_schedule() 
+            st.session_state.data_loaded = True
 
+# تشغيل الدالة فوراً عند فتح أو تحديث الصفحة
+init_session_state()
 # ══════════════════════════════════════════════════════════
 #  SESSION STATE INIT
 # ══════════════════════════════════════════════════════════
