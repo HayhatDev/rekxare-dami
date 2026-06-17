@@ -1096,16 +1096,13 @@ with st.sidebar:
         "weekly_schedule": {}
     }
     
-    # Load schedule data
+    # Load schedule data from Supabase
     try:
-        schedule_file = get_schedule_file()
-        if os.path.exists(schedule_file):
-            with open(schedule_file, "r", encoding="utf-8") as f:
-                schedule_data = json.load(f)
-                export_data["weekly_schedule"] = schedule_data.get("schedule", {})
+        schedule_data = get_schedule_data()
+        export_data["weekly_schedule"] = schedule_data
     except Exception as e:
         export_data["schedule_error"] = str(e)
-    
+        
     json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=json_serial)
     
     # Prepare CSV data
