@@ -6,6 +6,8 @@ import os
 import requests
 import time
 import hashlib
+from supabase import create_client
+
 
 if not st.user.is_logged_in:
     st.switch_page("Home.py")  # توجيه المستخدم لصفحة تسجيل الدخول الرئيسية
@@ -27,7 +29,14 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
-
+# ========== SUPABASE HELPERS ==========
+def get_supabase_client():
+    url = st.secrets.get("SUPABASE_URL")
+    key = st.secrets.get("SUPABASE_KEY")
+    if url and key:
+        return create_client(url, key)
+    return None
+    
 # ══════════════════════════════════════════════════════════
 #  PAGE CONFIG  ← must be the FIRST Streamlit call
 # ══════════════════════════════════════════════════════════
@@ -145,22 +154,54 @@ def fmt_minutes(mins):
 
 
 def load_schedule():
-    filename = get_schedule_file()
-    if os.path.exists(filename):
-        with open(filename, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        if "dark_mode" in data:
-            st.session_state.dark_mode = data["dark_mode"]
-        return data.get("schedule", None)
+    email = st.session_state.get("user_email", "")
+    if not email:
+        return None
+    
+    supabase = get_supabase_client()
+    if not supabase:
+        return None
+    
+    try:
+        result = supabase.table("user_data").select("data->schedule").eq("email", email).execute()
+        if result.data and len(result.data) > 0:
+            data = result.data[0].get("data", {})
+            schedule = data.get("schedule", {})
+            dark_mode = data.get("dark_mode", True)
+            st.session_state.dark_mode = dark_mode
+            return schedule
+    except Exception as e:
+        print(f"Error loading schedule: {e}")
     return None
 
 def save_schedule():
-    filename = get_schedule_file()
-    with open(filename, "w") as f:
-        json.dump({
-            "schedule":  st.session_state.schedule,
-            "dark_mode": st.session_state.dark_mode,
-        }, f, ensure_ascii=False, indent=2)
+    email = st.session_state.get("user_email", "")
+    if not email:
+        return
+    
+    supabase = get_supabase_client()
+    if not supabase:
+        return
+    
+    try:
+        # Get existing data
+        result = supabase.table("user_data").select("data").eq("email", email).execute()
+        if result.data and len(result.data) > 0:
+            data = result.data[0].get("data", {})
+        else:
+            data = {}
+        
+        # Update schedule and dark mode
+        data["schedule"] = st.session_state.schedule
+        data["dark_mode"] = st.session_state.dark_mode
+        
+        # Save
+        supabase.table("user_data").upsert({
+            "email": email,
+            "data": data
+        }).execute()
+    except Exception as e:
+        print(f"Error saving schedule: {e}")
 
 
 def copy_week_to_next():
