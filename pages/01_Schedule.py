@@ -6,14 +6,11 @@ import os
 import requests
 import time
 import hashlib
-from supabase import create_client
-
 
 if not st.user.is_logged_in:
     st.switch_page("Home.py")  # توجيه المستخدم لصفحة تسجيل الدخول الرئيسية
     st.stop()
-
-
+    
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (must load before set_page_config uses t())
 # ══════════════════════════════════════════════════════════
@@ -30,14 +27,7 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
-# ========== SUPABASE HELPERS ==========
-def get_supabase_client():
-    url = st.secrets.get("SUPABASE_URL")
-    key = st.secrets.get("SUPABASE_KEY")
-    if url and key:
-        return create_client(url, key)
-    return None
-    
+
 # ══════════════════════════════════════════════════════════
 #  PAGE CONFIG  ← must be the FIRST Streamlit call
 # ══════════════════════════════════════════════════════════
@@ -46,11 +36,6 @@ st.set_page_config(
     page_icon="📅",
     layout="centered",
 )
-
-# إسترجاع بيانات الجلسة إذا قام المستخدم بتحديث الصفحة مباشرة من هنا
-if st.user.is_logged_in and not st.session_state.get("user_email"):
-    st.session_state.user_email = st.user.email
-    st.session_state.logged_in = True
 
 # ── PWA manifest (after set_page_config)
 st.markdown("""
@@ -78,6 +63,13 @@ DAYS = [
 ]
 DAY_EMOJIS  = {"sun":"☀️","mon":"📖","tue":"📖","wed":"📖","thu":"📖","fri":"🕌","sat":"🎉"}
 
+def get_schedule_file():
+    if st.user.is_logged_in:
+        email = st.user.email
+    else:
+        email = st.session_state.get("user_email", "default")
+    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"schedule_data_{user_hash}.json"
 
 # ══════════════════════════════════════════════════════════
 #  HELPERS
@@ -153,54 +145,22 @@ def fmt_minutes(mins):
 
 
 def load_schedule():
-    email = st.session_state.get("user_email", "")
-    if not email:
-        return None
-    
-    supabase = get_supabase_client()
-    if not supabase:
-        return None
-    
-    try:
-        result = supabase.table("user_data").select("data->schedule").eq("email", email).execute()
-        if result.data and len(result.data) > 0:
-            data = result.data[0].get("data", {})
-            schedule = data.get("schedule", {})
-            dark_mode = data.get("dark_mode", True)
-            st.session_state.dark_mode = dark_mode
-            return schedule
-    except Exception as e:
-        print(f"Error loading schedule: {e}")
+    filename = get_schedule_file()
+    if os.path.exists(filename):
+        with open(filename, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if "dark_mode" in data:
+            st.session_state.dark_mode = data["dark_mode"]
+        return data.get("schedule", None)
     return None
 
 def save_schedule():
-    email = st.session_state.get("user_email", "")
-    if not email:
-        return
-    
-    supabase = get_supabase_client()
-    if not supabase:
-        return
-    
-    try:
-        # Get existing data
-        result = supabase.table("user_data").select("data").eq("email", email).execute()
-        if result.data and len(result.data) > 0:
-            data = result.data[0].get("data", {})
-        else:
-            data = {}
-        
-        # Update schedule and dark mode
-        data["schedule"] = st.session_state.schedule
-        data["dark_mode"] = st.session_state.dark_mode
-        
-        # Save
-        supabase.table("user_data").upsert({
-            "email": email,
-            "data": data
-        }).execute()
-    except Exception as e:
-        print(f"Error saving schedule: {e}")
+    filename = get_schedule_file()
+    with open(filename, "w") as f:
+        json.dump({
+            "schedule":  st.session_state.schedule,
+            "dark_mode": st.session_state.dark_mode,
+        }, f, ensure_ascii=False, indent=2)
 
 
 def copy_week_to_next():
@@ -214,19 +174,7 @@ def copy_week_to_next():
     st.session_state.active_day = today_key
     save_schedule()
 
-def init_session_state():
-    # التحقق مما إذا كان المستخدم مسجلاً للدخول
-    if st.user.is_logged_in:
-        # التحقق مما إذا كانت الجلسة قد مُسحت بسبب تحديث الصفحة
-        if "user_email" not in st.session_state or not st.session_state.user_email:
-            st.session_state.user_email = st.user.email
-            st.session_state.data_key = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
-            st.session_state.logged_in = True
-            load_schedule() 
-            st.session_state.data_loaded = True
 
-# تشغيل الدالة فوراً عند فتح أو تحديث الصفحة
-init_session_state()
 # ══════════════════════════════════════════════════════════
 #  SESSION STATE INIT
 # ══════════════════════════════════════════════════════════
