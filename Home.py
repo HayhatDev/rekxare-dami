@@ -989,18 +989,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-        # ── XP Progress Bar (Card) ──
-    st.markdown(f"""
-    <div class="streak-card">
-        <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
-            <div style="font-size: 32px; line-height: 1;">🏆</div>
-            <div style="flex: 1;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                    <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">{t('xp_title')}</span>
-                    <span style="font-size: 13px; font-weight: 700; color: #FF9800;">{t('xp_level')} {st.session_state.get('xp_level', 1)}</span>
-                </div>
-    """, unsafe_allow_html=True)
-    
+    # ── XP Progress Bar (Card) ──
     # XP points: 1 XP per minute of study
     xp_points = st.session_state.total_study_seconds // 60
     xp_needed = 100
@@ -1021,17 +1010,24 @@ with st.sidebar:
     # Calculate progress
     xp_progress = min(xp_points / xp_needed, 1.0)
     
-    # Custom Green Progress Bar
+    # Show the card with everything inside
     st.markdown(f"""
-    <div style="background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden; margin: 2px 0;">
-        <div style="width: {xp_progress * 100}%; height: 8px; background: linear-gradient(90deg, #388e3c, #4caf50); border-radius: 99px; transition: width 0.5s ease;"></div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Show XP text
-    st.caption(f"⚡ {xp_points} / {xp_needed} XP  ·  {t('xp_level')} {current_level}")
-    
-    st.markdown("""
+    <div class="streak-card">
+        <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
+            <div style="font-size: 32px; line-height: 1;">🏆</div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">{t('xp_title')}</span>
+                    <span style="font-size: 13px; font-weight: 700; color: #FF9800;">{t('xp_level')} {current_level}</span>
+                </div>
+                <!-- Progress bar inside the card -->
+                <div style="background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden; margin: 4px 0 2px 0;">
+                    <div style="width: {xp_progress * 100}%; height: 8px; background: linear-gradient(90deg, #388e3c, #4caf50); border-radius: 99px; transition: width 0.5s ease;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 2px;">
+                    <span>⚡ {xp_points} XP</span>
+                    <span>{xp_needed} XP</span>
+                </div>
             </div>
         </div>
     </div>
