@@ -956,35 +956,22 @@ with st.sidebar:
                     <span style="font-size: 13px; font-weight: 700; color: #FF9800;">{t('xp_level')} {st.session_state.get('xp_level', 1)}</span>
                 </div>
     """, unsafe_allow_html=True)
+
     
-    # XP points: 1 XP per minute of study
-    xp_points = st.session_state.total_study_seconds // 60
-    xp_needed = 100  # XP needed for next level
     
-    # Get current level from session state (default to 1)
-    if "xp_level" not in st.session_state:
-        st.session_state.xp_level = 1
-    
-    current_level = st.session_state.xp_level
-    
-    # Check if level up is due
-    if xp_points >= xp_needed:
-        current_level += 1
-        st.session_state.xp_level = current_level
-        xp_points = 0  # reset XP for next level
-        st.toast(f"🎉 {t('xp_level_up').format(level=current_level)}")
-    
-    # Calculate progress towards next level (0.0 to 1.0)
-    xp_progress = min(xp_points / xp_needed, 1.0)
-    
-    # Show progress bar
-    st.progress(xp_progress)
-    
-    # Show XP text
-    st.caption(f"⚡ {xp_points} / {xp_needed} XP  ·  {t('xp_level')} {current_level}")
-    
-    st.markdown("""
+    # ── Streak Section ──
+    st.markdown(f'<span class="sb-lbl">{t("streak_section")}</span>', unsafe_allow_html=True)
+    sv = st.session_state.streak
+    smsg = (t("streak_start") if sv == 0 else t("streak_ready") if sv < 3
+            else t("streak_keep") if sv < 7 else t("streak_champ"))
+    st.markdown(f"""
+    <div class="streak-card">
+        <div style="font-size:32px;line-height:1;">🔥</div>
+        <div>
+            <div class="streak-num">{sv}
+                <span style="font-size:14px;font-weight:500;color:{TEXT_MUTED};">{days_lbl}</span>
             </div>
+            <div class="streak-sub">{smsg}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -998,6 +985,54 @@ with st.sidebar:
         </div>
         <div class="goal-track">
             <div class="goal-fill" style="width:{daily_pct}%;background:{gc};"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+        # ── XP Progress Bar (Card) ──
+    st.markdown(f"""
+    <div class="streak-card">
+        <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
+            <div style="font-size: 32px; line-height: 1;">🏆</div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">{t('xp_title')}</span>
+                    <span style="font-size: 13px; font-weight: 700; color: #FF9800;">{t('xp_level')} {st.session_state.get('xp_level', 1)}</span>
+                </div>
+    """, unsafe_allow_html=True)
+    
+    # XP points: 1 XP per minute of study
+    xp_points = st.session_state.total_study_seconds // 60
+    xp_needed = 100
+    
+    # Get current level
+    if "xp_level" not in st.session_state:
+        st.session_state.xp_level = 1
+    
+    current_level = st.session_state.xp_level
+    
+    # Check level up
+    if xp_points >= xp_needed:
+        current_level += 1
+        st.session_state.xp_level = current_level
+        xp_points = 0
+        st.toast(f"🎉 {t('xp_level_up').format(level=current_level)}")
+    
+    # Calculate progress
+    xp_progress = min(xp_points / xp_needed, 1.0)
+    
+    # Custom Green Progress Bar
+    st.markdown(f"""
+    <div style="background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden; margin: 2px 0;">
+        <div style="width: {xp_progress * 100}%; height: 8px; background: linear-gradient(90deg, #388e3c, #4caf50); border-radius: 99px; transition: width 0.5s ease;"></div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Show XP text
+    st.caption(f"⚡ {xp_points} / {xp_needed} XP  ·  {t('xp_level')} {current_level}")
+    
+    st.markdown("""
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
