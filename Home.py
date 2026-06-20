@@ -1270,12 +1270,12 @@ if schedule_data:
         </div>
         """, unsafe_allow_html=True)
         
-        # ── Bar Chart ──
+        # ── Custom SVG Bar Chart using st.components.v1.html() ──
         day_order = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
         day_labels = {"mon": "M", "tue": "T", "wed": "W", "thu": "T", "fri": "F", "sat": "S", "sun": "S"}
         max_val = max(week_data.values()) if week_data.values() else 1
         
-        # Build bars using a loop inside the markdown
+        # Build bars HTML
         bars_html = ""
         for day in day_order:
             val = week_data.get(day, 0)
@@ -1291,13 +1291,14 @@ if schedule_data:
             </div>
             '''
         
-        st.markdown(f'''
+        # Render the chart using components.html() – this always works
+        components.html(f'''
         <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px 8px; margin: 4px 0 12px 0; border: 1px solid rgba(255,255,255,0.06);">
             <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 4px; height: 140px;">
                 {bars_html}
             </div>
         </div>
-        ''', unsafe_allow_html=True)
+        ''', height=180)
         
         # Best day
         if any(week_data.values()):
