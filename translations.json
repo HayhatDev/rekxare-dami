@@ -107,7 +107,9 @@
     "ai_format_error": "🚨 AI خەلەتیەک هنارت، جارەکا دی بکاربینە",
     "login_divider": "چوونا ژور بکارئینانا",
     "logout": "دەرکەفتن",
-    "export_data": "📥 دەرکردنا داتا"
+    "export_data": "📥 دەرکردنا داتا",
+    "weekly_chart": "خشتەیێ حەفتیانە یێ خواندنێ",
+    "no_study_data": "هیچ داتایەک نینە. دەست ب خواندنێ بکە بو بەرچاڤکرنا پێشکەفتنێ!"
   },
   "english": {
     "app_title": "📚 Rekxare Dami | For Students & Learners",
@@ -217,7 +219,9 @@
     "ai_format_error": "🚨 AI returned invalid format. Please try again.",
     "login_divider": "Sign in with",
     "logout": "Logout",
-    "export_data": "📥 Export Data"
+    "export_data": "📥 Export Data",
+    "weekly_chart": "Weekly Study Chart",
+    "no_study_data": "No study data yet. Start studying to see your progress!"
   },
   "arabic": {
     "app_title": "📚 Rekxare Dami | للطلاب والمتعلمين",
@@ -327,6 +331,8 @@
     "ai_format_error": "🚨 أعاد الذكاء الاصطناعي صيغة غير صحيحة. حاول مرة أخرى.",
     "login_divider": "تسجيل الدخول باستخدام",
     "logout": "تسجيل الخروج",
-    "export_data": "📥 تصدير البيانات"
+    "export_data": "📥 تصدير البيانات",
+    "weekly_chart": "الرسم البياني الأسبوعي للدراسة",
+    "no_study_data": "لا توجد بيانات دراسة بعد. ابدأ الدراسة لمشاهدة تقدمك!"
   }
 }
