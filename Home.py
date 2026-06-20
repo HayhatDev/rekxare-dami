@@ -945,7 +945,35 @@ with st.sidebar:
         <span class="today-stat-val">{today_h}{t("hours_unit")} {today_m}{t("minutes_unit")}</span>
     </div>
     """, unsafe_allow_html=True)
-
+    # ── XP Progress Bar ──
+    st.markdown(f'<span class="sb-lbl">🏆 {t("xp_title")}</span>', unsafe_allow_html=True)
+    
+    # XP points: 1 XP per minute of study
+    xp_points = st.session_state.total_study_seconds // 60
+    xp_needed = 100  # XP needed for next level
+    
+    # Get current level from session state (default to 1)
+    if "xp_level" not in st.session_state:
+        st.session_state.xp_level = 1
+    
+    current_level = st.session_state.xp_level
+    
+    # Check if level up is due
+    if xp_points >= xp_needed:
+        current_level += 1
+        st.session_state.xp_level = current_level
+        xp_points = 0  # reset XP for next level
+        # Display a toast notification
+        st.toast(f"🎉 {t('xp_level_up').format(level=current_level)}")
+    
+    # Calculate progress towards next level (0.0 to 1.0)
+    xp_progress = min(xp_points / xp_needed, 1.0)
+    
+    # Show progress bar
+    st.progress(xp_progress)
+    
+    # Show XP text
+    st.caption(f"⚡ {xp_points} / {xp_needed} XP  ·  {t('xp_level')} {current_level}")
     st.markdown(f'<span class="sb-lbl">{t("streak_section")}</span>', unsafe_allow_html=True)
     sv   = st.session_state.streak
     smsg = (t("streak_start") if sv == 0 else t("streak_ready") if sv < 3
