@@ -108,6 +108,7 @@
     "login_divider": "چوونا ژور بکارئینانا",
     "logout": "دەرکەفتن",
     "export_data": "📥 دەرکردنا داتا",
+    "best_day": "باشترین رۆژ",
     "weekly_chart": "خشتەیێ حەفتیانە یێ خواندنێ",
     "no_study_data": "هیچ داتایەک نینە. دەست ب خواندنێ بکە بو بەرچاڤکرنا پێشکەفتنێ!",
     "total_this_week": "کویێ ڤێ حەفتیێ"
@@ -221,6 +222,7 @@
     "login_divider": "Sign in with",
     "logout": "Logout",
     "export_data": "📥 Export Data",
+    "best_day": "Best day",
     "weekly_chart": "Weekly Study Chart",
     "no_study_data": "No study data yet. Start studying to see your progress!",
     "total_this_week": "total this week"
@@ -334,6 +336,7 @@
     "login_divider": "تسجيل الدخول باستخدام",
     "logout": "تسجيل الخروج",
     "export_data": "📥 تصدير البيانات",
+    "best_day": "أفضل يوم",
     "weekly_chart": "الرسم البياني الأسبوعي للدراسة",
     "no_study_data": "لا توجد بيانات دراسة بعد. ابدأ الدراسة لمشاهدة تقدمك!",
     "total_this_week": "إجمالي هذا الأسبوع"
