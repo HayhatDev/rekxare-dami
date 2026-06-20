@@ -1257,12 +1257,36 @@ if schedule_data:
         df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
         df = df.sort_values("Day")
         
-        st.bar_chart(df.set_index("Day"), height=220)
+        # Apply theme color to chart
+        chart_color = "#4CAF50" if is_dark else "#2E7D32"
+        
+        # Plot with custom color
+        st.bar_chart(df.set_index("Day"), height=200, color=chart_color)
         
         total_minutes = sum(week_data.values())
         total_hours = total_minutes // 60
         total_mins = total_minutes % 60
-        st.caption(f"📊 {total_hours}h {total_mins}m {t('total_this_week')}")
+        
+        # Find best day
+        best_day = max(week_data, key=week_data.get)
+        best_minutes = week_data[best_day]
+        day_names = {"mon": "Monday", "tue": "Tuesday", "wed": "Wednesday", 
+                     "thu": "Thursday", "fri": "Friday", "sat": "Saturday", "sun": "Sunday"}
+        best_day_name = day_names.get(best_day, best_day)
+        
+        # Summary row
+        st.markdown(f"""
+        <div style="display: flex; justify-content: space-between; align-items: center; 
+                    margin-top: 8px; padding: 8px 4px; 
+                    border-top: 1px solid {DIVIDER};">
+            <span style="font-size: 13px; font-weight: 600; color: {TEXT_PRIMARY};">
+                📊 {total_hours}h {total_mins}m {t('total_this_week')}
+            </span>
+            <span style="font-size: 12px; color: {TEXT_MUTED};">
+                🏆 {t('best_day')}: {best_day_name} ({best_minutes}m)
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
     else:
         st.caption(f"📭 {t('no_study_data')}")
 else:
