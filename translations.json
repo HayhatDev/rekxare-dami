@@ -109,7 +109,8 @@
     "logout": "دەرکەفتن",
     "export_data": "📥 دەرکردنا داتا",
     "weekly_chart": "خشتەیێ حەفتیانە یێ خواندنێ",
-    "no_study_data": "هیچ داتایەک نینە. دەست ب خواندنێ بکە بو بەرچاڤکرنا پێشکەفتنێ!"
+    "no_study_data": "هیچ داتایەک نینە. دەست ب خواندنێ بکە بو بەرچاڤکرنا پێشکەفتنێ!",
+    "total_this_week": "کویێ ڤێ حەفتیێ"
   },
   "english": {
     "app_title": "📚 Rekxare Dami | For Students & Learners",
@@ -221,7 +222,8 @@
     "logout": "Logout",
     "export_data": "📥 Export Data",
     "weekly_chart": "Weekly Study Chart",
-    "no_study_data": "No study data yet. Start studying to see your progress!"
+    "no_study_data": "No study data yet. Start studying to see your progress!",
+    "total_this_week": "total this week"
   },
   "arabic": {
     "app_title": "📚 Rekxare Dami | للطلاب والمتعلمين",
@@ -333,6 +335,7 @@
     "logout": "تسجيل الخروج",
     "export_data": "📥 تصدير البيانات",
     "weekly_chart": "الرسم البياني الأسبوعي للدراسة",
-    "no_study_data": "لا توجد بيانات دراسة بعد. ابدأ الدراسة لمشاهدة تقدمك!"
+    "no_study_data": "لا توجد بيانات دراسة بعد. ابدأ الدراسة لمشاهدة تقدمك!",
+    "total_this_week": "إجمالي هذا الأسبوع"
   }
 }
