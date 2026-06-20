@@ -52,6 +52,25 @@ SCHEDULE_FILE = "schedule_data.json"
 # ══════════════════════════════════════════════════════════
 #  DATA HELPERS
 # ══════════════════════════════════════════════════════════
+def get_schedule_data():
+    email = st.session_state.get("user_email", "")
+    if not email:
+        return {}
+    
+    # Use the same hash as your schedule files
+    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
+    schedule_file = f"schedule_data_{user_hash}.json"
+    
+    if os.path.exists(schedule_file):
+        try:
+            with open(schedule_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("schedule", {})
+        except Exception as e:
+            print(f"Error loading schedule: {e}")
+    
+    return {}
+    
 def get_data_file():
     if st.user.is_logged_in:
         email = st.user.email
