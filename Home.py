@@ -6,6 +6,7 @@ import json
 import os
 import streamlit.components.v1 as components
 import hashlib
+import pandas as pd
 
 
 # ══════════════════════════════════════════════════════════
@@ -1208,6 +1209,45 @@ if today_tasks_named:
     )
     st.markdown(html_content, unsafe_allow_html=True)
 
+# ── Weekly Study Chart ──
+st.markdown(f"""
+<div class="section-hdr">
+    <span>📊 {t('weekly_chart') if 'weekly_chart' in TRANSLATIONS.get(st.session_state.lang, {}) else 'Weekly Study Hours'}</span>
+    <div class="section-line"></div>
+</div>
+""", unsafe_allow_html=True)
+
+
+# Get schedule data
+schedule_data = get_schedule_data()
+
+if schedule_data:
+    week_data = {}
+    for day, tasks in schedule_data.items():
+        minutes = sum(total_day_minutes(tasks))
+        week_data[day] = minutes
+    
+    if week_data and any(week_data.values()):
+        df = pd.DataFrame(list(week_data.items()), columns=["Day", "Minutes"])
+        
+        # Reorder days (Monday first)
+        day_order = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+        df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
+        df = df.sort_values("Day")
+        
+        # Create bar chart
+        st.bar_chart(df.set_index("Day"), height=250)
+        
+        # Show total weekly hours
+        total_minutes = sum(week_data.values())
+        total_hours = total_minutes // 60
+        total_mins = total_minutes % 60
+        st.caption(f"📊 {total_hours}h {total_mins}m total this week")
+    else:
+        st.caption("📭 " + (t('no_study_data') if 'no_study_data' in TRANSLATIONS.get(st.session_state.lang, {}) else "No study data this week. Start studying to see your progress!"))
+else:
+    st.caption("📭 " + (t('no_study_data') if 'no_study_data' in TRANSLATIONS.get(st.session_state.lang, {}) else "No study data yet. Start studying to see your progress!"))
+    
 # ── Timer section header
 timer_section_lbl = {
     "badini": "⏱ دەمژمێرێ خواندنێ",
