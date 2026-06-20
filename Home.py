@@ -53,7 +53,7 @@ SCHEDULE_FILE = "schedule_data.json"
 #  DATA HELPERS
 # ══════════════════════════════════════════════════════════
 def get_schedule_data():
-    filename = get_schedule_file()   # use the same function as in 01_Schedule.py
+    filename = get_schedule_file() 
     if os.path.exists(filename):
         try:
             with open(filename, "r", encoding="utf-8") as f:
@@ -1239,21 +1239,11 @@ if today_tasks_named:
 
 # ── Weekly Study Chart ──
 st.markdown(f"""
-<div class="section-hdr">
-    <span>📊 {t('weekly_chart') if 'weekly_chart' in TRANSLATIONS.get(st.session_state.lang, {}) else 'Weekly Study Hours'}</span>
-    <div class="section-line"></div>
-</div>
+<div class="sched-card">
+    <div class="sched-title">📊 {t('weekly_chart')}</div>
 """, unsafe_allow_html=True)
 
-
-# Get schedule data
 schedule_data = get_schedule_data()
-
-# Debug: show if data exists (remove after testing)
-if schedule_data:
-    st.caption(f"✅ Found schedule data for {len(schedule_data)} days")
-else:
-    st.caption("ℹ️ No schedule data found. Add tasks in the Schedule page.")
 
 if schedule_data:
     week_data = {}
@@ -1266,17 +1256,19 @@ if schedule_data:
         day_order = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
         df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
         df = df.sort_values("Day")
-        st.bar_chart(df.set_index("Day"), height=250)
+        
+        st.bar_chart(df.set_index("Day"), height=220)
         
         total_minutes = sum(week_data.values())
         total_hours = total_minutes // 60
         total_mins = total_minutes % 60
-        st.caption(f"📊 {total_hours}h {total_mins}m total this week")
+        st.caption(f"📊 {total_hours}h {total_mins}m {t('total_this_week')}")
     else:
-        st.caption("📭 " + (t('no_study_data') if 'no_study_data' in TRANSLATIONS.get(st.session_state.lang, {}) else "No study data this week. Start adding tasks to your schedule!"))
+        st.caption(f"📭 {t('no_study_data')}")
 else:
-    st.caption("📭 " + (t('no_study_data') if 'no_study_data' in TRANSLATIONS.get(st.session_state.lang, {}) else "No study data yet. Add tasks in the Schedule page!"))
+    st.caption(f"📭 {t('no_study_data')}")
 
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Timer section header
 timer_section_lbl = {
