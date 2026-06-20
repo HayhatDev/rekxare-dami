@@ -1280,15 +1280,45 @@ if schedule_data:
         </div>
         """, unsafe_allow_html=True)
         
-        # Create the bar chart with custom styling
-        df = pd.DataFrame(list(week_data.items()), columns=["Day", "Minutes"])
+        # ── Custom SVG Bar Chart ──
         day_order = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
-        df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
-        df = df.sort_values("Day")
+        day_labels = {"mon": "M", "tue": "T", "wed": "W", "thu": "T", "fri": "F", "sat": "S", "sun": "S"}
+        max_val = max(week_data.values()) if week_data.values() else 1
         
-        # Custom colored bar chart
-        chart_color = "#4CAF50" if is_dark else "#2E7D32"
-        st.bar_chart(df.set_index("Day"), height=180, color=chart_color)
+        # Build bars
+        bars_html = ""
+        for day in day_order:
+            val = week_data.get(day, 0)
+            pct = (val / max_val * 100) if max_val > 0 else 0
+            bar_color = "#4CAF50" if val > 0 else "rgba(255,255,255,0.08)"
+            bars_html += f"""
+            <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
+                <div style="font-size: 10px; color: {TEXT_MUTED}; font-weight: 600; margin-bottom: 4px;">
+                    {day_labels[day]}
+                </div>
+                <div style="width: 20px; height: 120px; background: rgba(255,255,255,0.06); 
+                            border-radius: 6px; overflow: hidden; position: relative;">
+                    <div style="width: 100%; height: {pct}%; background: {bar_color}; 
+                                border-radius: 6px; position: absolute; bottom: 0;
+                                transition: height 0.5s ease;">
+                    </div>
+                </div>
+                <div style="font-size: 9px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 4px;">
+                    {val}m
+                </div>
+            </div>
+            """
+        
+        st.markdown(f"""
+        <div style="background: rgba(255,255,255,0.03); border-radius: 12px; 
+                    padding: 16px 8px; margin: 4px 0 12px 0; 
+                    border: 1px solid rgba(255,255,255,0.06);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; 
+                        gap: 4px; height: 140px;">
+                {bars_html}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Find best day
         if any(week_data.values()):
@@ -1299,9 +1329,9 @@ if schedule_data:
             best_day_name = day_names.get(best_day, best_day)
             
             st.markdown(f"""
-            <div style="text-align: center; margin-top: 12px; padding: 8px; 
-                        background: {TAG_BG}; border-radius: 10px; 
-                        border: 1px solid {TAG_BORDER if 'TAG_BORDER' in locals() else CARD_BORDER};">
+            <div style="text-align: center; margin-top: 8px; padding: 8px; 
+                        background: rgba(76,175,80,0.10); border-radius: 10px; 
+                        border: 1px solid rgba(76,175,80,0.15);">
                 <span style="font-size: 13px; color: {TEXT_PRIMARY}; font-weight: 600;">
                     🏆 {t('best_day')}: 
                     <span style="color: #4CAF50; font-weight: 800;">{best_day_name}</span>
