@@ -1245,7 +1245,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-import pandas as pd
 
 # Get schedule data
 schedule_data = get_schedule_data()
@@ -1259,7 +1258,7 @@ else:
 if schedule_data:
     week_data = {}
     for day, tasks in schedule_data.items():
-        minutes = sum(total_day_minutes(tasks))
+        minutes = total_day_minutes(tasks)
         week_data[day] = minutes
     
     if week_data and any(week_data.values()):
