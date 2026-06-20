@@ -351,6 +351,21 @@ def load_today_schedule():
             return today_key, []
     return today_key, []
 
+def total_day_minutes(day_entries):
+    total = 0
+    for e in day_entries:
+        if not e.get("task", "").strip():
+            continue
+        try:
+            s   = datetime.strptime(e.get("start", "00:00"), "%H:%M")
+            end = datetime.strptime(e.get("end", "00:00"), "%H:%M")
+            diff = int((end - s).total_seconds() // 60)
+            if diff > 0:
+                total += diff
+        except Exception:
+            pass
+    return total
+    
 # ── Defaults
 DEFAULTS = {
     "total_study_seconds": 0, "completed_sessions": 0,
