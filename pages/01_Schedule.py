@@ -156,9 +156,9 @@ def load_schedule():
 
 def save_schedule():
     filename = get_schedule_file()
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         json.dump({
-            "schedule":  st.session_state.schedule,
+            "schedule": st.session_state.schedule,
             "dark_mode": st.session_state.dark_mode,
         }, f, ensure_ascii=False, indent=2)
 
