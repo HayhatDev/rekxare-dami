@@ -111,7 +111,8 @@
     "best_day": "باشترین رۆژ",
     "weekly_chart": "خشتەیێ حەفتیانە یێ خواندنێ",
     "no_study_data": "هیچ داتایەک نینە. دەست ب خواندنێ بکە بو بەرچاڤکرنا پێشکەفتنێ!",
-    "total_this_week": "کویێ ڤێ حەفتیێ"
+    "total_this_week": "کویێ ڤێ حەفتیێ",
+    "days_studied": "روژێن خواندنێ"
   },
   "english": {
     "app_title": "📚 Rekxare Dami | For Students & Learners",
@@ -225,7 +226,8 @@
     "best_day": "Best day",
     "weekly_chart": "Weekly Study Chart",
     "no_study_data": "No study data yet. Start studying to see your progress!",
-    "total_this_week": "total this week"
+    "total_this_week": "total this week",
+    "days_studied": "days studied"
   },
   "arabic": {
     "app_title": "📚 Rekxare Dami | للطلاب والمتعلمين",
@@ -339,6 +341,7 @@
     "best_day": "أفضل يوم",
     "weekly_chart": "الرسم البياني الأسبوعي للدراسة",
     "no_study_data": "لا توجد بيانات دراسة بعد. ابدأ الدراسة لمشاهدة تقدمك!",
-    "total_this_week": "إجمالي هذا الأسبوع"
+    "total_this_week": "إجمالي هذا الأسبوع",
+    "days_studied": "أيام الدراسة"
   }
 }
