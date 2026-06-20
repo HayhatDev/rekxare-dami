@@ -945,50 +945,7 @@ with st.sidebar:
         <span class="today-stat-val">{today_h}{t("hours_unit")} {today_m}{t("minutes_unit")}</span>
     </div>
     """, unsafe_allow_html=True)
-    # ── XP Progress Bar (Card) ──
-    st.markdown(f"""
-    <div class="streak-card">
-        <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
-            <div style="font-size: 32px; line-height: 1;">🏆</div>
-            <div style="flex: 1;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                    <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">{t('xp_title')}</span>
-                    <span style="font-size: 13px; font-weight: 700; color: #FF9800;">{t('xp_level')} {st.session_state.get('xp_level', 1)}</span>
-                </div>
-    """, unsafe_allow_html=True)
-
     
-    
-    # ── Streak Section ──
-    st.markdown(f'<span class="sb-lbl">{t("streak_section")}</span>', unsafe_allow_html=True)
-    sv = st.session_state.streak
-    smsg = (t("streak_start") if sv == 0 else t("streak_ready") if sv < 3
-            else t("streak_keep") if sv < 7 else t("streak_champ"))
-    st.markdown(f"""
-    <div class="streak-card">
-        <div style="font-size:32px;line-height:1;">🔥</div>
-        <div>
-            <div class="streak-num">{sv}
-                <span style="font-size:14px;font-weight:500;color:{TEXT_MUTED};">{days_lbl}</span>
-            </div>
-            <div class="streak-sub">{smsg}</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown(f'<span class="sb-lbl">{t("goal_section")}</span>', unsafe_allow_html=True)
-    gc = "#2196F3" if daily_pct >= 100 else "#4CAF50"
-    st.markdown(f"""
-    <div class="goal-wrap">
-        <div class="goal-header">
-            <span class="goal-title">🎯 {t("today_goal")}</span>
-            <span>{daily_done_min} / {daily_goal_min} {t("minutes_unit")} — {daily_pct}%</span>
-        </div>
-        <div class="goal-track">
-            <div class="goal-fill" style="width:{daily_pct}%;background:{gc};"></div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
     # ── XP Progress Bar (Card) ──
     # XP points: 1 XP per minute of study
     xp_points = st.session_state.total_study_seconds // 60
@@ -1032,6 +989,39 @@ with st.sidebar:
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    
+    
+    # ── Streak Section ──
+    st.markdown(f'<span class="sb-lbl">{t("streak_section")}</span>', unsafe_allow_html=True)
+    sv = st.session_state.streak
+    smsg = (t("streak_start") if sv == 0 else t("streak_ready") if sv < 3
+            else t("streak_keep") if sv < 7 else t("streak_champ"))
+    st.markdown(f"""
+    <div class="streak-card">
+        <div style="font-size:32px;line-height:1;">🔥</div>
+        <div>
+            <div class="streak-num">{sv}
+                <span style="font-size:14px;font-weight:500;color:{TEXT_MUTED};">{days_lbl}</span>
+            </div>
+            <div class="streak-sub">{smsg}</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown(f'<span class="sb-lbl">{t("goal_section")}</span>', unsafe_allow_html=True)
+    gc = "#2196F3" if daily_pct >= 100 else "#4CAF50"
+    st.markdown(f"""
+    <div class="goal-wrap">
+        <div class="goal-header">
+            <span class="goal-title">🎯 {t("today_goal")}</span>
+            <span>{daily_done_min} / {daily_goal_min} {t("minutes_unit")} — {daily_pct}%</span>
+        </div>
+        <div class="goal-track">
+            <div class="goal-fill" style="width:{daily_pct}%;background:{gc};"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
 
     st.markdown(f'<span class="sb-lbl">{t("last_subject")}</span>', unsafe_allow_html=True)
     st.markdown(f'<div style="padding:2px 0 8px;"><span class="subject-tag">📖 {st.session_state.last_subject}</span></div>',
