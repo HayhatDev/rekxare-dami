@@ -1227,6 +1227,7 @@ if today_tasks_named:
         f'</div></div>'
     )
     st.markdown(html_content, unsafe_allow_html=True)
+    
 
 # ── Weekly Study Chart ──
 st.markdown(f"""
@@ -1236,9 +1237,16 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+import pandas as pd
 
 # Get schedule data
 schedule_data = get_schedule_data()
+
+# Debug: show if data exists (remove after testing)
+if schedule_data:
+    st.caption(f"✅ Found schedule data for {len(schedule_data)} days")
+else:
+    st.caption("ℹ️ No schedule data found. Add tasks in the Schedule page.")
 
 if schedule_data:
     week_data = {}
@@ -1248,25 +1256,21 @@ if schedule_data:
     
     if week_data and any(week_data.values()):
         df = pd.DataFrame(list(week_data.items()), columns=["Day", "Minutes"])
-        
-        # Reorder days (Monday first)
         day_order = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
         df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
         df = df.sort_values("Day")
-        
-        # Create bar chart
         st.bar_chart(df.set_index("Day"), height=250)
         
-        # Show total weekly hours
         total_minutes = sum(week_data.values())
         total_hours = total_minutes // 60
         total_mins = total_minutes % 60
         st.caption(f"📊 {total_hours}h {total_mins}m total this week")
     else:
-        st.caption("📭 " + (t('no_study_data') if 'no_study_data' in TRANSLATIONS.get(st.session_state.lang, {}) else "No study data this week. Start studying to see your progress!"))
+        st.caption("📭 " + (t('no_study_data') if 'no_study_data' in TRANSLATIONS.get(st.session_state.lang, {}) else "No study data this week. Start adding tasks to your schedule!"))
 else:
-    st.caption("📭 " + (t('no_study_data') if 'no_study_data' in TRANSLATIONS.get(st.session_state.lang, {}) else "No study data yet. Start studying to see your progress!"))
-    
+    st.caption("📭 " + (t('no_study_data') if 'no_study_data' in TRANSLATIONS.get(st.session_state.lang, {}) else "No study data yet. Add tasks in the Schedule page!"))
+
+
 # ── Timer section header
 timer_section_lbl = {
     "badini": "⏱ دەمژمێرێ خواندنێ",
