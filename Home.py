@@ -1256,71 +1256,50 @@ if schedule_data:
         total_hours = total_minutes // 60
         total_mins = total_minutes % 60
         
-        # Show total stats first
+        # Stats cards
         st.markdown(f"""
         <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-            <div style="flex: 1; background: {CARD_BG}; border: 1px solid {CARD_BORDER}; 
-                        border-radius: 12px; padding: 12px; text-align: center;">
-                <div style="font-size: 20px; font-weight: 800; color: #4CAF50;">
-                    {total_hours}h {total_mins}m
-                </div>
-                <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">
-                    {t('total_this_week')}
-                </div>
+            <div style="flex: 1; background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 12px; padding: 12px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 800; color: #4CAF50;">{total_hours}h {total_mins}m</div>
+                <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{t('total_this_week')}</div>
             </div>
-            <div style="flex: 1; background: {CARD_BG}; border: 1px solid {CARD_BORDER}; 
-                        border-radius: 12px; padding: 12px; text-align: center;">
-                <div style="font-size: 20px; font-weight: 800; color: #FF9800;">
-                    {len([d for d, m in week_data.items() if m > 0])}
-                </div>
-                <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">
-                    {t('days_studied')}
-                </div>
+            <div style="flex: 1; background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 12px; padding: 12px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 800; color: #FF9800;">{len([d for d, m in week_data.items() if m > 0])}</div>
+                <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{t('days_studied')}</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
         
-        # ── Custom SVG Bar Chart ──
+        # ── Bar Chart ──
         day_order = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
         day_labels = {"mon": "M", "tue": "T", "wed": "W", "thu": "T", "fri": "F", "sat": "S", "sun": "S"}
         max_val = max(week_data.values()) if week_data.values() else 1
         
-        # Build bars
+        # Build bars using a loop inside the markdown
         bars_html = ""
         for day in day_order:
             val = week_data.get(day, 0)
             pct = (val / max_val * 100) if max_val > 0 else 0
             bar_color = "#4CAF50" if val > 0 else "rgba(255,255,255,0.08)"
-            bars_html += f"""
+            bars_html += f'''
             <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
-                <div style="font-size: 10px; color: {TEXT_MUTED}; font-weight: 600; margin-bottom: 4px;">
-                    {day_labels[day]}
+                <div style="font-size: 10px; color: {TEXT_MUTED}; font-weight: 600; margin-bottom: 4px;">{day_labels[day]}</div>
+                <div style="width: 20px; height: 120px; background: rgba(255,255,255,0.06); border-radius: 6px; overflow: hidden; position: relative;">
+                    <div style="width: 100%; height: {pct}%; background: {bar_color}; border-radius: 6px; position: absolute; bottom: 0; transition: height 0.5s ease;"></div>
                 </div>
-                <div style="width: 20px; height: 120px; background: rgba(255,255,255,0.06); 
-                            border-radius: 6px; overflow: hidden; position: relative;">
-                    <div style="width: 100%; height: {pct}%; background: {bar_color}; 
-                                border-radius: 6px; position: absolute; bottom: 0;
-                                transition: height 0.5s ease;">
-                    </div>
-                </div>
-                <div style="font-size: 9px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 4px;">
-                    {val}m
-                </div>
+                <div style="font-size: 9px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 4px;">{val}m</div>
             </div>
-            """
+            '''
         
-        st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.03); border-radius: 12px; 
-                    padding: 16px 8px; margin: 4px 0 12px 0; 
-                    border: 1px solid rgba(255,255,255,0.06);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; 
-                        gap: 4px; height: 140px;">
+        st.markdown(f'''
+        <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px 8px; margin: 4px 0 12px 0; border: 1px solid rgba(255,255,255,0.06);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 4px; height: 140px;">
                 {bars_html}
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        ''', unsafe_allow_html=True)
         
-        # Find best day
+        # Best day
         if any(week_data.values()):
             best_day = max(week_data, key=week_data.get)
             best_minutes = week_data[best_day]
@@ -1328,17 +1307,13 @@ if schedule_data:
                          "thu": "Thursday", "fri": "Friday", "sat": "Saturday", "sun": "Sunday"}
             best_day_name = day_names.get(best_day, best_day)
             
-            st.markdown(f"""
-            <div style="text-align: center; margin-top: 8px; padding: 8px; 
-                        background: rgba(76,175,80,0.10); border-radius: 10px; 
-                        border: 1px solid rgba(76,175,80,0.15);">
+            st.markdown(f'''
+            <div style="text-align: center; margin-top: 8px; padding: 8px; background: rgba(76,175,80,0.10); border-radius: 10px; border: 1px solid rgba(76,175,80,0.15);">
                 <span style="font-size: 13px; color: {TEXT_PRIMARY}; font-weight: 600;">
-                    🏆 {t('best_day')}: 
-                    <span style="color: #4CAF50; font-weight: 800;">{best_day_name}</span>
-                    <span style="color: {TEXT_MUTED};">({best_minutes}m)</span>
+                    🏆 {t('best_day')}: <span style="color: #4CAF50; font-weight: 800;">{best_day_name}</span> <span style="color: {TEXT_MUTED};">({best_minutes}m)</span>
                 </span>
             </div>
-            """, unsafe_allow_html=True)
+            ''', unsafe_allow_html=True)
     else:
         st.caption(f"📭 {t('no_study_data')}")
 else:
