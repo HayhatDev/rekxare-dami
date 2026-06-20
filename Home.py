@@ -945,8 +945,17 @@ with st.sidebar:
         <span class="today-stat-val">{today_h}{t("hours_unit")} {today_m}{t("minutes_unit")}</span>
     </div>
     """, unsafe_allow_html=True)
-    # ── XP Progress Bar ──
-    st.markdown(f'<span class="sb-lbl">🏆 {t("xp_title")}</span>', unsafe_allow_html=True)
+    # ── XP Progress Bar (Card) ──
+    st.markdown(f"""
+    <div class="streak-card">
+        <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
+            <div style="font-size: 32px; line-height: 1;">🏆</div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">{t('xp_title')}</span>
+                    <span style="font-size: 13px; font-weight: 700; color: #FF9800;">{t('xp_level')} {st.session_state.get('xp_level', 1)}</span>
+                </div>
+    """, unsafe_allow_html=True)
     
     # XP points: 1 XP per minute of study
     xp_points = st.session_state.total_study_seconds // 60
@@ -963,7 +972,6 @@ with st.sidebar:
         current_level += 1
         st.session_state.xp_level = current_level
         xp_points = 0  # reset XP for next level
-        # Display a toast notification
         st.toast(f"🎉 {t('xp_level_up').format(level=current_level)}")
     
     # Calculate progress towards next level (0.0 to 1.0)
@@ -974,22 +982,12 @@ with st.sidebar:
     
     # Show XP text
     st.caption(f"⚡ {xp_points} / {xp_needed} XP  ·  {t('xp_level')} {current_level}")
-    st.markdown(f'<span class="sb-lbl">{t("streak_section")}</span>', unsafe_allow_html=True)
-    sv   = st.session_state.streak
-    smsg = (t("streak_start") if sv == 0 else t("streak_ready") if sv < 3
-            else t("streak_keep") if sv < 7 else t("streak_champ"))
-    st.markdown(f"""
-    <div class="streak-card">
-        <div style="font-size:32px;line-height:1;">🔥</div>
-        <div>
-            <div class="streak-num">{sv}
-                <span style="font-size:14px;font-weight:500;color:{TEXT_MUTED};">{days_lbl}</span>
+    
+    st.markdown("""
             </div>
-            <div class="streak-sub">{smsg}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
-
     st.markdown(f'<span class="sb-lbl">{t("goal_section")}</span>', unsafe_allow_html=True)
     gc = "#2196F3" if daily_pct >= 100 else "#4CAF50"
     st.markdown(f"""
