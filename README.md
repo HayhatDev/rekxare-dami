@@ -119,17 +119,6 @@
 | 📝 كل النصوص | All Texts | جميع الأزرار والرسائل والإحصائيات | All buttons, messages, and stats |
 | 🖼️ واجهة متجاوبة | RTL Support | دعم اللغة العربية كاملة | Full Arabic RTL support |
 
----
-
-## 📸 Screenshots
-
-| Light Mode | Dark Mode |
-|:---:|:---:|
-| ![Light Mode](screenshots/light-mode.png) | ![Dark Mode](screenshots/dark-mode.png) |
-
-| Schedule Page | Analytics Dashboard |
-|:---:|:---:|
-| ![Schedule](screenshots/schedule.png) | ![Analytics](screenshots/analytics.png) |
 
 ---
 
@@ -155,8 +144,11 @@ streamlit run Home.py
 
 # Requirements
 streamlit>=1.42.0
+
 pandas
+
 requests
+
 authlib>=1.3.2
 
 
@@ -172,18 +164,18 @@ rekxare-dami/
 └── README.md            # This file
 
 ## 👨‍💻 Built By
-Hayhat Tahir – High school student from Kurdistan Region, Iraq.
+Hayhat Tahir: High school student from Kurdistan Region, Iraq.
 Passionate about computer engineering, robotics, and technology.
 
-GitHub: @HayhatDev
+GitHub: [@HayhatDev](https://github.com/HayhatDev)
 
-Instagram: @Zanst.21
+Instagram: [@Zanst.21](https://www.instagram.com/Zanst.21)
 
-Live Demo: rekxare-dami.streamlit.app
+Live Demo: [Rekxare Dami](https://rekxare-dami.streamlit.app/)
 
 
 ## 📄 License
-MIT License – feel free to use, modify, and distribute.
+MIT License: feel free to use, modify, and distribute.
 
 
 ## 🙏 Acknowledgments
@@ -200,8 +192,8 @@ Language should not be a barrier to education. 🌍📚
 
 ## 🔗 Quick Links
 
-🌐 Live Demo: rekxare-dami.streamlit.app
+🌐 Live Demo: [Rekxare Dami](https://rekxare-dami.streamlit.app/)
 
-📂 GitHub: github.com/HayhatDev/rekxare-dami
+📂 GitHub: [GitHub Repo](https://github.com/HayhatDev/rekxare-dami)
 
-📸 Instagram: @Zanst.21
+📸 Instagram: [@Zanst.21](https://www.instagram.com/Zanst.21)
