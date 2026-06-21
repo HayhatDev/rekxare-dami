@@ -143,13 +143,20 @@ pip install -r requirements.txt
 streamlit run Home.py
 
 # Requirements
-streamlit>=1.42.0
 
-pandas
+- extra-streamlit-components
 
-requests
+- streamlit>=1.42.0
 
-authlib>=1.3.2
+- authlib>=1.3.2
+
+- streamlit[auth]
+
+- httpx
+
+- request
+
+- pandas
 
 
 ## 📂 Project Structure
