@@ -1,6 +1,12 @@
 # 📚 Rekxare Dami - ڕێکخەرێ دەمی
 
-ئامیرەک بو رێکخستنا دەمێ خواندنێ ب زمانێ بادینی | Study time organizer in Badini Kurdish
+<div align="center">
+<img src="logo.png" alt="Rekxare Dami Logo" width="80">
+</div>
+
+**Study time organizer in Badini Kurdish | ئامیرەک بو رێکخستنا دەمێ خواندنێ ب زمانێ بادینی**
+
+> *"Study in your language."*
 
 ---
 
@@ -23,6 +29,7 @@
 - 💬 رسائل تحفيزية عشوائية.
 - 📱 واجهة متجاوبة تعمل على الجوال والحاسوب.
 - 🔗 رابط للتجربه: https://rekxare-dami.streamlit.app
+
 </div>
 
 ### English
@@ -43,6 +50,30 @@
 
 ---
 
+## 🚀 Features
+
+### Core Features
+
+| Feature | Status |
+|---------|--------|
+| ⏱️ Live Timer with SVG Circle | ✅ |
+| 📊 Weekly Schedule Planner | ✅ |
+| 🤖 AI Scheduler (Groq Llama 3) | ✅ |
+| 🌙 Dark/Light Mode | ✅ |
+| 🌍 3 Languages (Badini, English, Arabic) | ✅ |
+| 📊 Analytics Dashboard | ✅ |
+| 🏆 XP Progress Bar | ✅ |
+| 🔥 Study Streak | ✅ |
+| 🎯 Daily Goal Tracker | ✅ |
+| 📥 Export Data (JSON + CSV) | ✅ |
+| 🔊 Audio Test Button | ✅ |
+| 📱 PWA Support (Offline Ready) | ✅ |
+| 🔐 Google OAuth Login | ✅ |
+| 🗓️ Today's Schedule Preview | ✅ |
+| 🎨 Custom Logo | ✅ |
+
+---
+
 ## 🛠️ التقنيات المستخدمة | Tech Stack
 
 | التقنية | الوصف |
@@ -51,58 +82,127 @@
 | **Streamlit** | إطار عمل لبناء واجهة المستخدم. |
 | **SVG + HTML/CSS** | لرسم الدائرة الحية وتنسيق الواجهة. |
 | **JSON** | لحفظ البيانات محلياً. |
+| **Groq AI (Llama 3)** | لتوليد الجداول الدراسية. |
 | **Streamlit Cloud** | لاستضافة التطبيق مجاناً. |
 
 ---
-
 
 ## 🆕 الميزات الجديدة | What's New
 
 | الميزة | Feature | الوصف المختصر | Brief Description |
 | :--- | :--- | :--- | :--- |
-| 🧠 ترحيب ذكي | Smart Greeting | تحية تتغير حسب الوقت مع بطاقة ترحيبية. | Time-based greeting with a welcome card. |
-| 🎨 ألوان المواد | Subject Colors | لكل مادة لونها الخاص، والدائرة تتلون بها. | Each subject has a color; the timer circle matches it. |
-| 🔥 سلسلة الدراسة | Study Streak | عداد للأيام المتتالية التي تدرس فيها. | Tracks consecutive study days with motivational badges. |
-| 🎯 هدف يومي | Daily Goal | تحدد هدفاً يومياً ويظهر شريط تقدم لإنجازك. | Set a daily goal and track progress with a bar. |
-| 💬 تحفيز مزدوج | Bilingual Quotes | رسائل تحفيزية عشوائية بالعربية والإنجليزية. | Random motivational quotes in both languages. |
-| 🖼️ شريط جانبي جديد | New Sidebar | بطاقات إحصائية، إعدادات، ومسح بيانات. | Stat cards, settings, and data reset in one place. |
-| 🌙 ألوان ديناميكية | Dynamic CSS | متغيرات ألوان كاملة تتغير بالوضع الفاتح/الداكن. | Full CSS variables switching with light/dark mode. |
-| 🗓️ شارة اليوم | Today Badge | علامة "ئەڤروکە" 🔵 تظهر على اليوم الحالي. | A "Today" badge appears on the current day. |
-| 📊 تقدم المهام | Task Progress | شريط تقدم يوضح نسبة إنجاز مهام كل يوم. | Progress bar showing daily task completion rate. |
-| 🔊 صوت تنبيه | Alarm Sound | نغمة ثلاثية عند انتهاء المؤقت. | Three-tone chime when the timer ends. |
-| 🌓 وضع ليلي ثابت | Stable Dark Mode | الوضع الليلي يحفظ ولا يختفي أثناء المؤقت. | Dark mode is saved and persists during countdown. |
-| 💾 حفظ تلقائي | Auto Save | كل البيانات تحفظ تلقائياً في ملف JSON. | All data auto-saves to a JSON file. |
-## 🚀 آخر التحديثات | Latest Updates (May 2026)
+| 🎨 شعار مخصص | Custom Logo | شعار احترافي للتطبيق | Professional app logo |
+| 📊 لوحة تحليلية | Analytics Dashboard | رسم بياني أسبوعي مع أفضل يوم | Weekly chart with best day |
+| 🏆 شريط الخبرة | XP Progress Bar | نظام خبرة مع مستويات | Leveling system with XP bar |
+| 🔊 اختبار الصوت | Audio Test Button | اختبار صوت التنبيه | Test the alarm sound |
+| 📥 تصدير البيانات | Export Data | تصدير JSON + CSV | JSON + CSV export |
+| 🤖 جدولة ذكية | AI Scheduler | توليد جدول أسبوعي بالذكاء الاصطناعي | AI-generated weekly schedule |
+| 🔐 دخول جوجل | Google Login | تسجيل دخول آمن | Secure OAuth login |
+| 🌍 ثلاث لغات | 3 Languages | باديني، إنجليزي، عربية | Badini, English, Arabic |
+| 🔥 سلسلة الدراسة | Study Streak | أيام متتالية من الدراسة | Consecutive study days |
+| 🎯 هدف يومي | Daily Goal | تتبع الهدف اليومي | Track daily study goals |
+| 📅 معاينة اليوم | Today Preview | عرض مهام اليوم | Show today's tasks |
+| 🔃 ترتيب المهام | Sort Tasks | ترتيب حسب الوقت | Sort by time |
+| ✅ إتمام الكل | Mark All Done | إنجاز كل المهام | Complete all tasks |
+| 🗑️ تأكيد الحذف | Delete Confirmation | تأكيد قبل المسح | Confirm before clearing |
 
-| الميزة | Feature | الوصف | Description |
-| :--- | :--- | :--- | :--- |
-| ⚡ أزرار سريعة | Quick Presets | 25، 45، 60، 90 دقيقة بضغطة زر | One-click duration presets |
-| 📊 نظرة أسبوعية | Weekly Overview | تقدم كل يوم مع أشرطة ووقت | Daily progress bars + total time |
-| 🎨 تصميم محسن | UI Overhaul | أزرار متدرجة، ظلال، حركات | Gradient buttons, shadows, animations |
-| 🖐️ اسم محفوظ | Saved Name | الاسم يبقى بعد الإغلاق | Name persists across sessions |
-| 📅 معاينة اليوم | Today Preview | مهام اليوم من الجدول في الرئيسية | Today's schedule on main page |
-| 🔃 ترتيب المهام | Sort Tasks | ترتيب المهام حسب الوقت | Sort tasks by time |
-| ✅ إتمام الكل | Mark All Done | إنجاز كل المهام بضغطة زر | Complete all tasks at once |
-| 🗑️ تأكيد الحذف | Delete Confirmation | تأكيد قبل مسح البيانات | Confirm before clearing |
-
+---
 
 ## 🌍 تعدد اللغات | Multilingual Support
 
 | الميزة | Feature | الوصف | Description |
 | :--- | :--- | :--- | :--- |
 | 🌍 ثلاث لغات | Three Languages | البادينية، الإنجليزية، العربية | Badini, English, Arabic |
-| 🔄 تبديل فوري | Instant Switch | زر اختيار اللغة في الشريط الجانبي | Language radio buttons in the sidebar |
+| 🔄 تبديل فوري | Instant Switch | زر اختيار اللغة في الشريط الجانبي | Language buttons in sidebar |
 | 💾 حفظ اللغة | Language Saved | اللغة المختارة تحفظ تلقائياً | Selected language auto-saves |
-| 📅 أيام مترجمة | Translated Days | أيام الأسبوع تتغير حسب اللغة | Weekdays change with the language |
+| 📅 أيام مترجمة | Translated Days | أيام الأسبوع تتغير حسب اللغة | Weekdays change with language |
 | 📝 كل النصوص | All Texts | جميع الأزرار والرسائل والإحصائيات | All buttons, messages, and stats |
+| 🖼️ واجهة متجاوبة | RTL Support | دعم اللغة العربية كاملة | Full Arabic RTL support |
 
-## 🎨 تصميم جديد | Redesigned UI
+---
 
-| الميزة | Feature | الوصف | Description |
-| :--- | :--- | :--- | :--- |
-| 🎨 ألوان متدرجة | Gradient Buttons | أزرار ابدأ وإيقاف بألوان متدرجة | Start/Pause buttons with gradient colors |
-| ✨ تأثيرات حركية | Animations | تأثيرات hover و transform على الأزرار | Hover and transform effects on buttons |
-| 📱 متجاوب بالكامل | Fully Responsive | تصميم يتكيف مع الجوال (@media) | Mobile-responsive design |
-| 🖼️ بطاقات وظلال | Cards & Shadows | ظلال أنيقة على البطاقات | Elegant box-shadows on cards |
-| 🔘 أزرار لغة أنيقة | Language Pills | أزرار دائرية لاختيار اللغة | Pill-shaped language selectors |
-| 🌓 وضع ليلي محسن | Enhanced Dark Mode | ألوان داكنة متناسقة مع تأثيرات | Consistent dark colors with effects |
+## 📸 Screenshots
+
+| Light Mode | Dark Mode |
+|:---:|:---:|
+| ![Light Mode](screenshots/light-mode.png) | ![Dark Mode](screenshots/dark-mode.png) |
+
+| Schedule Page | Analytics Dashboard |
+|:---:|:---:|
+| ![Schedule](screenshots/schedule.png) | ![Analytics](screenshots/analytics.png) |
+
+---
+
+## 🤖 AI Scheduler
+The AI Scheduler uses Groq Llama 3 to generate a full weekly study plan based on a student's goals:
+
+1. Describe your study goals: "I need to study math for 10 hours and physics for 5 hours"
+
+2. The AI generates a complete weekly schedule with tasks, start/end times, and breaks.
+
+3. You can review, edit, and finalize the plan.s
+
+## 🚀 How to Run Locally
+ds
+```bash
+# 1. Clone the repository
+git clone https://github.com/HayhatDev/rekxare-dami.git
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Run the app
+streamlit run Home.py
+
+Requirements
+streamlit>=1.42.0
+pandas
+requests
+authlib>=1.3.2
+
+
+## 📂 Project Structure
+
+rekxare-dami/
+├── Home.py              # Main app with timer + dashboard
+├── 01_Schedule.py       # Weekly schedule planner
+├── 02_About.py          # About page
+├── translations.json    # All translations (Badini, English, Arabic)
+├── logo.png             # Custom app logo
+├── requirements.txt     # Python dependencies
+└── README.md            # This file
+
+## 👨‍💻 Built By
+Hayhat Tahir – High school student from Kurdistan Region, Iraq.
+Passionate about computer engineering, robotics, and technology.
+
+GitHub: @HayhatDev
+
+Instagram: @Zanst.21
+
+Live Demo: rekxare-dami.streamlit.app
+
+
+## 📄 License
+MIT License – feel free to use, modify, and distribute.
+
+
+## 🙏 Acknowledgments
+Thanks to all the students who inspired this project.
+
+Built with ❤️ for Kurdish students everywhere.
+
+
+## 📞 Contact
+For questions or feedback, feel free to open an issue or reach out!
+
+Language should not be a barrier to education. 🌍📚
+
+
+## 🔗 Quick Links
+
+🌐 Live Demo: rekxare-dami.streamlit.app
+
+📂 GitHub: github.com/HayhatDev/rekxare-dami
+
+📸 Instagram: @Zanst.21
