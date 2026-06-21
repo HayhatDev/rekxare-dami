@@ -1057,6 +1057,34 @@ with st.sidebar:
         st.session_state.dark_mode = dark_btn
         save_data()
         st.rerun()
+
+        # ── Audio Test Button ──
+    st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
+    
+    if st.button("🔊 " + (t("test_audio") if "test_audio" in TRANSLATIONS.get(st.session_state.lang, {}) else "Test Audio"), use_container_width=True):
+        components.html("""
+        <script>
+            try {
+                var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                var osc = ctx.createOscillator();
+                var gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.value = 880;
+                osc.start();
+                gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
+                osc.stop(ctx.currentTime + 0.8);
+            } catch(e) {
+                console.log("Audio error:", e);
+            }
+        </script>
+        """, height=0)
+        st.success("🔊 " + (t("audio_test_success") if "audio_test_success" in TRANSLATIONS.get(st.session_state.lang, {}) else "Sound played! If you can hear it, audio is working."))
+        time.sleep(0.5)
+        st.rerun()
+        
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
 
