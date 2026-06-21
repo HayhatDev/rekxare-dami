@@ -908,13 +908,20 @@ hr {{ border-color: {DIVIDER} !important; margin: 18px 0 !important; }}
 #  SIDEBAR
 # ══════════════════════════════════════════════════════════
 with st.sidebar:
-    st.markdown(f"""
-    <div style="padding:20px 4px 8px;">
-        <div style="font-size:22px;font-weight:900;letter-spacing:-0.5px;">st.image("logo.png", width=40)  # or width=45 Rekxare Dami</div>
-        <div style="font-size:12px;color:{TEXT_MUTED};margin-top:3px;font-weight:500;">{t("app_title")}</div>
-    </div>
-    <div style="height:1px;background:{DIVIDER};margin:8px 0 4px;"></div>
-    """, unsafe_allow_html=True)
+    # ── Logo + Title + Slogan ──
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        st.image("logo.png", width=40)
+    with col2:
+        st.markdown(f"""
+        <div style="padding:14px 0 2px 0;">
+            <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px;line-height:1.2;">Rekxare Dami</div>
+            <div style="font-size:10px;color:{TEXT_MUTED};font-weight:500;line-height:1.2;opacity:0.8;">{t("app_title")}</div>
+            <div style="font-size:9px;color:{TEXT_MUTED};font-weight:400;line-height:1.2;opacity:0.6;">"Study in your language."</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown(f'<div style="height:1px;background:{DIVIDER};margin:6px 0 8px;"></div>', unsafe_allow_html=True)
 
     st.markdown('<span class="sb-lbl">زمان | Language</span>', unsafe_allow_html=True)
     lang = st.radio("", ["badini", "english", "arabic"],
