@@ -143,8 +143,7 @@ The AI Scheduler uses Groq Llama 3 to generate a full weekly study plan based on
 3. You can review, edit, and finalize the plan.s
 
 ## 🚀 How to Run Locally
-ds
-```bash
+
 # 1. Clone the repository
 git clone https://github.com/HayhatDev/rekxare-dami.git
 
@@ -154,7 +153,7 @@ pip install -r requirements.txt
 # 3. Run the app
 streamlit run Home.py
 
-Requirements
+# Requirements
 streamlit>=1.42.0
 pandas
 requests
