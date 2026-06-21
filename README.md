@@ -155,12 +155,19 @@ authlib>=1.3.2
 ## 📂 Project Structure
 
 rekxare-dami/
+
 ├── Home.py              # Main app with timer + dashboard
+
 ├── 01_Schedule.py       # Weekly schedule planner
+
 ├── 02_About.py          # About page
+
 ├── translations.json    # All translations (Badini, English, Arabic)
+
 ├── logo.png             # Custom app logo
+
 ├── requirements.txt     # Python dependencies
+
 └── README.md            # This file
 
 ## 👨‍💻 Built By
