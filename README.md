@@ -1,7 +1,7 @@
 # 📚 Rekxare Dami - ڕێکخەرێ دەمی
 
 <div align="center">
-<img src="logo.png" alt="Rekxare Dami Logo" width="40">
+<img src="logo.png" alt="Rekxare Dami Logo" width="60">
 </div>
 
 **Study time organizer in Badini Kurdish | ئامیرەک بو رێکخستنا دەمێ خواندنێ ب زمانێ بادینی**
