@@ -39,8 +39,7 @@ def get_schedule_file():
 # ══════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="Rekxare Dami",
-    page_icon="📚",
-    initial_sidebar_state="collapsed",
+    page_icon="logo.png",
     layout="centered",
 )
 
@@ -911,7 +910,7 @@ hr {{ border-color: {DIVIDER} !important; margin: 18px 0 !important; }}
 with st.sidebar:
     st.markdown(f"""
     <div style="padding:20px 4px 8px;">
-        <div style="font-size:22px;font-weight:900;letter-spacing:-0.5px;">📚 Rekxare Dami</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:-0.5px;">st.image("logo.png", width=40)  # or width=45 Rekxare Dami</div>
         <div style="font-size:12px;color:{TEXT_MUTED};margin-top:3px;font-weight:500;">{t("app_title")}</div>
     </div>
     <div style="height:1px;background:{DIVIDER};margin:8px 0 4px;"></div>
