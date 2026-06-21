@@ -114,7 +114,8 @@
     "total_this_week": "کویێ ڤێ حەفتیێ",
     "days_studied": "روژێن خواندنێ",
     "test_audio": "تاقيكرنا دەنگی",
-    "audio_test_success": "✅ دەنگ دەرچوو! ئەگەر تە گوهـ لێ بوو، دەنگ کار دکەت. "
+    "audio_test_success": "✅ دەنگ دەرچوو! ئەگەر تە گوهـ لێ بوو، دەنگ کار دکەت. ",
+    "slogan": "خواندن ب زمانێ ته"
   },
   "english": {
     "app_title": "📚 Rekxare Dami | For Students & Learners",
@@ -231,7 +232,8 @@
     "total_this_week": "total this week",
     "days_studied": "days studied",
     "test_audio": "Test Audio",
-    "audio_test_success": "✅ Sound played! If you can hear it, audio is working."
+    "audio_test_success": "✅ Sound played! If you can hear it, audio is working.",
+    "slogan": "Study in your language."
   },
   "arabic": {
     "app_title": "📚 Rekxare Dami | للطلاب والمتعلمين",
@@ -348,6 +350,7 @@
     "total_this_week": "إجمالي هذا الأسبوع",
     "days_studied": "أيام الدراسة",
     "test_audio": "اختبار الصوت",
-    "audio_test_success": "✅ تم تشغيل الصوت! إذا سمعته، فهذا يعني أن الصوت يعمل."
+    "audio_test_success": "✅ تم تشغيل الصوت! إذا سمعته، فهذا يعني أن الصوت يعمل.",
+    "slogan": "ادرس بلغتك"
   }
 }
