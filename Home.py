@@ -917,7 +917,7 @@ with st.sidebar:
         <div style="padding:14px 0 2px 0;">
             <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px;line-height:1.2;">Rekxare Dami</div>
             <div style="font-size:10px;color:{TEXT_MUTED};font-weight:500;line-height:1.2;opacity:0.8;">{t("app_title")}</div>
-            <div style="font-size:9px;color:{TEXT_MUTED};font-weight:400;line-height:1.2;opacity:0.6;">"Study in your language."</div>
+            <div style="font-size:9px;color:{TEXT_MUTED};font-weight:400;line-height:1.2;opacity:0.6;">{t('slogan')}</div>
         </div>
         """, unsafe_allow_html=True)
     
