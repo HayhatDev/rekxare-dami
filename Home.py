@@ -43,13 +43,6 @@ st.set_page_config(
     layout="wide",
 )
 
-# Navigation
-pg = st.navigation([
-    st.Page("Home.py", title="🏠 Home", icon="🏠"),
-    st.Page("01_Schedule.py", title="📅 Schedule", icon="📅"),
-    st.Page("02_About.py", title="ℹ️ About", icon="ℹ️"),
-])
-pg.run()
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
 # ══════════════════════════════════════════════════════════
