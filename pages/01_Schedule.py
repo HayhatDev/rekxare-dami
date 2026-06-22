@@ -8,7 +8,7 @@ import time
 import hashlib
 
 if not st.user.is_logged_in:
-    st.switch_page("Home.py")  # توجيه المستخدم لصفحة تسجيل الدخول الرئيسية
+    st.switch_page("app.py")
     st.stop()
     
 # ══════════════════════════════════════════════════════════
