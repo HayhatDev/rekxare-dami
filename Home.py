@@ -589,23 +589,6 @@ button, input, select, textarea, label {{
     box-shadow: 0 0 0 3px rgba(76,175,80,0.15) !important;
     outline: none !important;
 }}
-/* Nav bar styling */
-.stApp > header {{
-    background: rgba(26, 26, 46, 0.85) !important;
-    backdrop-filter: blur(12px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-}}
-.stApp > header a {{
-    color: #e2e2e2 !important;
-    font-weight: 600 !important;
-}}
-.stApp > header a:hover {{
-    color: #4CAF50 !important;
-}}
-.stApp > header a[aria-current="page"] {{
-    color: #4CAF50 !important;
-    border-bottom: 2px solid #4CAF50 !important;
-}}
 
 /* ── Radio language switcher ── */
 [data-testid="stRadio"] > div {{ gap: 8px !important; flex-wrap: wrap !important; }}
