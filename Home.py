@@ -8,12 +8,7 @@ import streamlit.components.v1 as components
 import hashlib
 import pandas as pd
 
-# ══════════════════════════════════════════════════════════
-#  CHECK LOGIN (MUST BE FIRST)
-# ══════════════════════════════════════════════════════════
-if not st.user.is_logged_in:
-    st.switch_page("app.py")
-    st.stop()
+
     
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS  (load before set_page_config)
@@ -41,7 +36,11 @@ def get_schedule_file():
     return f"schedule_data_{user_hash}.json"
     
 
-
+st.set_page_config(
+    page_title="Rekxare Dami",
+    page_icon="logo.png",
+    layout="centred",
+)
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
 # ══════════════════════════════════════════════════════════
