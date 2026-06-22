@@ -40,7 +40,7 @@ def get_schedule_file():
 st.set_page_config(
     page_title="Rekxare Dami",
     page_icon="logo.png",
-    layout="center",
+    layout="centered",
 )
 
 # ══════════════════════════════════════════════════════════
