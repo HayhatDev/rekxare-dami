@@ -128,6 +128,8 @@ def inject_notion_top_bar():
             </div>
         </div>
     ''', unsafe_allow_html=True)
+    
+inject_notion_top_bar()
 
 # ── PWA manifest (after set_page_config)
 st.markdown("""
