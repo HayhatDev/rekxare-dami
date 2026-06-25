@@ -66,11 +66,7 @@ st.set_page_config(
     layout="centered",
 )
 
-# ══════════════════════════════════════════════════════════
-#  HANDLE TOP BAR ACTIONS (Dark Mode & Language)
-# ══════════════════════════════════════════════════════════
 
-import base64
 
 def inject_notion_top_bar():
     # ── Encode Logo as Base64 ──
