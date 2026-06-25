@@ -149,8 +149,17 @@ def fmt_minutes(mins):
 def load_schedule():
     filename = get_schedule_file()
     if os.path.exists(filename):
-        with open(filename, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if not content:
+                    # File is empty – treat as no data
+                    return None
+                data = json.loads(content)
+        except (json.JSONDecodeError, ValueError, OSError) as e:
+            print(f"Error loading schedule: {e}")
+            return None
+        
         if "dark_mode" in data:
             st.session_state.dark_mode = data["dark_mode"]
         return data.get("schedule", None)
