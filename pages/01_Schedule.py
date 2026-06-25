@@ -36,6 +36,10 @@ st.set_page_config(
     page_icon="📅",
     layout="centered",
 )
+<a class="notion-nav-item" href="/" target="_self">⏱️ Timer</a>
+<a class="notion-nav-item active" href="/Schedule" target="_self">📅 Schedule</a>
+<a class="notion-nav-item" href="/About" target="_self">✨ About</a>
+
 
 # ── PWA manifest (after set_page_config)
 st.markdown("""
