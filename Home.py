@@ -45,19 +45,100 @@ st.set_page_config(
     layout="centered",
 )
 
-# ── TOP NAVIGATION BAR ──
+
+    
+# ══════════════════════════════════════════════════════════
+#  CONSTANTS
+# ══════════════════════════════════════════════════════════
+SCHEDULE_FILE = "schedule_data.json"
+
+# ══════════════════════════════════════════════════════════
+#  DATA HELPERS
+# ══════════════════════════════════════════════════════════
+def get_schedule_data():
+    filename = get_schedule_file() 
+    if os.path.exists(filename):
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("schedule", {})
+        except Exception as e:
+            print(f"Error loading schedule: {e}")
+    return {}
+    
+    
+def get_data_file():
+    if st.user.is_logged_in:
+        email = st.user.email
+    else:
+        email = st.session_state.get("user_email", "default")
+    key = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"study_data_{key}.json"
+
+def load_data():
+    DATA_FILE = get_data_file()
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        st.session_state.total_study_seconds = data.get("total_seconds", 0)
+        st.session_state.completed_sessions  = data.get("sessions", 0)
+        st.session_state.last_subject        = data.get("last_subject", "—")
+        st.session_state.study_history       = data.get("history", [])
+        st.session_state.dark_mode           = data.get("dark_mode", True)
+        st.session_state.streak              = data.get("streak", 0)
+        st.session_state.last_study_date     = data.get("last_study_date", "")
+        st.session_state.daily_seconds       = data.get("daily_seconds", 0)
+        st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
+        st.session_state.lang                = data.get("lang", "badini")
+        st.session_state.student_name        = data.get("student_name", "")
+        st.session_state.user_email = data.get("user_email", "")
+        if st.session_state.user_email:
+            st.session_state.logged_in = True
+            st.session_state.data_key = st.session_state.user_email.split("@")[0]
+
+
+def save_data():
+    DATA_FILE = get_data_file()
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump({
+            "total_seconds":      st.session_state.total_study_seconds,
+            "sessions":           st.session_state.completed_sessions,
+            "last_subject":       st.session_state.last_subject,
+            "history":            st.session_state.study_history,
+            "dark_mode":          st.session_state.dark_mode,
+            "streak":             st.session_state.streak,
+            "last_study_date":    st.session_state.last_study_date,
+            "daily_seconds":      st.session_state.daily_seconds,
+            "daily_goal_seconds": st.session_state.daily_goal_seconds,
+            "lang":               st.session_state.lang,
+            "student_name":       st.session_state.get("student_name", ""),
+            "user_email":         st.session_state.get("user_email", ""),
+        }, f, ensure_ascii=False, indent=2)
+
+
+# ══════════════════════════════════════════════════════════
+#  TRANSLATION HELPER  (available before and after login)
+# ══════════════════════════════════════════════════════════
+def t(key, **kwargs):
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
+    if kwargs:
+        text = text.format(**kwargs)
+    return text
 
 
 def inject_notion_top_bar():
+    # ── Get current theme ──
     is_dark = st.session_state.get("dark_mode", True)
-
+    
+    # ── Encode Logo as Base64 ──
     try:
         with open("logo.png", "rb") as f:
             logo_data = base64.b64encode(f.read()).decode()
         logo_src = f"data:image/png;base64,{logo_data}"
     except FileNotFoundError:
         logo_src = "https://via.placeholder.com/28x28/4CAF50/FFFFFF?text=RD"
-
+    
+    # ── Theme-dependent colors ──
     if is_dark:
         bar_bg = "rgba(26, 26, 46, 0.92)"
         bar_border = "rgba(255, 255, 255, 0.06)"
@@ -320,85 +401,6 @@ def inject_notion_top_bar():
         </div>
     ''', unsafe_allow_html=True)
 inject_notion_top_bar()
-    
-# ══════════════════════════════════════════════════════════
-#  CONSTANTS
-# ══════════════════════════════════════════════════════════
-SCHEDULE_FILE = "schedule_data.json"
-
-# ══════════════════════════════════════════════════════════
-#  DATA HELPERS
-# ══════════════════════════════════════════════════════════
-def get_schedule_data():
-    filename = get_schedule_file() 
-    if os.path.exists(filename):
-        try:
-            with open(filename, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                return data.get("schedule", {})
-        except Exception as e:
-            print(f"Error loading schedule: {e}")
-    return {}
-    
-    
-def get_data_file():
-    if st.user.is_logged_in:
-        email = st.user.email
-    else:
-        email = st.session_state.get("user_email", "default")
-    key = hashlib.md5(email.encode()).hexdigest()[:8]
-    return f"study_data_{key}.json"
-
-def load_data():
-    DATA_FILE = get_data_file()
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        st.session_state.total_study_seconds = data.get("total_seconds", 0)
-        st.session_state.completed_sessions  = data.get("sessions", 0)
-        st.session_state.last_subject        = data.get("last_subject", "—")
-        st.session_state.study_history       = data.get("history", [])
-        st.session_state.dark_mode           = data.get("dark_mode", True)
-        st.session_state.streak              = data.get("streak", 0)
-        st.session_state.last_study_date     = data.get("last_study_date", "")
-        st.session_state.daily_seconds       = data.get("daily_seconds", 0)
-        st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
-        st.session_state.lang                = data.get("lang", "badini")
-        st.session_state.student_name        = data.get("student_name", "")
-        st.session_state.user_email = data.get("user_email", "")
-        if st.session_state.user_email:
-            st.session_state.logged_in = True
-            st.session_state.data_key = st.session_state.user_email.split("@")[0]
-
-
-def save_data():
-    DATA_FILE = get_data_file()
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump({
-            "total_seconds":      st.session_state.total_study_seconds,
-            "sessions":           st.session_state.completed_sessions,
-            "last_subject":       st.session_state.last_subject,
-            "history":            st.session_state.study_history,
-            "dark_mode":          st.session_state.dark_mode,
-            "streak":             st.session_state.streak,
-            "last_study_date":    st.session_state.last_study_date,
-            "daily_seconds":      st.session_state.daily_seconds,
-            "daily_goal_seconds": st.session_state.daily_goal_seconds,
-            "lang":               st.session_state.lang,
-            "student_name":       st.session_state.get("student_name", ""),
-            "user_email":         st.session_state.get("user_email", ""),
-        }, f, ensure_ascii=False, indent=2)
-
-
-# ══════════════════════════════════════════════════════════
-#  TRANSLATION HELPER  (available before and after login)
-# ══════════════════════════════════════════════════════════
-def t(key, **kwargs):
-    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
-    if kwargs:
-        text = text.format(**kwargs)
-    return text
-
 
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = True
