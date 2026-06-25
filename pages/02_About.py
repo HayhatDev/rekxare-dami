@@ -1,6 +1,9 @@
 import streamlit as st
 import json
+import os
+import hashlib
 import base64
+from datetime import datetime
 
 if not st.user.is_logged_in:
     st.switch_page("app.py")
@@ -21,16 +24,84 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
+# ══════════════════════════════════════════════════════════
+#  DATA HELPERS (for saving preferences)
+# ══════════════════════════════════════════════════════════
+
+def get_data_file():
+    """Get the user's data file path based on email."""
+    if st.user.is_logged_in:
+        email = st.user.email
+    else:
+        email = st.session_state.get("user_email", "default")
+    key = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"study_data_{key}.json"
+
+def save_data():
+    """Save dark mode and language preferences to the user's data file."""
+    DATA_FILE = get_data_file()
+    
+    # Load existing data if file exists
+    existing_data = {}
+    if os.path.exists(DATA_FILE):
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                existing_data = json.load(f)
+        except:
+            pass
+    
+    # Update with current preferences
+    existing_data["dark_mode"] = st.session_state.dark_mode
+    existing_data["lang"] = st.session_state.lang
+    existing_data["user_email"] = st.session_state.get("user_email", "")
+    
+    # Save back to file
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(existing_data, f, ensure_ascii=False, indent=2)
+
+
 st.set_page_config(
     page_title=t("about_title"),
     page_icon="✨",
     layout="centered",
 )
 
-# ── TOP NAVIGATION BAR ──
+# ══════════════════════════════════════════════════════════
+#  HANDLE TOP BAR ACTIONS (Dark Mode & Language)
+# ══════════════════════════════════════════════════════════
+
+query_params = st.query_params
+
+# ── Dark Mode Toggle ──
+if "dark_mode" in query_params:
+    st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
+    save_data()  # Save preference to file
+    st.query_params.clear()
+    st.rerun()
+
+# ── Language Cycle ──
+if "lang" in query_params and query_params["lang"] == "cycle":
+    lang_order = ["badini", "english", "arabic"]
+    current = st.session_state.get("lang", "badini")
+    try:
+        idx = lang_order.index(current)
+        next_lang = lang_order[(idx + 1) % len(lang_order)]
+    except ValueError:
+        next_lang = "badini"
+    st.session_state.lang = next_lang
+    save_data()  # Save preference to file
+    st.query_params.clear()
+    st.rerun()
+    
+
 def inject_notion_top_bar():
-    # ── Get current theme ──
+    # ── Get current theme and language ──
     is_dark = st.session_state.get("dark_mode", True)
+    current_lang = st.session_state.get("lang", "badini")
+    
+    # ── Dynamic icons ──
+    dark_icon = "☀️" if is_dark else "🌙"
+    lang_abbr = {"badini": "باد", "english": "EN", "arabic": "عرب"}.get(current_lang, "🌍")
     
     # ── Encode Logo as Base64 ──
     try:
@@ -326,8 +397,8 @@ def inject_notion_top_bar():
             </div>
             <div class="notion-nav-right">
                 <span class="notion-nav-user">👤 {st.user.name if st.user.is_logged_in else t('student')}</span>
-                <a class="notion-nav-icon-btn" href="?dark_mode=1" target="_self">🌙</a>
-                <a class="notion-nav-icon-btn" href="?lang=1" target="_self">🌍</a>
+                <a class="notion-nav-icon-btn" href="?dark_mode=1" target="_self">{dark_icon}</a>
+                <a class="notion-nav-icon-btn" href="?lang=cycle" target="_self">{lang_abbr}</a>
             </div>
         </div>
     ''', unsafe_allow_html=True)
