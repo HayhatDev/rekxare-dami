@@ -70,16 +70,18 @@ st.set_page_config(
 #  HANDLE TOP BAR ACTIONS (Dark Mode & Language)
 # ══════════════════════════════════════════════════════════
 
+# ── Handle top bar actions ──
 query_params = st.query_params
 
-# ── Dark Mode Toggle ──
 if "dark_mode" in query_params:
     st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
-    save_data()  # Save preference to file
+    try:
+        save_data()
+    except NameError:
+        pass
     st.query_params.clear()
     st.rerun()
 
-# ── Language Cycle ──
 if "lang" in query_params and query_params["lang"] == "cycle":
     lang_order = ["badini", "english", "arabic"]
     current = st.session_state.get("lang", "badini")
@@ -89,7 +91,10 @@ if "lang" in query_params and query_params["lang"] == "cycle":
     except ValueError:
         next_lang = "badini"
     st.session_state.lang = next_lang
-    save_data()  # Save preference to file
+    try:
+        save_data()
+    except NameError:
+        pass
     st.query_params.clear()
     st.rerun()
     
