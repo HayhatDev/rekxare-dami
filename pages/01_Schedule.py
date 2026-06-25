@@ -39,19 +39,39 @@ st.set_page_config(
 )
 
 # ── TOP NAVIGATION BAR ──
-import base64
-
 def inject_notion_top_bar():
-    # ── Encode Logo as Base64 ──
+    is_dark = st.session_state.get("dark_mode", True)
+
     try:
         with open("logo.png", "rb") as f:
             logo_data = base64.b64encode(f.read()).decode()
         logo_src = f"data:image/png;base64,{logo_data}"
     except FileNotFoundError:
-        # Fallback if logo.png not found
         logo_src = "https://via.placeholder.com/28x28/4CAF50/FFFFFF?text=RD"
+
+    if is_dark:
+        bar_bg = "rgba(26, 26, 46, 0.92)"
+        bar_border = "rgba(255, 255, 255, 0.06)"
+        text_color = "#ffffff"
+        text_muted = "rgba(255, 255, 255, 0.55)"
+        text_hover = "#ffffff"
+        user_bg = "rgba(255, 255, 255, 0.06)"
+        user_color = "rgba(255, 255, 255, 0.4)"
+        icon_bg = "rgba(255, 255, 255, 0.04)"
+        icon_hover_bg = "rgba(76, 175, 80, 0.15)"
+        shadow = "0 2px 20px rgba(0, 0, 0, 0.3)"
+    else:
+        bar_bg = "rgba(255, 255, 255, 0.92)"
+        bar_border = "rgba(0, 0, 0, 0.06)"
+        text_color = "#1a1a2e"
+        text_muted = "rgba(0, 0, 0, 0.5)"
+        text_hover = "#1a1a2e"
+        user_bg = "rgba(0, 0, 0, 0.04)"
+        user_color = "rgba(0, 0, 0, 0.4)"
+        icon_bg = "rgba(0, 0, 0, 0.04)"
+        icon_hover_bg = "rgba(76, 175, 80, 0.12)"
+        shadow = "0 2px 20px rgba(0, 0, 0, 0.08)"
     
-    # ── Build HTML with Logo ──
     st.markdown(f'''
         <style>
             /* ── Hide sidebar toggle ── */
@@ -69,10 +89,10 @@ def inject_notion_top_bar():
                 left: 0;
                 width: 100%;
                 height: 56px;
-                background: rgba(26, 26, 46, 0.88);
+                background: {bar_bg};
                 backdrop-filter: blur(16px) saturate(1.2);
                 -webkit-backdrop-filter: blur(16px) saturate(1.2);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                border-bottom: 1px solid {bar_border};
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -80,7 +100,7 @@ def inject_notion_top_bar():
                 z-index: 999999;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
                 animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+                box-shadow: {shadow};
             }}
             
             /* ── Slide Down Animation ── */
@@ -96,16 +116,16 @@ def inject_notion_top_bar():
                 gap: 12px;
                 font-weight: 700;
                 font-size: 17px;
-                color: #ffffff;
+                color: {text_color};
                 letter-spacing: -0.3px;
                 transition: transform 0.2s ease;
                 cursor: default;
-                text-shadow: 0 0 20px rgba(76, 175, 80, 0.3), 0 0 60px rgba(76, 175, 80, 0.1);
+                text-shadow: 0 0 20px rgba(76, 175, 80, 0.2);
             }}
             
             .notion-nav-brand:hover {{
                 transform: scale(1.02);
-                text-shadow: 0 0 30px rgba(76, 175, 80, 0.5), 0 0 80px rgba(76, 175, 80, 0.2);
+                text-shadow: 0 0 30px rgba(76, 175, 80, 0.35);
             }}
             
             .notion-nav-brand img {{
@@ -114,12 +134,12 @@ def inject_notion_top_bar():
                 object-fit: contain;
                 border-radius: 6px;
                 transition: all 0.3s ease;
-                filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.4));
+                filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.3));
             }}
             
             .notion-nav-brand img:hover {{
                 transform: rotate(-8deg) scale(1.1);
-                filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.7));
+                filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.6));
             }}
             
             .notion-nav-brand .brand-name {{
@@ -154,9 +174,8 @@ def inject_notion_top_bar():
             }}
             
             .notion-nav-item {{
-                position: relative;
                 font-size: 14px;
-                color: rgba(255, 255, 255, 0.55);
+                color: {text_muted};
                 text-decoration: none;
                 padding: 8px 18px;
                 border-radius: 8px;
@@ -167,35 +186,14 @@ def inject_notion_top_bar():
             
             .notion-nav-item:hover {{
                 background: rgba(76, 175, 80, 0.12);
-                color: #ffffff;
+                color: {text_hover};
                 transform: translateY(-1px);
             }}
             
             .notion-nav-item.active {{
-                color: #ffffff;
+                color: {text_color};
                 font-weight: 600;
-                background: rgba(76, 175, 80, 0.15);
-                box-shadow: 0 0 20px rgba(76, 175, 80, 0.05);
-            }}
-            
-            /* ── Active Indicator (underline) ── */
-            .notion-nav-item.active::after {{
-                content: '';
-                position: absolute;
-                bottom: 4px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 20px;
-                height: 2.5px;
-                background: #4CAF50;
-                border-radius: 99px;
-                animation: underlineIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                box-shadow: 0 0 12px rgba(76, 175, 80, 0.4);
-            }}
-            
-            @keyframes underlineIn {{
-                0% {{ width: 0; opacity: 0; }}
-                100% {{ width: 20px; opacity: 1; }}
+                background: rgba(76, 175, 80, 0.12);
             }}
             
             /* ── Right Side (User Info / Actions) ── */
@@ -207,26 +205,30 @@ def inject_notion_top_bar():
             
             .notion-nav-user {{
                 font-size: 12px;
-                color: rgba(255, 255, 255, 0.35);
+                color: {user_color};
                 font-weight: 500;
-                background: rgba(255, 255, 255, 0.04);
+                background: {user_bg};
                 padding: 4px 14px;
                 border-radius: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.04);
+                border: 1px solid {bar_border};
                 transition: all 0.2s ease;
+                max-width: 150px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }}
             
             .notion-nav-user:hover {{
-                background: rgba(255, 255, 255, 0.08);
-                color: rgba(255, 255, 255, 0.6);
+                background: rgba(76, 175, 80, 0.08);
+                color: {text_color};
             }}
             
             .notion-nav-icon-btn {{
-                background: rgba(255, 255, 255, 0.04);
-                border: 1px solid rgba(255, 255, 255, 0.04);
+                background: {icon_bg};
+                border: 1px solid {bar_border};
                 border-radius: 8px;
                 padding: 6px 10px;
-                color: rgba(255, 255, 255, 0.5);
+                color: {user_color};
                 font-size: 14px;
                 cursor: pointer;
                 transition: all 0.2s ease;
@@ -236,9 +238,9 @@ def inject_notion_top_bar():
             }}
             
             .notion-nav-icon-btn:hover {{
-                background: rgba(76, 175, 80, 0.15);
+                background: {icon_hover_bg};
                 color: #4CAF50;
-                border-color: rgba(76, 175, 80, 0.15);
+                border-color: rgba(76, 175, 80, 0.2);
                 transform: scale(1.05);
             }}
             
@@ -297,18 +299,17 @@ def inject_notion_top_bar():
                 <span class="brand-dot"></span>
             </div>
             <div class="notion-nav-links">
-                <a class="notion-nav-item" href="/" target="_self">⏱️ Timer</a>
-                <a class="notion-nav-item active" href="/Schedule" target="_self">📅 Schedule</a>
-                <a class="notion-nav-item" href="/About" target="_self">✨ About</a>
+                <a class="notion-nav-item" href="/" target="_self">⏱️ {t('nav_timer')}</a>
+                <a class="notion-nav-item active" href="/Schedule" target="_self">📅 {t('nav_schedule')}</a>
+                <a class="notion-nav-item" href="/About" target="_self">✨ {t('nav_about')}</a>
             </div>
             <div class="notion-nav-right">
-                <span class="notion-nav-user">👤 Student</span>
-                <button class="notion-nav-icon-btn" onclick="alert('🌙 Dark mode coming soon!')">🌙</button>
-                <button class="notion-nav-icon-btn" onclick="alert('🌍 Language switcher coming soon!')">🌍</button>
+                <span class="notion-nav-user">👤 {st.user.name if st.user.is_logged_in else t('student')}</span>
+                <a class="notion-nav-icon-btn" href="?dark_mode=1" target="_self">🌙</a>
+                <a class="notion-nav-icon-btn" href="?lang=1" target="_self">🌍</a>
             </div>
         </div>
     ''', unsafe_allow_html=True)
-    
 inject_notion_top_bar()
 
 # ── PWA manifest (after set_page_config)
