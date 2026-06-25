@@ -177,16 +177,18 @@ def copy_week_to_next():
     save_schedule()
 
 
+# ── Handle top bar actions ──
 query_params = st.query_params
 
-# ── Dark Mode Toggle ──
 if "dark_mode" in query_params:
     st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
-    save_schedule() 
+    try:
+        save_schedule()
+    except NameError:
+        pass
     st.query_params.clear()
     st.rerun()
 
-# ── Language Cycle ──
 if "lang" in query_params and query_params["lang"] == "cycle":
     lang_order = ["badini", "english", "arabic"]
     current = st.session_state.get("lang", "badini")
@@ -196,7 +198,10 @@ if "lang" in query_params and query_params["lang"] == "cycle":
     except ValueError:
         next_lang = "badini"
     st.session_state.lang = next_lang
-    save_schedule() 
+    try:
+        save_schedule()
+    except NameError:
+        pass
     st.query_params.clear()
     st.rerun()
 
