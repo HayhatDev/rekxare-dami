@@ -46,19 +46,31 @@ st.set_page_config(
 )
 
 # ── TOP NAVIGATION BAR ──
+import base64
+
 def inject_notion_top_bar():
-    st.markdown("""
+    # ── Encode Logo as Base64 ──
+    try:
+        with open("logo.png", "rb") as f:
+            logo_data = base64.b64encode(f.read()).decode()
+        logo_src = f"data:image/png;base64,{logo_data}"
+    except FileNotFoundError:
+        # Fallback if logo.png not found
+        logo_src = "https://via.placeholder.com/28x28/4CAF50/FFFFFF?text=RD"
+    
+    # ── Build HTML with Logo ──
+    st.markdown(f'''
         <style>
             /* ── Hide sidebar toggle ── */
-            [data-testid="stSidebarCollapse"] {
+            [data-testid="stSidebarCollapse"] {{
                 display: none !important;
-            }
-            [data-testid="collapsedControl"] {
+            }}
+            [data-testid="collapsedControl"] {{
                 display: none !important;
-            }
+            }}
             
             /* ── TOP NAVIGATION BAR ── */
-            .notion-nav-container {
+            .notion-nav-container {{
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -76,22 +88,16 @@ def inject_notion_top_bar():
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
                 animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
-            }
+            }}
             
             /* ── Slide Down Animation ── */
-            @keyframes slideDown {
-                0% {
-                    transform: translateY(-100%);
-                    opacity: 0;
-                }
-                100% {
-                    transform: translateY(0);
-                    opacity: 1;
-                }
-            }
+            @keyframes slideDown {{
+                0% {{ transform: translateY(-100%); opacity: 0; }}
+                100% {{ transform: translateY(0); opacity: 1; }}
+            }}
             
             /* ── Brand Section ── */
-            .notion-nav-brand {
+            .notion-nav-brand {{
                 display: flex;
                 align-items: center;
                 gap: 12px;
@@ -101,47 +107,60 @@ def inject_notion_top_bar():
                 letter-spacing: -0.3px;
                 transition: transform 0.2s ease;
                 cursor: default;
-            }
+                text-shadow: 0 0 20px rgba(76, 175, 80, 0.3), 0 0 60px rgba(76, 175, 80, 0.1);
+            }}
             
-            .notion-nav-brand:hover {
+            .notion-nav-brand:hover {{
                 transform: scale(1.02);
-            }
+                text-shadow: 0 0 30px rgba(76, 175, 80, 0.5), 0 0 80px rgba(76, 175, 80, 0.2);
+            }}
             
-            .notion-nav-brand img {
+            .notion-nav-brand img {{
                 height: 28px;
                 width: 28px;
                 object-fit: contain;
                 border-radius: 6px;
-                transition: transform 0.3s ease;
-            }
+                transition: all 0.3s ease;
+                filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.4));
+            }}
             
-            .notion-nav-brand img:hover {
+            .notion-nav-brand img:hover {{
                 transform: rotate(-8deg) scale(1.1);
-            }
+                filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.7));
+            }}
             
-            .notion-nav-brand .brand-dot {
+            .notion-nav-brand .brand-name {{
+                transition: all 0.3s ease;
+            }}
+            
+            .notion-nav-brand .brand-name:hover {{
+                color: #4CAF50;
+            }}
+            
+            .notion-nav-brand .brand-dot {{
                 display: inline-block;
                 width: 8px;
                 height: 8px;
                 background: #4CAF50;
                 border-radius: 50%;
-                margin-right: 4px;
+                margin-left: 2px;
                 animation: pulse-dot 2s ease-in-out infinite;
-            }
+                box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
+            }}
             
-            @keyframes pulse-dot {
-                0%, 100% { opacity: 1; transform: scale(1); }
-                50% { opacity: 0.6; transform: scale(0.85); }
-            }
+            @keyframes pulse-dot {{
+                0%, 100% {{ opacity: 1; transform: scale(1); box-shadow: 0 0 12px rgba(76, 175, 80, 0.5); }}
+                50% {{ opacity: 0.6; transform: scale(0.85); box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }}
+            }}
             
             /* ── Navigation Links ── */
-            .notion-nav-links {
+            .notion-nav-links {{
                 display: flex;
                 align-items: center;
                 gap: 4px;
-            }
+            }}
             
-            .notion-nav-item {
+            .notion-nav-item {{
                 position: relative;
                 font-size: 14px;
                 color: rgba(255, 255, 255, 0.55);
@@ -151,23 +170,23 @@ def inject_notion_top_bar():
                 transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 font-weight: 500;
                 letter-spacing: 0.2px;
-            }
+            }}
             
-            .notion-nav-item:hover {
+            .notion-nav-item:hover {{
                 background: rgba(76, 175, 80, 0.12);
                 color: #ffffff;
                 transform: translateY(-1px);
-            }
+            }}
             
-            .notion-nav-item.active {
+            .notion-nav-item.active {{
                 color: #ffffff;
                 font-weight: 600;
                 background: rgba(76, 175, 80, 0.15);
                 box-shadow: 0 0 20px rgba(76, 175, 80, 0.05);
-            }
+            }}
             
             /* ── Active Indicator (underline) ── */
-            .notion-nav-item.active::after {
+            .notion-nav-item.active::after {{
                 content: '';
                 position: absolute;
                 bottom: 4px;
@@ -178,21 +197,22 @@ def inject_notion_top_bar():
                 background: #4CAF50;
                 border-radius: 99px;
                 animation: underlineIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            }
+                box-shadow: 0 0 12px rgba(76, 175, 80, 0.4);
+            }}
             
-            @keyframes underlineIn {
-                0% { width: 0; opacity: 0; }
-                100% { width: 20px; opacity: 1; }
-            }
+            @keyframes underlineIn {{
+                0% {{ width: 0; opacity: 0; }}
+                100% {{ width: 20px; opacity: 1; }}
+            }}
             
             /* ── Right Side (User Info / Actions) ── */
-            .notion-nav-right {
+            .notion-nav-right {{
                 display: flex;
                 align-items: center;
                 gap: 12px;
-            }
+            }}
             
-            .notion-nav-user {
+            .notion-nav-user {{
                 font-size: 12px;
                 color: rgba(255, 255, 255, 0.35);
                 font-weight: 500;
@@ -201,14 +221,14 @@ def inject_notion_top_bar():
                 border-radius: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.04);
                 transition: all 0.2s ease;
-            }
+            }}
             
-            .notion-nav-user:hover {
+            .notion-nav-user:hover {{
                 background: rgba(255, 255, 255, 0.08);
                 color: rgba(255, 255, 255, 0.6);
-            }
+            }}
             
-            .notion-nav-icon-btn {
+            .notion-nav-icon-btn {{
                 background: rgba(255, 255, 255, 0.04);
                 border: 1px solid rgba(255, 255, 255, 0.04);
                 border-radius: 8px;
@@ -220,67 +240,67 @@ def inject_notion_top_bar():
                 display: flex;
                 align-items: center;
                 justify-content: center;
-            }
+            }}
             
-            .notion-nav-icon-btn:hover {
+            .notion-nav-icon-btn:hover {{
                 background: rgba(76, 175, 80, 0.15);
                 color: #4CAF50;
                 border-color: rgba(76, 175, 80, 0.15);
                 transform: scale(1.05);
-            }
+            }}
             
             /* ── Mobile Responsive ── */
-            @media (max-width: 640px) {
-                .notion-nav-container {
+            @media (max-width: 640px) {{
+                .notion-nav-container {{
                     padding: 0 14px;
                     height: 50px;
-                }
+                }}
                 
-                .notion-nav-brand {
+                .notion-nav-brand {{
                     font-size: 14px;
                     gap: 8px;
-                }
+                }}
                 
-                .notion-nav-brand span:last-child {
+                .notion-nav-brand .brand-name {{
                     display: none;
-                }
+                }}
                 
-                .notion-nav-item {
+                .notion-nav-item {{
                     font-size: 12px;
                     padding: 6px 12px;
-                }
+                }}
                 
-                .notion-nav-user {
+                .notion-nav-user {{
                     display: none;
-                }
+                }}
                 
-                .notion-nav-icon-btn {
+                .notion-nav-icon-btn {{
                     padding: 4px 8px;
                     font-size: 12px;
-                }
-            }
+                }}
+            }}
             
-            @media (max-width: 400px) {
-                .notion-nav-item {
+            @media (max-width: 400px) {{
+                .notion-nav-item {{
                     font-size: 10px;
                     padding: 4px 8px;
-                }
+                }}
                 
-                .notion-nav-links {
+                .notion-nav-links {{
                     gap: 2px;
-                }
-            }
+                }}
+            }}
             
             /* ── Push content down ── */
-            .main .block-container {
+            .main .block-container {{
                 padding-top: 72px !important;
-            }
+            }}
         </style>
         
         <div class="notion-nav-container">
             <div class="notion-nav-brand">
-                <span>📚</span>
-                <span>Rekxare Dami</span>
+                <img src="{logo_src}" alt="Logo">
+                <span class="brand-name">Rekxare Dami</span>
                 <span class="brand-dot"></span>
             </div>
             <div class="notion-nav-links">
@@ -294,7 +314,7 @@ def inject_notion_top_bar():
                 <button class="notion-nav-icon-btn" onclick="alert('🌍 Language switcher coming soon!')">🌍</button>
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
 inject_notion_top_bar()
     
 # ══════════════════════════════════════════════════════════
