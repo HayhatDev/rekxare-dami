@@ -113,12 +113,26 @@ def save_data():
             "user_email":         st.session_state.get("user_email", ""),
         }, f, ensure_ascii=False, indent=2)
 
+
+# ══════════════════════════════════════════════════════════
+#  TRANSLATION HELPER                                       
+# ══════════════════════════════════════════════════════════
+def t(key, **kwargs):
+    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
+    if kwargs:
+        text = text.format(**kwargs)
+    return text
+
+
 # ── Handle top bar actions ──
 query_params = st.query_params
 
 if "dark_mode" in query_params:
     st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
-    # Save preference (call save_data() if you have it)
+    try:
+        save_data()
+    except NameError:
+        pass
     st.query_params.clear()
     st.rerun()
 
@@ -131,23 +145,22 @@ if "lang" in query_params and query_params["lang"] == "cycle":
     except ValueError:
         next_lang = "badini"
     st.session_state.lang = next_lang
-    # Save preference (call save_data() if you have it)
+    try:
+        save_data()
+    except NameError:
+        pass
     st.query_params.clear()
     st.rerun()
-    
-# ══════════════════════════════════════════════════════════
-#  TRANSLATION HELPER  (available before and after login)
-# ══════════════════════════════════════════════════════════
-def t(key, **kwargs):
-    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
-    if kwargs:
-        text = text.format(**kwargs)
-    return text
 
 
 def inject_notion_top_bar():
-    # ── Get current theme ──
+    # ── Get current theme and language ──
     is_dark = st.session_state.get("dark_mode", True)
+    current_lang = st.session_state.get("lang", "badini")
+    
+    # ── Dynamic icons ──
+    dark_icon = "☀️" if is_dark else "🌙"
+    lang_abbr = {"badini": "باد", "english": "EN", "arabic": "عرب"}.get(current_lang, "🌍")
     
     # ── Encode Logo as Base64 ──
     try:
@@ -437,14 +450,15 @@ def inject_notion_top_bar():
                 <span class="brand-dot"></span>
             </div>
             <div class="notion-nav-links">
+                <!-- ⚠️ CHANGE active CLASS BELOW FOR EACH PAGE -->
                 <a class="notion-nav-item active" href="/" target="_self">⏱️ {t('nav_timer')}</a>
                 <a class="notion-nav-item" href="/Schedule" target="_self">📅 {t('nav_schedule')}</a>
                 <a class="notion-nav-item" href="/About" target="_self">✨ {t('nav_about')}</a>
             </div>
             <div class="notion-nav-right">
                 <span class="notion-nav-user">👤 {st.user.name if st.user.is_logged_in else t('student')}</span>
-                <a class="notion-nav-icon-btn" href="?dark_mode=1" target="_self">🌙</a>
-                <a class="notion-nav-icon-btn" href="?lang=1" target="_self">🌍</a>
+                <a class="notion-nav-icon-btn" href="?dark_mode=1" target="_self">{dark_icon}</a>
+                <a class="notion-nav-icon-btn" href="?lang=cycle" target="_self">{lang_abbr}</a>
             </div>
         </div>
     ''', unsafe_allow_html=True)
