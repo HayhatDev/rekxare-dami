@@ -22,9 +22,95 @@ def t(key, **kwargs):
 
 st.set_page_config(
     page_title=t("about_title"),
-    page_icon="📚",
+    page_icon="✨",
     layout="centered",
 )
+
+# ── TOP NAVIGATION BAR ──
+def inject_notion_top_bar():
+    st.markdown("""
+        <style>
+            [data-testid="stSidebarCollapse"] {
+                display: none !important;
+            }
+            [data-testid="collapsedControl"] {
+                display: none !important;
+            }
+            
+            .notion-nav-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 48px;
+                background-color: rgba(26, 26, 46, 0.85);
+                backdrop-filter: blur(8px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+                z-index: 999999;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            }
+            
+            .notion-nav-brand {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: 600;
+                font-size: 14px;
+                color: #ffffff;
+            }
+            
+            .notion-nav-brand img {
+                height: 22px;
+                width: 22px;
+                object-fit: contain;
+            }
+            
+            .notion-nav-links {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+            
+            .notion-nav-item {
+                font-size: 14px;
+                color: rgba(255, 255, 255, 0.6);
+                text-decoration: none;
+                transition: color 0.15s ease;
+                font-weight: 500;
+            }
+            
+            .notion-nav-item:hover {
+                color: #4CAF50;
+            }
+            
+            .notion-nav-item.active {
+                color: #ffffff;
+                font-weight: 600;
+            }
+
+            .main .block-container {
+                padding-top: 64px !important;
+            }
+        </style>
+        
+        <div class="notion-nav-container">
+            <div class="notion-nav-brand">
+                <img src="logo.png" alt="Logo">
+                <span>Rekxare Dami</span>
+            </div>
+            <div class="notion-nav-links">
+                <a class="notion-nav-item" href="/" target="_self">⏱️ Timer</a>
+                <a class="notion-nav-item" href="/Schedule" target="_self">📅 Schedule</a>
+                <a class="notion-nav-item active" href="/About" target="_self">✨ About</a>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+inject_notion_top_bar()
 
 # ── PWA (after set_page_config)
 st.markdown("""
