@@ -172,6 +172,11 @@ def inject_notion_top_bar():
                 display: none !important;
             }}
             
+            /* ── Remove underlines from ALL links ── */
+            a {{
+                text-decoration: none !important;
+            }}
+            
             /* ── TOP NAVIGATION BAR ── */
             .notion-nav-container {{
                 position: fixed;
@@ -264,9 +269,10 @@ def inject_notion_top_bar():
             }}
             
             .notion-nav-item {{
+                position: relative;
                 font-size: 14px;
                 color: {text_muted};
-                text-decoration: none;
+                text-decoration: none !important;
                 padding: 8px 18px;
                 border-radius: 8px;
                 transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -278,12 +284,34 @@ def inject_notion_top_bar():
                 background: rgba(76, 175, 80, 0.12);
                 color: {text_hover};
                 transform: translateY(-1px);
+                text-decoration: none !important;
             }}
             
             .notion-nav-item.active {{
                 color: {text_color};
                 font-weight: 600;
                 background: rgba(76, 175, 80, 0.12);
+                text-decoration: none !important;
+            }}
+            
+            /* ── GREEN UNDERLINE ON ACTIVE PAGE ── */
+            .notion-nav-item.active::after {{
+                content: '';
+                position: absolute;
+                bottom: 2px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 24px;
+                height: 3px;
+                background: #4CAF50;
+                border-radius: 99px;
+                animation: underlineIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
+            }}
+            
+            @keyframes underlineIn {{
+                0% {{ width: 0; opacity: 0; }}
+                100% {{ width: 24px; opacity: 1; }}
             }}
             
             /* ── Right Side (User Info / Actions) ── */
@@ -306,6 +334,7 @@ def inject_notion_top_bar():
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                text-decoration: none !important;
             }}
             
             .notion-nav-user:hover {{
@@ -583,13 +612,6 @@ if st.user.is_logged_in and "user_email" not in st.session_state:
 #  POST-LOGIN SETUP
 # ══════════════════════════════════════════════════════════
 st.session_state.data_key = st.session_state.user_email.split("@")[0]
-
-def t(key, **kwargs):
-    text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS.get("badini", {})).get(key, key)
-    if kwargs:
-        text = text.format(**kwargs)
-    return text
-
 
 SUBJECT_COLOR_LIST = [
     "#2196F3", "#9C27B0", "#FF5722", "#00BCD4",
