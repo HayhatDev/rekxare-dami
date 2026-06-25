@@ -7,6 +7,7 @@ import os
 import streamlit.components.v1 as components
 import hashlib
 import pandas as pd
+import base64
 
 
     
@@ -46,9 +47,15 @@ st.set_page_config(
 
 # ── TOP NAVIGATION BAR ──
 def inject_notion_top_bar():
-    st.markdown("""
+    try:
+        with open("logo.png", "rb") as f:
+            logo_data = base64.b64encode(f.read()).decode()
+        logo_src = f"data:image/png;base64,{logo_data}"
+    except FileNotFoundError:
+        logo_src = "https://via.placeholder.com/22x22/4CAF50/FFFFFF?text=RD"
+    
+    st.markdown('''
         <style>
-            /* Suppress the standard Streamlit sidebar toggle menu button */
             [data-testid="stSidebarCollapse"] {
                 display: none !important;
             }
@@ -56,7 +63,6 @@ def inject_notion_top_bar():
                 display: none !important;
             }
             
-            /* Modern, Minimalist Top Navigation Container */
             .notion-nav-container {
                 position: fixed;
                 top: 0;
@@ -74,7 +80,6 @@ def inject_notion_top_bar():
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             }
             
-            /* Logo and App Title Brand Grouping */
             .notion-nav-brand {
                 display: flex;
                 align-items: center;
@@ -90,7 +95,6 @@ def inject_notion_top_bar():
                 object-fit: contain;
             }
             
-            /* Interactive Navigation Hyperlinks Group */
             .notion-nav-links {
                 display: flex;
                 align-items: center;
@@ -114,7 +118,6 @@ def inject_notion_top_bar():
                 font-weight: 600;
             }
 
-            /* Adjust default top padding to clear the fixed navigation header bar */
             .main .block-container {
                 padding-top: 64px !important;
             }
@@ -122,7 +125,7 @@ def inject_notion_top_bar():
         
         <div class="notion-nav-container">
             <div class="notion-nav-brand">
-                <img src="logo.png" alt="Logo">
+                <img src="''' + logo_src + '''" alt="Logo">
                 <span>Rekxare Dami</span>
             </div>
             <div class="notion-nav-links">
@@ -131,10 +134,8 @@ def inject_notion_top_bar():
                 <a class="notion-nav-item" href="/About" target="_self">✨ About</a>
             </div>
         </div>
-    """, unsafe_allow_html=True)
-
-inject_notion_top_bar()
-
+    ''', unsafe_allow_html=True)
+    
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
 # ══════════════════════════════════════════════════════════
