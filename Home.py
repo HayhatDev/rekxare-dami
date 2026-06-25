@@ -44,8 +44,6 @@ st.set_page_config(
     page_icon="logo.png",
     layout="centered",
 )
-
-
     
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
@@ -115,7 +113,28 @@ def save_data():
             "user_email":         st.session_state.get("user_email", ""),
         }, f, ensure_ascii=False, indent=2)
 
+# ── Handle top bar actions ──
+query_params = st.query_params
 
+if "dark_mode" in query_params:
+    st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
+    # Save preference (call save_data() if you have it)
+    st.query_params.clear()
+    st.rerun()
+
+if "lang" in query_params and query_params["lang"] == "cycle":
+    lang_order = ["badini", "english", "arabic"]
+    current = st.session_state.get("lang", "badini")
+    try:
+        idx = lang_order.index(current)
+        next_lang = lang_order[(idx + 1) % len(lang_order)]
+    except ValueError:
+        next_lang = "badini"
+    st.session_state.lang = next_lang
+    # Save preference (call save_data() if you have it)
+    st.query_params.clear()
+    st.rerun()
+    
 # ══════════════════════════════════════════════════════════
 #  TRANSLATION HELPER  (available before and after login)
 # ══════════════════════════════════════════════════════════
