@@ -76,8 +76,18 @@ def get_data_file():
 def load_data():
     DATA_FILE = get_data_file()
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if not content:
+                    # File is empty – treat as no data
+                    return
+                data = json.loads(content)
+        except (json.JSONDecodeError, ValueError, OSError) as e:
+            print(f"Error loading data: {e}")
+            return
+        
+        # If data loaded successfully, assign to session state
         st.session_state.total_study_seconds = data.get("total_seconds", 0)
         st.session_state.completed_sessions  = data.get("sessions", 0)
         st.session_state.last_subject        = data.get("last_subject", "—")
@@ -89,7 +99,7 @@ def load_data():
         st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
         st.session_state.lang                = data.get("lang", "badini")
         st.session_state.student_name        = data.get("student_name", "")
-        st.session_state.user_email = data.get("user_email", "")
+        st.session_state.user_email          = data.get("user_email", "")
         if st.session_state.user_email:
             st.session_state.logged_in = True
             st.session_state.data_key = st.session_state.user_email.split("@")[0]
@@ -129,10 +139,7 @@ query_params = st.query_params
 
 if "dark_mode" in query_params:
     st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
-    try:
-        save_data()
-    except NameError:
-        pass
+    save_data()
     st.query_params.clear()
     st.rerun()
 
@@ -145,10 +152,7 @@ if "lang" in query_params and query_params["lang"] == "cycle":
     except ValueError:
         next_lang = "badini"
     st.session_state.lang = next_lang
-    try:
-        save_data()
-    except NameError:
-        pass
+    save_data()
     st.query_params.clear()
     st.rerun()
 
