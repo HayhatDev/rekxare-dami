@@ -38,17 +38,19 @@ st.set_page_config(
     layout="centered",
 )
 
-# ── TOP NAVIGATION BAR ──
 def inject_notion_top_bar():
+    # ── Get current theme ──
     is_dark = st.session_state.get("dark_mode", True)
-
+    
+    # ── Encode Logo as Base64 ──
     try:
         with open("logo.png", "rb") as f:
             logo_data = base64.b64encode(f.read()).decode()
         logo_src = f"data:image/png;base64,{logo_data}"
     except FileNotFoundError:
         logo_src = "https://via.placeholder.com/28x28/4CAF50/FFFFFF?text=RD"
-
+    
+    # ── Theme-dependent colors ──
     if is_dark:
         bar_bg = "rgba(26, 26, 46, 0.92)"
         bar_border = "rgba(255, 255, 255, 0.06)"
@@ -80,6 +82,11 @@ def inject_notion_top_bar():
             }}
             [data-testid="collapsedControl"] {{
                 display: none !important;
+            }}
+            
+            /* ── Remove underlines from ALL links ── */
+            a {{
+                text-decoration: none !important;
             }}
             
             /* ── TOP NAVIGATION BAR ── */
@@ -174,9 +181,10 @@ def inject_notion_top_bar():
             }}
             
             .notion-nav-item {{
+                position: relative;
                 font-size: 14px;
                 color: {text_muted};
-                text-decoration: none;
+                text-decoration: none !important;
                 padding: 8px 18px;
                 border-radius: 8px;
                 transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -188,12 +196,34 @@ def inject_notion_top_bar():
                 background: rgba(76, 175, 80, 0.12);
                 color: {text_hover};
                 transform: translateY(-1px);
+                text-decoration: none !important;
             }}
             
             .notion-nav-item.active {{
                 color: {text_color};
                 font-weight: 600;
                 background: rgba(76, 175, 80, 0.12);
+                text-decoration: none !important;
+            }}
+            
+            /* ── GREEN UNDERLINE ON ACTIVE PAGE ── */
+            .notion-nav-item.active::after {{
+                content: '';
+                position: absolute;
+                bottom: 2px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 24px;
+                height: 3px;
+                background: #4CAF50;
+                border-radius: 99px;
+                animation: underlineIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
+            }}
+            
+            @keyframes underlineIn {{
+                0% {{ width: 0; opacity: 0; }}
+                100% {{ width: 24px; opacity: 1; }}
             }}
             
             /* ── Right Side (User Info / Actions) ── */
@@ -216,6 +246,7 @@ def inject_notion_top_bar():
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                text-decoration: none !important;
             }}
             
             .notion-nav-user:hover {{
@@ -299,8 +330,8 @@ def inject_notion_top_bar():
                 <span class="brand-dot"></span>
             </div>
             <div class="notion-nav-links">
-                <a class="notion-nav-item" href="/" target="_self">⏱️ {t('nav_timer')}</a>
-                <a class="notion-nav-item active" href="/Schedule" target="_self">📅 {t('nav_schedule')}</a>
+                <a class="notion-nav-item active" href="/" target="_self">⏱️ {t('nav_timer')}</a>
+                <a class="notion-nav-item" href="/Schedule" target="_self">📅 {t('nav_schedule')}</a>
                 <a class="notion-nav-item" href="/About" target="_self">✨ {t('nav_about')}</a>
             </div>
             <div class="notion-nav-right">
