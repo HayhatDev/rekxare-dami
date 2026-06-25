@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import base64
 
 if not st.user.is_logged_in:
     st.switch_page("app.py")
@@ -28,7 +29,14 @@ st.set_page_config(
 
 # ── TOP NAVIGATION BAR ──
 def inject_notion_top_bar():
-    st.markdown("""
+    try:
+        with open("logo.png", "rb") as f:
+            logo_data = base64.b64encode(f.read()).decode()
+        logo_src = f"data:image/png;base64,{logo_data}"
+    except FileNotFoundError:
+        logo_src = "https://via.placeholder.com/22x22/4CAF50/FFFFFF?text=RD"
+    
+    st.markdown('''
         <style>
             [data-testid="stSidebarCollapse"] {
                 display: none !important;
@@ -99,7 +107,7 @@ def inject_notion_top_bar():
         
         <div class="notion-nav-container">
             <div class="notion-nav-brand">
-                <img src="logo.png" alt="Logo">
+                <img src="''' + logo_src + '''" alt="Logo">
                 <span>Rekxare Dami</span>
             </div>
             <div class="notion-nav-links">
@@ -108,8 +116,7 @@ def inject_notion_top_bar():
                 <a class="notion-nav-item active" href="/About" target="_self">✨ About</a>
             </div>
         </div>
-    """, unsafe_allow_html=True)
-
+    ''', unsafe_allow_html=True)
 inject_notion_top_bar()
 
 # ── PWA (after set_page_config)
