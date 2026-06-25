@@ -38,9 +38,176 @@ st.set_page_config(
     layout="centered",
 )
 
+
+# ── PWA manifest (after set_page_config)
+st.markdown("""
+<link rel="manifest" href="/manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a2e">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js');
+  }
+</script>
+""", unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════
+#  CONSTANTS
+# ══════════════════════════════════════════════════════════
+DAYS = [
+    ("sun", "☀️ ئێکشەمب", "Sunday"),
+    ("mon", "📖 دووشەمب", "Monday"),
+    ("tue", "📖 سێشەمب", "Tuesday"),
+    ("wed", "📖 چارشەمب", "Wednesday"),
+    ("thu", "📖 پێنجشەمب", "Thursday"),
+    ("fri", "🕌 خودبە",   "Friday"),
+    ("sat", "🎉 شەمبی",   "Saturday"),
+]
+DAY_EMOJIS  = {"sun":"☀️","mon":"📖","tue":"📖","wed":"📖","thu":"📖","fri":"🕌","sat":"🎉"}
+
+def get_schedule_file():
+    if st.user.is_logged_in:
+        email = st.user.email
+    else:
+        email = st.session_state.get("user_email", "default")
+    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"schedule_data_{user_hash}.json"
+
+# ══════════════════════════════════════════════════════════
+#  HELPERS
+# ══════════════════════════════════════════════════════════
+def get_day_name(day_key):
+    for dk, badini_name, eng_name in DAYS:
+        if dk == day_key:
+            if st.session_state.lang == "badini":
+                return badini_name
+            elif st.session_state.lang == "arabic":
+                ar = {
+                    "sun":"☀️ الأحد","mon":"📖 الاثنين","tue":"📖 الثلاثاء",
+                    "wed":"📖 الأربعاء","thu":"📖 الخميس","fri":"🕌 الجمعة","sat":"🎉 السبت",
+                }
+                return ar.get(day_key, eng_name)
+            else:
+                return f"{DAY_EMOJIS.get(day_key,'📖')} {eng_name}"
+    return day_key
+
+
+def get_time_label():
+    if st.session_state.lang == "badini":  return "دەستپێک", "دووماهی"
+    if st.session_state.lang == "arabic":  return "بداية",  "نهاية"
+    return "Start", "End"
+
+
+def get_column_labels():
+    if st.session_state.lang == "badini":  return "دەم", "چالاکی"
+    if st.session_state.lang == "arabic":  return "الوقت", "المهمة"
+    return "Time", "Task"
+
+
+def parse_time(s):
+    try:
+        dt = datetime.strptime(s, "%H:%M")
+        return (dt.hour, dt.minute)
+    except Exception:
+        return (0, 0)
+
+
+def format_duration(start_str, end_str):
+    try:
+        s    = datetime.strptime(start_str, "%H:%M")
+        e    = datetime.strptime(end_str,   "%H:%M")
+        diff = int((e - s).total_seconds() // 60)
+        if diff <= 0: return ""
+        if diff < 60: return f"{diff}m"
+        h, m = divmod(diff, 60)
+        return f"{h}h {m}m" if m else f"{h}h"
+    except Exception:
+        return ""
+
+
+def total_day_minutes(day_entries):
+    total = 0
+    for e in day_entries:
+        if not e.get("task", "").strip(): continue
+        try:
+            s   = datetime.strptime(e.get("start","00:00"), "%H:%M")
+            end = datetime.strptime(e.get("end",  "00:00"), "%H:%M")
+            diff = int((end - s).total_seconds() // 60)
+            if diff > 0: total += diff
+        except Exception:
+            pass
+    return total
+
+
+def fmt_minutes(mins):
+    if mins <= 0: return ""
+    if mins < 60: return f"{mins}m"
+    h, m = divmod(mins, 60)
+    return f"{h}h {m}m" if m else f"{h}h"
+
+
+def load_schedule():
+    filename = get_schedule_file()
+    if os.path.exists(filename):
+        with open(filename, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if "dark_mode" in data:
+            st.session_state.dark_mode = data["dark_mode"]
+        return data.get("schedule", None)
+    return None
+
+def save_schedule():
+    filename = get_schedule_file()
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump({
+            "schedule": st.session_state.schedule,
+            "dark_mode": st.session_state.dark_mode,
+        }, f, ensure_ascii=False, indent=2)
+
+
+def copy_week_to_next():
+    new_schedule = {dk: [] for dk, _, _ in DAYS}
+    for dk, _, _ in DAYS:
+        for task_item in st.session_state.schedule.get(dk, []):
+            new_task = task_item.copy()
+            new_task["done"] = False
+            new_schedule[dk].append(new_task)
+    st.session_state.schedule   = new_schedule
+    st.session_state.active_day = today_key
+    save_schedule()
+
+
+query_params = st.query_params
+
+# ── Dark Mode Toggle ──
+if "dark_mode" in query_params:
+    st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
+    save_schedule() 
+    st.query_params.clear()
+    st.rerun()
+
+# ── Language Cycle ──
+if "lang" in query_params and query_params["lang"] == "cycle":
+    lang_order = ["badini", "english", "arabic"]
+    current = st.session_state.get("lang", "badini")
+    try:
+        idx = lang_order.index(current)
+        next_lang = lang_order[(idx + 1) % len(lang_order)]
+    except ValueError:
+        next_lang = "badini"
+    st.session_state.lang = next_lang
+    save_schedule() 
+    st.query_params.clear()
+    st.rerun()
+
 def inject_notion_top_bar():
-    # ── Get current theme ──
+    # ── Get current theme and language ──
     is_dark = st.session_state.get("dark_mode", True)
+    current_lang = st.session_state.get("lang", "badini")
+    
+    # ── Dynamic icons ──
+    dark_icon = "☀️" if is_dark else "🌙"
+    lang_abbr = {"badini": "باد", "english": "EN", "arabic": "عرب"}.get(current_lang, "🌍")
     
     # ── Encode Logo as Base64 ──
     try:
@@ -336,173 +503,13 @@ def inject_notion_top_bar():
             </div>
             <div class="notion-nav-right">
                 <span class="notion-nav-user">👤 {st.user.name if st.user.is_logged_in else t('student')}</span>
-                <a class="notion-nav-icon-btn" href="?dark_mode=1" target="_self">🌙</a>
-                <a class="notion-nav-icon-btn" href="?lang=1" target="_self">🌍</a>
+                <a class="notion-nav-icon-btn" href="?dark_mode=1" target="_self">{dark_icon}</a>
+                <a class="notion-nav-icon-btn" href="?lang=cycle" target="_self">{lang_abbr}</a>
             </div>
         </div>
     ''', unsafe_allow_html=True)
 inject_notion_top_bar()
 
-# ── PWA manifest (after set_page_config)
-st.markdown("""
-<link rel="manifest" href="/manifest.json">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1a1a2e">
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js');
-  }
-</script>
-""", unsafe_allow_html=True)
-
-# ══════════════════════════════════════════════════════════
-#  CONSTANTS
-# ══════════════════════════════════════════════════════════
-DAYS = [
-    ("sun", "☀️ ئێکشەمب", "Sunday"),
-    ("mon", "📖 دووشەمب", "Monday"),
-    ("tue", "📖 سێشەمب", "Tuesday"),
-    ("wed", "📖 چارشەمب", "Wednesday"),
-    ("thu", "📖 پێنجشەمب", "Thursday"),
-    ("fri", "🕌 خودبە",   "Friday"),
-    ("sat", "🎉 شەمبی",   "Saturday"),
-]
-DAY_EMOJIS  = {"sun":"☀️","mon":"📖","tue":"📖","wed":"📖","thu":"📖","fri":"🕌","sat":"🎉"}
-
-def get_schedule_file():
-    if st.user.is_logged_in:
-        email = st.user.email
-    else:
-        email = st.session_state.get("user_email", "default")
-    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
-    return f"schedule_data_{user_hash}.json"
-
-# ══════════════════════════════════════════════════════════
-#  HELPERS
-# ══════════════════════════════════════════════════════════
-def get_day_name(day_key):
-    for dk, badini_name, eng_name in DAYS:
-        if dk == day_key:
-            if st.session_state.lang == "badini":
-                return badini_name
-            elif st.session_state.lang == "arabic":
-                ar = {
-                    "sun":"☀️ الأحد","mon":"📖 الاثنين","tue":"📖 الثلاثاء",
-                    "wed":"📖 الأربعاء","thu":"📖 الخميس","fri":"🕌 الجمعة","sat":"🎉 السبت",
-                }
-                return ar.get(day_key, eng_name)
-            else:
-                return f"{DAY_EMOJIS.get(day_key,'📖')} {eng_name}"
-    return day_key
-
-
-def get_time_label():
-    if st.session_state.lang == "badini":  return "دەستپێک", "دووماهی"
-    if st.session_state.lang == "arabic":  return "بداية",  "نهاية"
-    return "Start", "End"
-
-
-def get_column_labels():
-    if st.session_state.lang == "badini":  return "دەم", "چالاکی"
-    if st.session_state.lang == "arabic":  return "الوقت", "المهمة"
-    return "Time", "Task"
-
-
-def parse_time(s):
-    try:
-        dt = datetime.strptime(s, "%H:%M")
-        return (dt.hour, dt.minute)
-    except Exception:
-        return (0, 0)
-
-
-def format_duration(start_str, end_str):
-    try:
-        s    = datetime.strptime(start_str, "%H:%M")
-        e    = datetime.strptime(end_str,   "%H:%M")
-        diff = int((e - s).total_seconds() // 60)
-        if diff <= 0: return ""
-        if diff < 60: return f"{diff}m"
-        h, m = divmod(diff, 60)
-        return f"{h}h {m}m" if m else f"{h}h"
-    except Exception:
-        return ""
-
-
-def total_day_minutes(day_entries):
-    total = 0
-    for e in day_entries:
-        if not e.get("task", "").strip(): continue
-        try:
-            s   = datetime.strptime(e.get("start","00:00"), "%H:%M")
-            end = datetime.strptime(e.get("end",  "00:00"), "%H:%M")
-            diff = int((end - s).total_seconds() // 60)
-            if diff > 0: total += diff
-        except Exception:
-            pass
-    return total
-
-
-def fmt_minutes(mins):
-    if mins <= 0: return ""
-    if mins < 60: return f"{mins}m"
-    h, m = divmod(mins, 60)
-    return f"{h}h {m}m" if m else f"{h}h"
-
-
-def load_schedule():
-    filename = get_schedule_file()
-    if os.path.exists(filename):
-        with open(filename, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        if "dark_mode" in data:
-            st.session_state.dark_mode = data["dark_mode"]
-        return data.get("schedule", None)
-    return None
-
-def save_schedule():
-    filename = get_schedule_file()
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump({
-            "schedule": st.session_state.schedule,
-            "dark_mode": st.session_state.dark_mode,
-        }, f, ensure_ascii=False, indent=2)
-
-
-def copy_week_to_next():
-    new_schedule = {dk: [] for dk, _, _ in DAYS}
-    for dk, _, _ in DAYS:
-        for task_item in st.session_state.schedule.get(dk, []):
-            new_task = task_item.copy()
-            new_task["done"] = False
-            new_schedule[dk].append(new_task)
-    st.session_state.schedule   = new_schedule
-    st.session_state.active_day = today_key
-    save_schedule()
-
-
-query_params = st.query_params
-
-# ── Dark Mode Toggle ──
-if "dark_mode" in query_params:
-    st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
-    save_schedule() 
-    st.query_params.clear()
-    st.rerun()
-
-# ── Language Cycle ──
-if "lang" in query_params and query_params["lang"] == "cycle":
-    lang_order = ["badini", "english", "arabic"]
-    current = st.session_state.get("lang", "badini")
-    try:
-        idx = lang_order.index(current)
-        next_lang = lang_order[(idx + 1) % len(lang_order)]
-    except ValueError:
-        next_lang = "badini"
-    st.session_state.lang = next_lang
-    save_schedule() 
-    st.query_params.clear()
-    st.rerun()
 
 # ══════════════════════════════════════════════════════════
 #  SESSION STATE INIT
