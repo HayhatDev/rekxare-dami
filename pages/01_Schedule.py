@@ -28,7 +28,38 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
+def get_preferences_file():
+    if st.user.is_logged_in:
+        email = st.user.email
+    else:
+        email = st.session_state.get("user_email", "default")
+    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"preferences_{user_hash}.json"
 
+def save_preferences():
+    """Save only dark_mode and language preferences."""
+    filename = get_preferences_file()
+    data = {
+        "dark_mode": st.session_state.get("dark_mode", True),
+        "lang": st.session_state.get("lang", "badini")
+    }
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def load_preferences():
+    """Load dark_mode and language from preferences file."""
+    filename = get_preferences_file()
+    if os.path.exists(filename):
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            st.session_state.dark_mode = data.get("dark_mode", True)
+            st.session_state.lang = data.get("lang", "badini")
+            return True
+        except:
+            pass
+    return False
+    
 # ══════════════════════════════════════════════════════════
 #  PAGE CONFIG  ← must be the FIRST Streamlit call
 # ══════════════════════════════════════════════════════════
@@ -38,6 +69,7 @@ st.set_page_config(
     layout="centered",
 )
 
+load_preferences()
 
 # ── PWA manifest (after set_page_config)
 st.markdown("""
@@ -186,7 +218,17 @@ def copy_week_to_next():
     save_schedule()
     
 
+import base64
+
 def inject_notion_top_bar():
+    # ── Get current theme and language ──
+    is_dark = st.session_state.get("dark_mode", True)
+    current_lang = st.session_state.get("lang", "badini")
+    
+    # ── Dynamic icons ──
+    dark_icon = "☀️" if is_dark else "🌙"  # Show sun if dark mode is ON (click to turn OFF)
+    lang_abbr = {"badini": "باد", "english": "EN", "arabic": "عرب"}.get(current_lang, "🌍")
+    
     # ── Encode Logo as Base64 ──
     try:
         with open("logo.png", "rb") as f:
@@ -196,14 +238,16 @@ def inject_notion_top_bar():
         logo_src = "https://via.placeholder.com/28x28/4CAF50/FFFFFF?text=RD"
     
     # ── Theme colors ──
-    is_dark = st.session_state.get("dark_mode", True)
-    
     if is_dark:
         bar_bg = "rgba(26, 26, 46, 0.92)"
         bar_border = "rgba(255, 255, 255, 0.06)"
         text_color = "#ffffff"
         text_muted = "rgba(255, 255, 255, 0.55)"
         text_hover = "#ffffff"
+        user_bg = "rgba(255, 255, 255, 0.06)"
+        user_color = "rgba(255, 255, 255, 0.4)"
+        icon_bg = "rgba(255, 255, 255, 0.04)"
+        icon_hover_bg = "rgba(76, 175, 80, 0.15)"
         shadow = "0 2px 20px rgba(0, 0, 0, 0.3)"
     else:
         bar_bg = "rgba(255, 255, 255, 0.92)"
@@ -211,14 +255,28 @@ def inject_notion_top_bar():
         text_color = "#1a1a2e"
         text_muted = "rgba(0, 0, 0, 0.5)"
         text_hover = "#1a1a2e"
+        user_bg = "rgba(0, 0, 0, 0.04)"
+        user_color = "rgba(0, 0, 0, 0.4)"
+        icon_bg = "rgba(0, 0, 0, 0.04)"
+        icon_hover_bg = "rgba(76, 175, 80, 0.12)"
         shadow = "0 2px 20px rgba(0, 0, 0, 0.08)"
     
     st.markdown(f'''
         <style>
-            [data-testid="stSidebarCollapse"] {{ display: none !important; }}
-            [data-testid="collapsedControl"] {{ display: none !important; }}
-            a {{ text-decoration: none !important; }}
+            /* ── Hide sidebar toggle ── */
+            [data-testid="stSidebarCollapse"] {{
+                display: none !important;
+            }}
+            [data-testid="collapsedControl"] {{
+                display: none !important;
+            }}
             
+            /* ── Remove underlines from ALL links ── */
+            a {{
+                text-decoration: none !important;
+            }}
+            
+            /* ── TOP NAVIGATION BAR ── */
             .notion-nav-container {{
                 position: fixed;
                 top: 0;
@@ -244,6 +302,7 @@ def inject_notion_top_bar():
                 100% {{ transform: translateY(0); opacity: 1; }}
             }}
             
+            /* ── Brand Section ── */
             .notion-nav-brand {{
                 display: flex;
                 align-items: center;
@@ -300,6 +359,7 @@ def inject_notion_top_bar():
                 50% {{ opacity: 0.6; transform: scale(0.85); box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }}
             }}
             
+            /* ── Navigation Links ── */
             .notion-nav-links {{
                 display: flex;
                 align-items: center;
@@ -332,6 +392,7 @@ def inject_notion_top_bar():
                 text-decoration: none !important;
             }}
             
+            /* ── GREEN UNDERLINE ON ACTIVE PAGE ── */
             .notion-nav-item.active::after {{
                 content: '';
                 position: absolute;
@@ -351,6 +412,98 @@ def inject_notion_top_bar():
                 100% {{ width: 24px; opacity: 1; }}
             }}
             
+            /* ── Right Side (User Info + Buttons) ── */
+            .notion-nav-right {{
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }}
+            
+            .notion-nav-user {{
+                font-size: 12px;
+                color: {user_color};
+                font-weight: 500;
+                background: {user_bg};
+                padding: 4px 14px;
+                border-radius: 20px;
+                border: 1px solid {bar_border};
+                transition: all 0.2s ease;
+                max-width: 150px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                text-decoration: none !important;
+            }}
+            
+            .notion-nav-user:hover {{
+                background: rgba(76, 175, 80, 0.08);
+                color: {text_color};
+            }}
+            
+            .notion-nav-icon-btn {{
+                background: {icon_bg};
+                border: 1px solid {bar_border};
+                border-radius: 8px;
+                padding: 6px 10px;
+                color: {user_color};
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none !important;
+            }}
+            
+            .notion-nav-icon-btn:hover {{
+                background: {icon_hover_bg};
+                color: #4CAF50;
+                border-color: rgba(76, 175, 80, 0.2);
+                transform: scale(1.05);
+            }}
+            
+            /* ── Mobile Responsive ── */
+            @media (max-width: 640px) {{
+                .notion-nav-container {{
+                    padding: 0 14px;
+                    height: 50px;
+                }}
+                
+                .notion-nav-brand {{
+                    font-size: 14px;
+                    gap: 8px;
+                }}
+                
+                .notion-nav-brand .brand-name {{
+                    display: none;
+                }}
+                
+                .notion-nav-item {{
+                    font-size: 12px;
+                    padding: 6px 12px;
+                }}
+                
+                .notion-nav-user {{
+                    display: none;
+                }}
+                
+                .notion-nav-icon-btn {{
+                    padding: 4px 8px;
+                    font-size: 12px;
+                }}
+            }}
+            
+            @media (max-width: 400px) {{
+                .notion-nav-item {{
+                    font-size: 10px;
+                    padding: 4px 8px;
+                }}
+                
+                .notion-nav-links {{
+                    gap: 2px;
+                }}
+            }}
+            
             .main .block-container {{
                 padding-top: 72px !important;
             }}
@@ -363,9 +516,14 @@ def inject_notion_top_bar():
                 <span class="brand-dot"></span>
             </div>
             <div class="notion-nav-links">
-                <a class="notion-nav-item" href="/" target="_self">⏱️ Timer</a>
-                <a class="notion-nav-item active" href="/Schedule" target="_self">📅 Schedule</a>
-                <a class="notion-nav-item" href="/About" target="_self">✨ About</a>
+                <a class="notion-nav-item active" href="/" target="_self">⏱️ {t('nav_timer')}</a>
+                <a class="notion-nav-item" href="/Schedule" target="_self">📅 {t('nav_schedule')}</a>
+                <a class="notion-nav-item" href="/About" target="_self">✨ {t('nav_about')}</a>
+            </div>
+            <div class="notion-nav-right">
+                <span class="notion-nav-user">👤 {st.user.name if st.user.is_logged_in else t('student')}</span>
+                <a class="notion-nav-icon-btn" href="?dark_mode=1" target="_self">{dark_icon}</a>
+                <a class="notion-nav-icon-btn" href="?lang=cycle" target="_self">{lang_abbr}</a>
             </div>
         </div>
     ''', unsafe_allow_html=True)
