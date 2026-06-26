@@ -71,6 +71,19 @@ st.set_page_config(
 
 load_preferences()
 
+# ── HANDLE PAGE NAVIGATION ──
+query_params = st.query_params
+page = query_params.get("page", "schedule")  # Default to "schedule"
+
+if page == "home":
+    st.switch_page("Home.py")
+    st.stop()
+elif page == "about":
+    st.switch_page("pages/02_About.py")
+    st.stop()
+# Otherwise, stay on Schedule
+
+
 # ── PWA manifest (after set_page_config)
 st.markdown("""
 <link rel="manifest" href="/manifest.json">
@@ -217,19 +230,6 @@ def copy_week_to_next():
     st.session_state.active_day = today_key
     save_schedule()
     
-
-# ── Handle page navigation from top bar ──
-query_params = st.query_params
-page = query_params.get("page", "home")
-
-if page == "home":
-    st.switch_page("Home.py")
-    st.stop()
-elif page == "about":
-    st.switch_page("pages/02_About.py")
-    st.stop()
-# Otherwise, stay on Schedule (default)
-
 # ── Handle top bar actions (dark mode & language) ──
 query_params = st.query_params
 
