@@ -77,6 +77,18 @@ st.set_page_config(
     layout="centered",
 )
 
+# ── Page redirect (stay on correct page after refresh) ──
+query_params = st.query_params
+page = query_params.get("page", "home")
+
+if page == "schedule":
+    st.switch_page("pages/01_Schedule.py")
+    st.stop()
+elif page == "about":
+    st.switch_page("pages/02_About.py")
+    st.stop()
+# Otherwise, stay on Home (default)
+
 load_preferences()
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
@@ -485,9 +497,9 @@ def inject_notion_top_bar():
                 <span class="brand-dot"></span>
             </div>
             <div class="notion-nav-links">
-                <a class="notion-nav-item active" href="/" target="_self">⏱️ {t('nav_timer')}</a>
-                <a class="notion-nav-item" href="/Schedule" target="_self">📅 {t('nav_schedule')}</a>
-                <a class="notion-nav-item" href="/About" target="_self">✨ {t('nav_about')}</a>
+                <a class="notion-nav-item active" href="/?page=home" target="_self">⏱️ {t('nav_timer')}</a>
+                <a class="notion-nav-item" href="/?page=schedule" target="_self">📅 {t('nav_schedule')}</a>
+                <a class="notion-nav-item" href="/?page=about" target="_self">✨ {t('nav_about')}</a>
             </div>
             <div class="notion-nav-right">
                 <span class="notion-nav-user">👤 {st.user.name if st.user.is_logged_in else t('student')}</span>
