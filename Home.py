@@ -76,7 +76,8 @@ st.set_page_config(
     page_icon="logo.png",
     layout="centered",
 )
-    
+
+load_preferences()
 # ══════════════════════════════════════════════════════════
 #  CONSTANTS
 # ══════════════════════════════════════════════════════════
