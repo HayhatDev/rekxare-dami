@@ -166,6 +166,18 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
+# ── Handle page navigation from top bar ──
+query_params = st.query_params
+page = query_params.get("page", "home")
+
+if page == "schedule":
+    st.switch_page("pages/01_Schedule.py")
+    st.stop()
+elif page == "about":
+    st.switch_page("pages/02_About.py")
+    st.stop()
+# Otherwise, stay on Home (default)
+
 # ── Handle top bar actions (dark mode & language) ──
 query_params = st.query_params
 
