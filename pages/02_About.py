@@ -6,7 +6,7 @@ import base64
 from datetime import datetime
 
 if not st.user.is_logged_in:
-    st.switch_page("app.py")
+    st.switch_page("Home.py")
     st.stop()
     
     
