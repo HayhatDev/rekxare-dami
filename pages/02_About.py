@@ -385,9 +385,9 @@ def inject_notion_top_bar():
                 <span class="brand-dot"></span>
             </div>
             <div class="notion-nav-links">
-                <a class="notion-nav-item" href="/" target="_self">⏱️ {t('nav_timer')}</a>
-                <a class="notion-nav-item" href="/Schedule" target="_self">📅 {t('nav_schedule')}</a>
-                <a class="notion-nav-item active" href="/About" target="_self">✨ {t('nav_about')}</a>
+                <a class="notion-nav-item" href="/?page=home" target="_self">⏱️ {t('nav_timer')}</a>
+                <a class="notion-nav-item" href="/?page=schedule" target="_self">📅 {t('nav_schedule')}</a>
+                <a class="notion-nav-item active" href="/?page=about" target="_self">✨ {t('nav_about')}</a>
             </div>
             <div class="notion-nav-right">
                 <span class="notion-nav-user">👤 {st.user.name if st.user.is_logged_in else t('student')}</span>
