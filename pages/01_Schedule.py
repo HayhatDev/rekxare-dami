@@ -69,18 +69,6 @@ st.set_page_config(
     layout="centered",
 )
 
-# ── Page redirect (stay on correct page after refresh) ──
-query_params = st.query_params
-page = query_params.get("page", "home")
-
-if page == "home":
-    st.switch_page("Home.py")
-    st.stop()
-elif page == "about":
-    st.switch_page("pages/02_About.py")
-    st.stop()
-
-
 load_preferences()
 
 # ── PWA manifest (after set_page_config)
@@ -258,8 +246,8 @@ def inject_notion_top_bar():
     current_lang = st.session_state.get("lang", "badini")
     
     # ── Dynamic icons ──
-    dark_icon = "☀️" if is_dark else "🌙"  # Show sun if dark mode is ON (click to turn OFF)
-    lang_abbr = {"badini": "باد", "english": "EN", "arabic": "عرب"}.get(current_lang, "🌍")
+    dark_icon = "☀️" if is_dark else "🌙"
+    lang_abbr = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(current_lang, "🌍")
     
     # ── Encode Logo as Base64 ──
     try:
@@ -334,7 +322,6 @@ def inject_notion_top_bar():
                 100% {{ transform: translateY(0); opacity: 1; }}
             }}
             
-            /* ── Brand Section ── */
             .notion-nav-brand {{
                 display: flex;
                 align-items: center;
@@ -391,7 +378,6 @@ def inject_notion_top_bar():
                 50% {{ opacity: 0.6; transform: scale(0.85); box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }}
             }}
             
-            /* ── Navigation Links ── */
             .notion-nav-links {{
                 display: flex;
                 align-items: center;
@@ -424,7 +410,6 @@ def inject_notion_top_bar():
                 text-decoration: none !important;
             }}
             
-            /* ── GREEN UNDERLINE ON ACTIVE PAGE ── */
             .notion-nav-item.active::after {{
                 content: '';
                 position: absolute;
@@ -444,7 +429,6 @@ def inject_notion_top_bar():
                 100% {{ width: 24px; opacity: 1; }}
             }}
             
-            /* ── Right Side (User Info + Buttons) ── */
             .notion-nav-right {{
                 display: flex;
                 align-items: center;
@@ -494,31 +478,25 @@ def inject_notion_top_bar():
                 transform: scale(1.05);
             }}
             
-            /* ── Mobile Responsive ── */
             @media (max-width: 640px) {{
                 .notion-nav-container {{
                     padding: 0 14px;
                     height: 50px;
                 }}
-                
                 .notion-nav-brand {{
                     font-size: 14px;
                     gap: 8px;
                 }}
-                
                 .notion-nav-brand .brand-name {{
                     display: none;
                 }}
-                
                 .notion-nav-item {{
                     font-size: 12px;
                     padding: 6px 12px;
                 }}
-                
                 .notion-nav-user {{
                     display: none;
                 }}
-                
                 .notion-nav-icon-btn {{
                     padding: 4px 8px;
                     font-size: 12px;
@@ -530,7 +508,6 @@ def inject_notion_top_bar():
                     font-size: 10px;
                     padding: 4px 8px;
                 }}
-                
                 .notion-nav-links {{
                     gap: 2px;
                 }}
@@ -548,9 +525,9 @@ def inject_notion_top_bar():
                 <span class="brand-dot"></span>
             </div>
             <div class="notion-nav-links">
-                <a class="notion-nav-item" href="/?page=home" target="_self">⏱️ {t('nav_timer')}</a>
-                <a class="notion-nav-item active" href="/?page=schedule" target="_self">📅 {t('nav_schedule')}</a>
-                <a class="notion-nav-item" href="/?page=about" target="_self">✨ {t('nav_about')}</a>
+                <a class="notion-nav-item" href="/Home.py" target="_self">⏱️ {t('nav_timer')}</a>
+                <a class="notion-nav-item active" href="/pages/01_Schedule.py" target="_self">📅 {t('nav_schedule')}</a>
+                <a class="notion-nav-item" href="/pages/02_About.py" target="_self">✨ {t('nav_about')}</a>
             </div>
             <div class="notion-nav-right">
                 <span class="notion-nav-user">👤 {st.user.name if st.user.is_logged_in else t('student')}</span>
