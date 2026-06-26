@@ -77,9 +77,9 @@ st.set_page_config(
 
 load_preferences()
 
-# ── Handle page navigation from top bar ──
+# ── HANDLE PAGE NAVIGATION ──
 query_params = st.query_params
-page = query_params.get("page", "home")
+page = query_params.get("page", "about")  # Default to "about"
 
 if page == "home":
     st.switch_page("Home.py")
@@ -87,7 +87,8 @@ if page == "home":
 elif page == "schedule":
     st.switch_page("pages/01_Schedule.py")
     st.stop()
-# Otherwise, stay on About (default)
+# Otherwise, stay on About
+
 
 # ── Handle top bar actions (dark mode & language) ──
 query_params = st.query_params
