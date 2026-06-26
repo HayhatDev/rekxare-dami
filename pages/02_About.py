@@ -27,29 +27,38 @@ def t(key, **kwargs):
 # ══════════════════════════════════════════════════════════
 #  DATA HELPERS (for saving preferences)
 # ══════════════════════════════════════════════════════════
-
-def get_data_file():
-    """Get the user's data file path based on email."""
+def get_preferences_file():
     if st.user.is_logged_in:
         email = st.user.email
     else:
         email = st.session_state.get("user_email", "default")
-    key = hashlib.md5(email.encode()).hexdigest()[:8]
-    return f"study_data_{key}.json"
+    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
+    return f"preferences_{user_hash}.json"
 
-def save_data():
-    """Save dark mode and language preferences to the user's data file."""
-    DATA_FILE = get_data_file()
-    
-    # Load existing data if file exists
-    existing_data = {}
-    if os.path.exists(DATA_FILE):
+def save_preferences():
+    """Save only dark_mode and language preferences."""
+    filename = get_preferences_file()
+    data = {
+        "dark_mode": st.session_state.get("dark_mode", True),
+        "lang": st.session_state.get("lang", "badini")
+    }
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def load_preferences():
+    """Load dark_mode and language from preferences file."""
+    filename = get_preferences_file()
+    if os.path.exists(filename):
         try:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
-                existing_data = json.load(f)
+            with open(filename, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            st.session_state.dark_mode = data.get("dark_mode", True)
+            st.session_state.lang = data.get("lang", "badini")
+            return True
         except:
             pass
-    
+    return False
+
     # Update with current preferences
     existing_data["dark_mode"] = st.session_state.dark_mode
     existing_data["lang"] = st.session_state.lang
@@ -66,7 +75,30 @@ st.set_page_config(
     layout="centered",
 )
 
+load_preferences()
 
+
+# ── Handle top bar actions (dark mode & language) ──
+query_params = st.query_params
+
+if "dark_mode" in query_params:
+    st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
+    save_preferences()  
+    st.query_params.clear()
+    st.rerun()
+
+if "lang" in query_params and query_params["lang"] == "cycle":
+    lang_order = ["badini", "english", "arabic"]
+    current = st.session_state.get("lang", "badini")
+    try:
+        idx = lang_order.index(current)
+        next_lang = lang_order[(idx + 1) % len(lang_order)]
+    except ValueError:
+        next_lang = "badini"
+    st.session_state.lang = next_lang
+    save_preferences()  
+    st.query_params.clear()
+    st.rerun()
 
 def inject_notion_top_bar():
     # ── Get current theme and language ──
