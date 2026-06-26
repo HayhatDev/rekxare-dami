@@ -218,6 +218,18 @@ def copy_week_to_next():
     save_schedule()
     
 
+# ── Handle page navigation from top bar ──
+query_params = st.query_params
+page = query_params.get("page", "home")
+
+if page == "home":
+    st.switch_page("Home.py")
+    st.stop()
+elif page == "about":
+    st.switch_page("pages/02_About.py")
+    st.stop()
+# Otherwise, stay on Schedule (default)
+
 # ── Handle top bar actions (dark mode & language) ──
 query_params = st.query_params
 
