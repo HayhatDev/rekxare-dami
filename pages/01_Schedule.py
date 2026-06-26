@@ -9,7 +9,7 @@ import hashlib
 import base64
 
 if not st.user.is_logged_in:
-    st.switch_page("app.py")
+    st.switch_page("Home.py")
     st.stop()
     
 # ══════════════════════════════════════════════════════════
