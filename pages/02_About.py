@@ -68,8 +68,6 @@ st.set_page_config(
 
 
 
-import base64
-
 def inject_notion_top_bar():
     # ── Get current theme and language ──
     is_dark = st.session_state.get("dark_mode", True)
