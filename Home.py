@@ -521,6 +521,22 @@ def inject_notion_top_bar():
     ''', unsafe_allow_html=True)
 inject_notion_top_bar()
 
+# ── Handle navigation from top bar ──
+query_params = st.query_params
+page = query_params.get("page", "home")
+
+# If the user clicked a link from the top bar, switch pages
+# The links already have ?page= parameter, so this handles it
+if page != st.session_state.get("current_page", "home"):
+    if page == "schedule":
+        st.session_state.current_page = "schedule"
+        st.switch_page("pages/01_Schedule.py")
+        st.stop()
+    elif page == "about":
+        st.session_state.current_page = "about"
+        st.switch_page("pages/02_About.py")
+        st.stop()
+
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = True
 
