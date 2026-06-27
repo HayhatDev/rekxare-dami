@@ -178,7 +178,28 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
+# ── RESTORE PAGE STATE ──
+query_params = st.query_params
+page = query_params.get("page", "home")
 
+# Store in session state for quick access
+st.session_state.page = page
+
+# If the user is on a different page via URL, switch to it
+if page == "schedule":
+    # But only if we're not already on schedule
+    if "current_page" not in st.session_state or st.session_state.current_page != "schedule":
+        st.session_state.current_page = "schedule"
+        st.switch_page("pages/01_Schedule.py")
+        st.stop()
+elif page == "about":
+    if "current_page" not in st.session_state or st.session_state.current_page != "about":
+        st.session_state.current_page = "about"
+        st.switch_page("pages/02_About.py")
+        st.stop()
+else:
+    st.session_state.current_page = "home"
+    
 # ── Handle top bar actions (dark mode & language) ──
 query_params = st.query_params
 
