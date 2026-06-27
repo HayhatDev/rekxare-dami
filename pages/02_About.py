@@ -46,7 +46,6 @@ def save_preferences():
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def load_preferences():
-    """Load dark_mode and language from preferences file."""
     filename = get_preferences_file()
     if os.path.exists(filename):
         try:
@@ -58,15 +57,6 @@ def load_preferences():
         except:
             pass
     return False
-
-    # Update with current preferences
-    existing_data["dark_mode"] = st.session_state.dark_mode
-    existing_data["lang"] = st.session_state.lang
-    existing_data["user_email"] = st.session_state.get("user_email", "")
-    
-    # Save back to file
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(existing_data, f, ensure_ascii=False, indent=2)
 
 
 st.set_page_config(
