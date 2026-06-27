@@ -1004,6 +1004,48 @@ button, input, select, textarea, label {{
     box-shadow: 0 0 0 3px rgba(76,175,80,0.15) !important;
     outline: none !important;
 }}
+/* ── Enhanced Card Styles ── */
+.stats-card {{
+    background: {CARD_BG};
+    border: 1px solid {CARD_BORDER};
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+}}
+.stats-card::before {{
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4CAF50, #2196F3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}}
+.stats-card:hover {{
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}}
+.stats-card:hover::before {{
+    opacity: 1;
+}}
+.stats-card:active {{
+    transform: scale(0.97);
+}}
+
+/* ── Glassmorphism for cards (dark mode) ── */
+.glass-card {{
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}}
 /* ── Top Navigation Bar Styling ── */
 .stApp > header {{
     background: rgba(26, 26, 46, 0.92) !important;
@@ -1660,17 +1702,17 @@ st.markdown(f"""
 # ── Row 1: Quick Stats Cards ──
 st.markdown(f"""
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
-    <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px; text-align: center; transition: transform 0.15s ease;">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
         <div style="font-size: 24px; margin-bottom: 4px;">⏱️</div>
         <div style="font-size: 20px; font-weight: 800; color: #4CAF50;">{hours_total}{t('hours_unit')} {mins_total}{t('minutes_unit')}</div>
         <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{t('total_time')}</div>
     </div>
-    <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px; text-align: center; transition: transform 0.15s ease;">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
         <div style="font-size: 24px; margin-bottom: 4px;">✅</div>
         <div style="font-size: 20px; font-weight: 800; color: #2196F3;">{st.session_state.completed_sessions}</div>
         <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{t('sessions')}</div>
     </div>
-    <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px; text-align: center; transition: transform 0.15s ease;">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
         <div style="font-size: 24px; margin-bottom: 4px;">🎯</div>
         <div style="font-size: 20px; font-weight: 800; color: #FF9800;">{today_h}{t('hours_unit')} {today_m}{t('minutes_unit')}</div>
         <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{t('today_goal')}</div>
@@ -1740,7 +1782,7 @@ with col_right:
 
 # ── Row 3: Daily Goal Progress ──
 st.markdown(f"""
-<div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px; margin: 12px 0;">
+<div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">🎯 {t('today_goal')}</span>
         <span style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 600;">{daily_done_min} / {daily_goal_min} {t('minutes_unit')} — {daily_pct}%</span>
@@ -1756,7 +1798,7 @@ col_sub, col_act = st.columns([1, 1.5], gap="small")
 
 with col_sub:
     st.markdown(f"""
-    <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 14px 16px;">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
         <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📖 {t('last_subject')}</div>
         <div style="font-size: 15px; font-weight: 700; color: {TEXT_PRIMARY};">{st.session_state.last_subject}</div>
     </div>
@@ -1765,7 +1807,7 @@ with col_sub:
 with col_act:
     hist = st.session_state.study_history[-4:][::-1]
     st.markdown(f"""
-    <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 14px 16px;">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
         <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📋 {t('recent_activity')}</div>
     """, unsafe_allow_html=True)
     
