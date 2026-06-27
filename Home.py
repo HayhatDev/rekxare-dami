@@ -292,11 +292,23 @@ def inject_notion_top_bar():
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 0 28px 0 60px;
-                z-index: 999999;
+                padding: 0 28px 0 70px;   /* ← space for toggle */
+                z-index: 99999;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
                 animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 box-shadow: {shadow};
+            }}
+            
+            /* ── Ensure sidebar toggle is visible ── */
+            [data-testid="collapsedControl"] {{
+                display: flex !important;
+                z-index: 9999999 !important;
+                position: relative !important;
+            }}
+            [data-testid="stSidebarCollapse"] {{
+                display: flex !important;
+                z-index: 9999999 !important;
+                position: relative !important;
             }}
             
             @keyframes slideDown {{
