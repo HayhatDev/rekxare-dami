@@ -1946,43 +1946,6 @@ if schedule_data:
         </div>
         ''', unsafe_allow_html=True)
 
-# ── Last Subject & Recent Activity ──
-col_sub, col_act = st.columns(2, gap="small")
-
-with col_sub:
-    st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 14px 16px; border-radius: 16px;">
-        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📖 {t('last_subject')}</div>
-        <div style="font-size: 15px; font-weight: 700; color: {TEXT_PRIMARY};">{st.session_state.last_subject}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col_act:
-    hist = st.session_state.study_history[-4:][::-1]
-    st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 14px 16px; border-radius: 16px;">
-        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📋 {t('recent_activity')}</div>
-    """, unsafe_allow_html=True)
-    
-    if hist:
-        for e in hist[:3]:
-            st.markdown(f"""
-            <div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; color: {TEXT_MUTED}; border-bottom: 1px solid {DIVIDER};">
-                <div style="width: 6px; height: 6px; border-radius: 50%; background: #4CAF50; flex-shrink: 0;"></div>
-                <span>{e}</span>
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.markdown(f"""
-        <div style="text-align: center; padding: 12px 0; font-size: 12px; color: {TEXT_MUTED};">{t('no_activity')}</div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ── Divider ──
-st.markdown(f'<div style="height:1px;background:{DIVIDER};margin:18px 0 14px;"></div>', unsafe_allow_html=True)
-
-
 
 # ── Weekly Study Chart ──
 st.markdown(f"""
