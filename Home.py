@@ -1391,6 +1391,21 @@ hr {{ border-color: {DIVIDER} !important; margin: 18px 0 !important; }}
 #  SIDEBAR
 # ══════════════════════════════════════════════════════════
 with st.sidebar:
+    # ── Logo + Title + Slogan ──
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        st.image("logo.png", width=40)
+    with col2:
+        st.markdown(f"""
+        <div style="padding:14px 0 2px 0;">
+            <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px;line-height:1.2;color:{TEXT_PRIMARY};">Rekxare Dami</div>
+            <div style="font-size:10px;color:{TEXT_MUTED};font-weight:500;line-height:1.2;opacity:0.8;">{t("app_title")}</div>
+            <div style="font-size:9px;color:{TEXT_MUTED};font-weight:400;line-height:1.2;opacity:0.6;">{t('slogan')}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown(f'<div style="height:1px;background:{DIVIDER};margin:6px 0 12px;"></div>', unsafe_allow_html=True)
+
     # ── User Profile ──
     if st.user.is_logged_in:
         user_name = st.user.name if st.user.name else "Student"
@@ -1398,8 +1413,8 @@ with st.sidebar:
         user_initial = user_name[0].upper() if user_name else "?"
         
         st.markdown(f"""
-        <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0 12px 0; border-bottom: 1px solid {DIVIDER}; margin-bottom: 12px;">
-            <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #388e3c, #4caf50); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: white; flex-shrink: 0; box-shadow: 0 2px 8px rgba(76,175,80,0.3);">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 4px 0 12px 0; border-bottom: 1px solid {DIVIDER}; margin-bottom: 12px;">
+            <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #388e3c, #4caf50); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; flex-shrink: 0; box-shadow: 0 2px 8px rgba(76,175,80,0.3);">
                 {user_initial}
             </div>
             <div style="flex: 1; min-width: 0;">
@@ -1412,46 +1427,24 @@ with st.sidebar:
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
-    # ── Quick Actions ──
-    st.markdown(f'<span class="sb-lbl">⚡ Quick Actions</span>', unsafe_allow_html=True)
-    col_q1, col_q2 = st.columns(2)
-    with col_q1:
-        if st.button("⏱️ Timer", use_container_width=True, key="quick_home"):
-            st.switch_page("Home.py")
-    with col_q2:
-        if st.button("📅 Schedule", use_container_width=True, key="quick_schedule"):
-            st.switch_page("pages/01_Schedule.py")
-    st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
 
-    # ── Settings ──
-    st.markdown(f'<span class="sb-lbl">{t("settings")}</span>', unsafe_allow_html=True)
-    st.markdown('<div class="settings-box">', unsafe_allow_html=True)
-    
-    goal_mins = st.slider(
-        f'🎯 {t("today_goal")} ({t("minutes_unit")})',
-        30, 480, st.session_state.daily_goal_seconds // 60, step=15
-    )
-    if goal_mins * 60 != st.session_state.daily_goal_seconds:
-        st.session_state.daily_goal_seconds = goal_mins * 60
-        save_data()
-        st.rerun()
-    
-    st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
-    
-    dc, tc = st.columns([3, 1])
-    with dc:
-        st.markdown(f'<div style="font-size:13px;padding-top:6px;font-weight:600;">{t("dark_mode")}</div>', unsafe_allow_html=True)
-    with tc:
-        dark_btn = st.checkbox("", value=is_dark, label_visibility="collapsed", key="dark_mode_sb")
-    if dark_btn != is_dark:
-        st.session_state.dark_mode = dark_btn
-        save_data()
-        st.rerun()
-    
+    # ── Settings Expander ──
+    with st.expander("⚙️ " + t("settings"), expanded=False):
+        st.markdown('<div style="padding: 4px 0 4px 0;">', unsafe_allow_html=True)
+        
+        # Daily Goal Slider
+        goal_mins = st.slider(
+            f'🎯 {t("today_goal")} ({t("minutes_unit")})',
+            30, 480, st.session_state.daily_goal_seconds // 60, step=15
+        )
+        if goal_mins * 60 != st.session_state.daily_goal_seconds:
+            st.session_state.daily_goal_seconds = goal_mins * 60
+            save_data()
+            st.rerun()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
     # ── Audio Test Button ──
-    st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
-    
     if st.button("🔊 " + (t("test_audio") if "test_audio" in TRANSLATIONS.get(st.session_state.lang, {}) else "Test Audio"), use_container_width=True):
         components.html("""
         <script>
@@ -1475,9 +1468,8 @@ with st.sidebar:
         st.success("🔊 " + (t("audio_test_success") if "audio_test_success" in TRANSLATIONS.get(st.session_state.lang, {}) else "Sound played! If you can hear it, audio is working."))
         time.sleep(0.5)
         st.rerun()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
+
+    st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
 
     # ── Clear Stats ──
     if not st.session_state.confirm_clear:
@@ -1502,7 +1494,7 @@ with st.sidebar:
                 st.session_state.confirm_clear = False
                 st.rerun()
     
-    st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True) 
+    st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True) 
     
     # ── Logout ──
     if st.button("🚪 " + t("logout"), use_container_width=True):
@@ -1511,9 +1503,9 @@ with st.sidebar:
         st.logout()
         st.rerun()
 
+    st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
+
     # ── Export Data Section ──
-    st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
-    
     def json_serial(obj):
         if isinstance(obj, datetime):
             return obj.isoformat()
@@ -1566,7 +1558,7 @@ with st.sidebar:
         csv_lines.append("No history,,")
     csv_data = "\n".join(csv_lines)
     
-    with st.expander(t("export_data"), expanded=False):
+    with st.expander("📥 " + t("export_data"), expanded=False):
         col1, col2 = st.columns(2)
         with col1:
             st.download_button(
@@ -1586,6 +1578,7 @@ with st.sidebar:
                 key="export_csv_btn",
                 use_container_width=True
             )
+            
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
 # ══════════════════════════════════════════════════════════
