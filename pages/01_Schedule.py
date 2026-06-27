@@ -71,19 +71,6 @@ st.set_page_config(
 
 load_preferences()
 
-# ── HANDLE PAGE NAVIGATION ──
-query_params = st.query_params
-page = query_params.get("page", "schedule")  # Default to "schedule"
-
-if page == "home":
-    st.switch_page("Home.py")
-    st.stop()
-elif page == "about":
-    st.switch_page("pages/02_About.py")
-    st.stop()
-# Otherwise, stay on Schedule
-
-
 # ── PWA manifest (after set_page_config)
 st.markdown("""
 <link rel="manifest" href="/manifest.json">
