@@ -1444,140 +1444,140 @@ with st.sidebar:
         
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── Audio Test Button ──
-    if st.button("🔊 " + (t("test_audio") if "test_audio" in TRANSLATIONS.get(st.session_state.lang, {}) else "Test Audio"), use_container_width=True):
-        components.html("""
-        <script>
-            try {
-                var ctx = new (window.AudioContext || window.webkitAudioContext)();
-                var osc = ctx.createOscillator();
-                var gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.value = 880;
-                osc.start();
-                gain.gain.setValueAtTime(0.25, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
-                osc.stop(ctx.currentTime + 0.8);
-            } catch(e) {
-                console.log("Audio error:", e);
-            }
-        </script>
-        """, height=0)
-        st.success("🔊 " + (t("audio_test_success") if "audio_test_success" in TRANSLATIONS.get(st.session_state.lang, {}) else "Sound played! If you can hear it, audio is working."))
-        time.sleep(0.5)
-        st.rerun()
-
-    st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
-
-    # ── Clear Stats ──
-    if not st.session_state.confirm_clear:
-        if st.button(t("clear_stats"), use_container_width=True):
-            st.session_state.confirm_clear = True
+        # ── Audio Test Button ──
+        if st.button("🔊 " + (t("test_audio") if "test_audio" in TRANSLATIONS.get(st.session_state.lang, {}) else "Test Audio"), use_container_width=True):
+            components.html("""
+            <script>
+                try {
+                    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = 880;
+                    osc.start();
+                    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
+                    osc.stop(ctx.currentTime + 0.8);
+                } catch(e) {
+                    console.log("Audio error:", e);
+                }
+            </script>
+            """, height=0)
+            st.success("🔊 " + (t("audio_test_success") if "audio_test_success" in TRANSLATIONS.get(st.session_state.lang, {}) else "Sound played! If you can hear it, audio is working."))
+            time.sleep(0.5)
             st.rerun()
-    else:
-        st.markdown(f'<div class="danger-box">⚠️ {t("clear_stats")}?</div>', unsafe_allow_html=True)
-        cc1, cc2 = st.columns(2)
-        with cc1:
-            if st.button("✓", use_container_width=True, key="confirm_yes"):
-                for k, v in [("total_study_seconds", 0), ("completed_sessions", 0),
-                             ("last_subject", "—"), ("study_history", []),
-                             ("streak", 0), ("daily_seconds", 0), ("last_study_date", ""),
-                             ("xp_points", 0), ("xp_level", 1)]:
-                    st.session_state[k] = v
-                st.session_state.confirm_clear = False
-                save_data()
+    
+        st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
+    
+        # ── Clear Stats ──
+        if not st.session_state.confirm_clear:
+            if st.button(t("clear_stats"), use_container_width=True):
+                st.session_state.confirm_clear = True
                 st.rerun()
-        with cc2:
-            if st.button("✗", use_container_width=True, key="confirm_no"):
-                st.session_state.confirm_clear = False
-                st.rerun()
+        else:
+            st.markdown(f'<div class="danger-box">⚠️ {t("clear_stats")}?</div>', unsafe_allow_html=True)
+            cc1, cc2 = st.columns(2)
+            with cc1:
+                if st.button("✓", use_container_width=True, key="confirm_yes"):
+                    for k, v in [("total_study_seconds", 0), ("completed_sessions", 0),
+                                 ("last_subject", "—"), ("study_history", []),
+                                 ("streak", 0), ("daily_seconds", 0), ("last_study_date", ""),
+                                 ("xp_points", 0), ("xp_level", 1)]:
+                        st.session_state[k] = v
+                    st.session_state.confirm_clear = False
+                    save_data()
+                    st.rerun()
+            with cc2:
+                if st.button("✗", use_container_width=True, key="confirm_no"):
+                    st.session_state.confirm_clear = False
+                    st.rerun()
+        
+        st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True) 
+        
+        # ── Logout ──
+        if st.button("🚪 " + t("logout"), use_container_width=True):
+            for key in ["user_email", "data_key", "logged_in"]:
+                st.session_state.pop(key, None)
+            st.logout()
+            st.rerun()
     
-    st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True) 
+        st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
     
-    # ── Logout ──
-    if st.button("🚪 " + t("logout"), use_container_width=True):
-        for key in ["user_email", "data_key", "logged_in"]:
-            st.session_state.pop(key, None)
-        st.logout()
-        st.rerun()
-
-    st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
-
-    # ── Export Data Section ──
-    def json_serial(obj):
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        raise TypeError(f"Type {type(obj)} not serializable")
-    
-    export_data = {
-        "export_info": {
-            "generated": datetime.now().isoformat(),
-            "app_version": "Rekxare Dami 1.0",
-            "user": st.session_state.get("user_email", "unknown")
-        },
-        "study_summary": {
-            "total_time_minutes": st.session_state.total_study_seconds // 60,
-            "completed_sessions": st.session_state.completed_sessions,
-            "current_streak_days": st.session_state.streak,
-            "daily_goal_minutes": st.session_state.daily_goal_seconds // 60,
-            "today_study_minutes": st.session_state.daily_seconds // 60,
-            "last_subject": st.session_state.last_subject
-        },
-        "preferences": {
-            "dark_mode": st.session_state.dark_mode,
-            "language": st.session_state.lang,
-            "student_name": st.session_state.get("student_name", "")
-        },
-        "study_history": st.session_state.study_history,
-        "weekly_schedule": {}
-    }
-    
-    try:
-        schedule_file = get_schedule_file()
-        if os.path.exists(schedule_file):
-            with open(schedule_file, "r", encoding="utf-8") as f:
-                schedule_data = json.load(f)
-                export_data["weekly_schedule"] = schedule_data.get("schedule", {})
-    except Exception as e:
-        export_data["schedule_error"] = str(e)
-    
-    json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=json_serial)
-    
-    csv_lines = ["timestamp,subject,minutes"]
-    if st.session_state.study_history:
-        for entry in st.session_state.study_history:
-            parts = entry.split(" - ")
-            time_part = parts[0] if len(parts) > 0 else ""
-            rest = parts[1] if len(parts) > 1 else ""
-            subject_part = rest.split(" (")[0] if "(" in rest else rest
-            minutes_part = rest.split("(")[1].split(" ")[0] if "(" in rest else "0"
-            csv_lines.append(f"{time_part},{subject_part},{minutes_part}")
-    else:
-        csv_lines.append("No history,,")
-    csv_data = "\n".join(csv_lines)
-    
-    with st.expander("📥 " + t("export_data"), expanded=False):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.download_button(
-                label="📄 JSON",
-                data=json_str,
-                file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
-                mime="application/json",
-                key="export_json_btn",
-                use_container_width=True
-            )
-        with col2:
-            st.download_button(
-                label="📊 CSV",
-                data=csv_data,
-                file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
-                mime="text/csv",
-                key="export_csv_btn",
-                use_container_width=True
-            )
+        # ── Export Data Section ──
+        def json_serial(obj):
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            raise TypeError(f"Type {type(obj)} not serializable")
+        
+        export_data = {
+            "export_info": {
+                "generated": datetime.now().isoformat(),
+                "app_version": "Rekxare Dami 1.0",
+                "user": st.session_state.get("user_email", "unknown")
+            },
+            "study_summary": {
+                "total_time_minutes": st.session_state.total_study_seconds // 60,
+                "completed_sessions": st.session_state.completed_sessions,
+                "current_streak_days": st.session_state.streak,
+                "daily_goal_minutes": st.session_state.daily_goal_seconds // 60,
+                "today_study_minutes": st.session_state.daily_seconds // 60,
+                "last_subject": st.session_state.last_subject
+            },
+            "preferences": {
+                "dark_mode": st.session_state.dark_mode,
+                "language": st.session_state.lang,
+                "student_name": st.session_state.get("student_name", "")
+            },
+            "study_history": st.session_state.study_history,
+            "weekly_schedule": {}
+        }
+        
+        try:
+            schedule_file = get_schedule_file()
+            if os.path.exists(schedule_file):
+                with open(schedule_file, "r", encoding="utf-8") as f:
+                    schedule_data = json.load(f)
+                    export_data["weekly_schedule"] = schedule_data.get("schedule", {})
+        except Exception as e:
+            export_data["schedule_error"] = str(e)
+        
+        json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=json_serial)
+        
+        csv_lines = ["timestamp,subject,minutes"]
+        if st.session_state.study_history:
+            for entry in st.session_state.study_history:
+                parts = entry.split(" - ")
+                time_part = parts[0] if len(parts) > 0 else ""
+                rest = parts[1] if len(parts) > 1 else ""
+                subject_part = rest.split(" (")[0] if "(" in rest else rest
+                minutes_part = rest.split("(")[1].split(" ")[0] if "(" in rest else "0"
+                csv_lines.append(f"{time_part},{subject_part},{minutes_part}")
+        else:
+            csv_lines.append("No history,,")
+        csv_data = "\n".join(csv_lines)
+        
+        with st.expander("📥 " + t("export_data"), expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.download_button(
+                    label="📄 JSON",
+                    data=json_str,
+                    file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
+                    mime="application/json",
+                    key="export_json_btn",
+                    use_container_width=True
+                )
+            with col2:
+                st.download_button(
+                    label="📊 CSV",
+                    data=csv_data,
+                    file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
+                    mime="text/csv",
+                    key="export_csv_btn",
+                    use_container_width=True
+                )
             
 # ══════════════════════════════════════════════════════════
 #  MAIN PAGE
