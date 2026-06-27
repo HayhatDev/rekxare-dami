@@ -77,17 +77,25 @@ st.set_page_config(
 
 load_preferences()
 
-# ── HANDLE PAGE NAVIGATION ──
+# ── RESTORE PAGE STATE ──
 query_params = st.query_params
-page = query_params.get("page", "about")  # Default to "about"
+page = query_params.get("page", "about")
 
+# Store in session state
+st.session_state.page = page
+st.session_state.current_page = "about"
+
+# If the user is on a different page via URL, switch to it
 if page == "home":
+    st.session_state.current_page = "home"
     st.switch_page("Home.py")
     st.stop()
 elif page == "schedule":
+    st.session_state.current_page = "schedule"
     st.switch_page("pages/01_Schedule.py")
     st.stop()
-# Otherwise, stay on About
+else:
+    st.session_state.current_page = "about"
 
 
 # ── Handle top bar actions (dark mode & language) ──
