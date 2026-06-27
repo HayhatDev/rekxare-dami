@@ -1558,7 +1558,7 @@ with st.sidebar:
             csv_lines.append("No history,,")
         csv_data = "\n".join(csv_lines)
         
-        with st.expander("📥 " + t("export_data"), expanded=False):
+        with st.expander(" " + t("export_data"), expanded=False):
             col1, col2 = st.columns(2)
             with col1:
                 st.download_button(
