@@ -1700,16 +1700,18 @@ if today_tasks_named:
     st.markdown(html_content, unsafe_allow_html=True)
     
 
-# ── DASHBOARD SECTION ──
+# ── DASHBOARD SECTION (Unified Card) ──
 st.markdown(f"""
-<div style="margin: 20px 0 12px 0;">
-    <h2 style="font-size:20px;font-weight:800;letter-spacing:-0.5px;color:{TEXT_PRIMARY};">
-        📊 {t('sidebar_title')}
-    </h2>
-</div>
+<div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 20px; padding: 20px 18px 18px 18px; margin: 16px 0 20px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.05);">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <h2 style="font-size:20px;font-weight:800;letter-spacing:-0.5px;color:{TEXT_PRIMARY};margin:0;">
+            📊 {t('sidebar_title')}
+        </h2>
+        <span style="font-size:11px;color:{TEXT_MUTED};font-weight:600;">{datetime.now().strftime('%a, %d %b')}</span>
+    </div>
 """, unsafe_allow_html=True)
 
-# ── Row 1: Quick Stats Cards (with hover effect) ──
+# ── Row 1: Quick Stats Cards ──
 st.markdown(f"""
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
     <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
@@ -1730,7 +1732,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Row 2: Circular Daily Goal (replaces the bar) ──
+# ── Row 2: Circular Daily Goal ──
 daily_pct = min(100, int(st.session_state.daily_seconds / max(1, st.session_state.daily_goal_seconds) * 100))
 daily_done_min = st.session_state.daily_seconds // 60
 daily_goal_min = st.session_state.daily_goal_seconds // 60
@@ -1766,7 +1768,6 @@ st.markdown(f'''
 col_xp, col_streak = st.columns(2, gap="small")
 
 with col_xp:
-    # XP Progress
     xp_points = st.session_state.total_study_seconds // 60
     xp_needed = 100
     
@@ -1892,6 +1893,8 @@ with col_act:
     
     st.markdown('</div>', unsafe_allow_html=True)
 
+# ── Close the main dashboard card ──
+st.markdown('</div>', unsafe_allow_html=True)
 st.markdown(f'<div style="height:1px;background:{DIVIDER};margin:18px 0 14px;"></div>', unsafe_allow_html=True)
     
 # ── Weekly Study Chart ──
