@@ -1759,6 +1759,145 @@ if today_tasks_named:
     st.markdown(html_content, unsafe_allow_html=True)
     
 
+# ── DASHBOARD SECTION ──
+# This replaces the sidebar content and makes stats visible
+st.markdown(f"""
+<div style="margin: 20px 0 12px 0;">
+    <h2 style="font-size:20px;font-weight:800;letter-spacing:-0.5px;color:{TEXT_PRIMARY};">
+        📊 {t('sidebar_title')}
+    </h2>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Row 1: Quick Stats Cards ──
+st.markdown(f"""
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+    <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px; text-align: center; transition: transform 0.15s ease;">
+        <div style="font-size: 24px; margin-bottom: 4px;">⏱️</div>
+        <div style="font-size: 20px; font-weight: 800; color: #4CAF50;">{hours_total}{t('hours_unit')} {mins_total}{t('minutes_unit')}</div>
+        <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{t('total_time')}</div>
+    </div>
+    <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px; text-align: center; transition: transform 0.15s ease;">
+        <div style="font-size: 24px; margin-bottom: 4px;">✅</div>
+        <div style="font-size: 20px; font-weight: 800; color: #2196F3;">{st.session_state.completed_sessions}</div>
+        <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{t('sessions')}</div>
+    </div>
+    <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px; text-align: center; transition: transform 0.15s ease;">
+        <div style="font-size: 24px; margin-bottom: 4px;">🎯</div>
+        <div style="font-size: 20px; font-weight: 800; color: #FF9800;">{today_h}{t('hours_unit')} {today_m}{t('minutes_unit')}</div>
+        <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{t('today_goal')}</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Row 2: XP + Streak Side by Side ──
+col_left, col_right = st.columns([1, 1], gap="small")
+
+with col_left:
+    # ── XP Progress Bar (Card) ──
+    xp_points = st.session_state.total_study_seconds // 60
+    xp_needed = 100
+    
+    if "xp_level" not in st.session_state:
+        st.session_state.xp_level = 1
+    
+    current_level = st.session_state.xp_level
+    
+    if xp_points >= xp_needed:
+        current_level += 1
+        st.session_state.xp_level = current_level
+        xp_points = 0
+        st.toast(f"🎉 {t('xp_level_up').format(level=current_level)}")
+    
+    xp_progress = min(xp_points / xp_needed, 1.0)
+    
+    st.markdown(f"""
+    <div class="streak-card">
+        <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
+            <div style="font-size: 32px; line-height: 1;">🏆</div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">{t('xp_title')}</span>
+                    <span style="font-size: 13px; font-weight: 700; color: #FF9800;">{t('xp_level')} {current_level}</span>
+                </div>
+                <div style="background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden; margin: 4px 0 2px 0;">
+                    <div style="width: {xp_progress * 100}%; height: 8px; background: linear-gradient(90deg, #388e3c, #4caf50); border-radius: 99px; transition: width 0.5s ease;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 2px;">
+                    <span>⚡ {xp_points} XP</span>
+                    <span>{xp_needed} XP</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_right:
+    # ── Streak Section ──
+    sv = st.session_state.streak
+    smsg = (t("streak_start") if sv == 0 else t("streak_ready") if sv < 3
+            else t("streak_keep") if sv < 7 else t("streak_champ"))
+    
+    st.markdown(f"""
+    <div class="streak-card">
+        <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
+            <div style="font-size: 32px; line-height: 1;">🔥</div>
+            <div>
+                <div class="streak-num">{sv} <span style="font-size:14px;font-weight:500;color:{TEXT_MUTED};">{days_lbl}</span></div>
+                <div class="streak-sub">{smsg}</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ── Row 3: Daily Goal Progress ──
+st.markdown(f"""
+<div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px; margin: 12px 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">🎯 {t('today_goal')}</span>
+        <span style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 600;">{daily_done_min} / {daily_goal_min} {t('minutes_unit')} — {daily_pct}%</span>
+    </div>
+    <div style="background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden;">
+        <div style="width: {daily_pct}%; height: 8px; background: {'#4CAF50' if daily_pct >= 100 else '#2196F3'}; border-radius: 99px; transition: width 0.5s ease;"></div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Row 4: Last Subject & Recent Activity ──
+col_sub, col_act = st.columns([1, 1.5], gap="small")
+
+with col_sub:
+    st.markdown(f"""
+    <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 14px 16px;">
+        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📖 {t('last_subject')}</div>
+        <div style="font-size: 15px; font-weight: 700; color: {TEXT_PRIMARY};">{st.session_state.last_subject}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_act:
+    hist = st.session_state.study_history[-4:][::-1]
+    st.markdown(f"""
+    <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 14px 16px;">
+        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📋 {t('recent_activity')}</div>
+    """, unsafe_allow_html=True)
+    
+    if hist:
+        for e in hist[:3]:
+            st.markdown(f"""
+            <div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; color: {TEXT_MUTED}; border-bottom: 1px solid {DIVIDER};">
+                <div style="width: 6px; height: 6px; border-radius: 50%; background: #4CAF50; flex-shrink: 0;"></div>
+                <span>{e}</span>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+        <div style="text-align: center; padding: 12px 0; font-size: 12px; color: {TEXT_MUTED};">{t('no_activity')}</div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown(f'<div style="height:1px;background:{DIVIDER};margin:18px 0 14px;"></div>', unsafe_allow_html=True)
+    
 # ── Weekly Study Chart ──
 st.markdown(f"""
 <div class="sched-card">
