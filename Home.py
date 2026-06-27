@@ -1708,7 +1708,7 @@ if today_tasks_named:
 st.markdown(f"""
 <div style="display: flex; align-items: center; justify-content: space-between; margin: 8px 0 20px 0;">
     <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: {TEXT_PRIMARY}; margin: 0;">
-        📊 {t('sidebar_title')}
+         {t('sidebar_title')}
     </h2>
     <div style="display: flex; align-items: center; gap: 10px;">
         <span style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 500; background: {CARD_BG}; padding: 4px 14px; border-radius: 20px; border: 1px solid {CARD_BORDER};">
@@ -1880,7 +1880,7 @@ col_sub, col_act = st.columns(2, gap="small")
 with col_sub:
     st.markdown(f"""
     <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px 18px;">
-        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 8px;">📖 {t('last_subject')}</div>
+        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 8px;"> {t('last_subject')}</div>
         <div style="font-size: 16px; font-weight: 700; color: {TEXT_PRIMARY};">{st.session_state.last_subject}</div>
     </div>
     """, unsafe_allow_html=True)
@@ -1889,7 +1889,7 @@ with col_act:
     hist = st.session_state.study_history[-4:][::-1]
     st.markdown(f"""
     <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px 18px;">
-        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 8px;">📋 {t('recent_activity')}</div>
+        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 8px;"> {t('recent_activity')}</div>
     """, unsafe_allow_html=True)
 
     if hist:
