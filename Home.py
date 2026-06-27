@@ -1029,7 +1029,10 @@ button, input, select, textarea, label {{
 .stats-card:active {{
     transform: scale(0.97);
 }}
-
+/* ── Make sure sidebar toggle is visible ── */
+[data-testid="collapsedControl"] {{
+    display: flex !important;
+}}
 /* ── Glassmorphism for cards (dark mode) ── */
 .glass-card {{
     background: rgba(255, 255, 255, 0.04);
