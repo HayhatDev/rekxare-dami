@@ -1699,92 +1699,105 @@ if today_tasks_named:
     )
     st.markdown(html_content, unsafe_allow_html=True)
     
+# ── DASHBOARD SECTION (Safe – no f-strings) ──
 
-# ── DASHBOARD SECTION (Unified Card) ──
-st.markdown(f"""
+html_dashboard = """
 <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 20px; padding: 20px 18px 18px 18px; margin: 16px 0 20px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.05);">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
         <h2 style="font-size:20px;font-weight:800;letter-spacing:-0.5px;color:{TEXT_PRIMARY};margin:0;">
-            📊 {t('sidebar_title')}
+            📊 {sidebar_title}
         </h2>
-        <span style="font-size:11px;color:{TEXT_MUTED};font-weight:600;">{datetime.now().strftime('%a, %d %b')}</span>
+        <span style="font-size:11px;color:{TEXT_MUTED};font-weight:600;">{today_date}</span>
     </div>
-""", unsafe_allow_html=True)
 
-# ── Row 1: Quick Stats Cards ──
-st.markdown(f"""
-<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
-        <div style="font-size: 24px; margin-bottom: 4px;">⏱️</div>
-        <div style="font-size: 20px; font-weight: 800; color: #4CAF50;">{hours_total}{t('hours_unit')} {mins_total}{t('minutes_unit')}</div>
-        <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{t('total_time')}</div>
-    </div>
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
-        <div style="font-size: 24px; margin-bottom: 4px;">✅</div>
-        <div style="font-size: 20px; font-weight: 800; color: #2196F3;">{st.session_state.completed_sessions}</div>
-        <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{t('sessions')}</div>
-    </div>
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
-        <div style="font-size: 24px; margin-bottom: 4px;">🎯</div>
-        <div style="font-size: 20px; font-weight: 800; color: #FF9800;">{today_h}{t('hours_unit')} {today_m}{t('minutes_unit')}</div>
-        <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{t('today_goal')}</div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ── Row 2: Circular Daily Goal ──
-daily_pct = min(100, int(st.session_state.daily_seconds / max(1, st.session_state.daily_goal_seconds) * 100))
-daily_done_min = st.session_state.daily_seconds // 60
-daily_goal_min = st.session_state.daily_goal_seconds // 60
-
-st.markdown(f'''
-<div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px; margin: 12px 0 16px 0;">
-    <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="position: relative; width: 64px; height: 64px; flex-shrink: 0;">
-            <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="{PROG_TRACK}" stroke-width="3.5"/>
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4CAF50" stroke-width="3.5" 
-                        stroke-dasharray="{daily_pct} 100" stroke-linecap="round"
-                        style="transition: stroke-dasharray 0.6s ease;"/>
-            </svg>
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; font-weight: 800; color: {TEXT_PRIMARY};">
-                {daily_pct}%
-            </div>
+    <!-- Row 1: Quick Stats -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+        <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 16px; text-align: center; border-radius: 16px;">
+            <div style="font-size: 24px; margin-bottom: 4px;">⏱️</div>
+            <div style="font-size: 20px; font-weight: 800; color: #4CAF50;">{total_hours}{hours_unit} {total_mins}{minutes_unit}</div>
+            <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{total_time_label}</div>
         </div>
-        <div style="flex: 1;">
-            <div style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">🎯 {t('today_goal')}</div>
-            <div style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 500;">
-                {daily_done_min} / {daily_goal_min} {t('minutes_unit')}
+        <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 16px; text-align: center; border-radius: 16px;">
+            <div style="font-size: 24px; margin-bottom: 4px;">✅</div>
+            <div style="font-size: 20px; font-weight: 800; color: #2196F3;">{completed_sessions}</div>
+            <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{sessions_label}</div>
+        </div>
+        <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 16px; text-align: center; border-radius: 16px;">
+            <div style="font-size: 24px; margin-bottom: 4px;">🎯</div>
+            <div style="font-size: 20px; font-weight: 800; color: #FF9800;">{today_h}{hours_unit} {today_m}{minutes_unit}</div>
+            <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{today_goal_label}</div>
+        </div>
+    </div>
+
+    <!-- Row 2: Circular Daily Goal -->
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px; margin: 12px 0 16px 0;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="position: relative; width: 64px; height: 64px; flex-shrink: 0;">
+                <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="{PROG_TRACK}" stroke-width="3.5"/>
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4CAF50" stroke-width="3.5" 
+                            stroke-dasharray="{daily_pct} 100" stroke-linecap="round"
+                            style="transition: stroke-dasharray 0.6s ease;"/>
+                </svg>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; font-weight: 800; color: {TEXT_PRIMARY};">
+                    {daily_pct}%
+                </div>
             </div>
-            <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 2px;">
-                {daily_pct}% complete
+            <div style="flex: 1;">
+                <div style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">🎯 {today_goal_label}</div>
+                <div style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 500;">
+                    {daily_done_min} / {daily_goal_min} {minutes_unit}
+                </div>
+                <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 2px;">
+                    {daily_pct}% complete
+                </div>
             </div>
         </div>
     </div>
 </div>
-''', unsafe_allow_html=True)
+""".format(
+    CARD_BG=CARD_BG,
+    CARD_BORDER=CARD_BORDER,
+    TEXT_PRIMARY=TEXT_PRIMARY,
+    TEXT_MUTED=TEXT_MUTED,
+    PROG_TRACK=PROG_TRACK,
+    sidebar_title=t('sidebar_title'),
+    today_date=datetime.now().strftime('%a, %d %b'),
+    total_hours=hours_total,
+    total_mins=mins_total,
+    hours_unit=t('hours_unit'),
+    minutes_unit=t('minutes_unit'),
+    total_time_label=t('total_time'),
+    completed_sessions=st.session_state.completed_sessions,
+    sessions_label=t('sessions'),
+    today_h=today_h,
+    today_m=today_m,
+    today_goal_label=t('today_goal'),
+    daily_pct=daily_pct,
+    daily_done_min=daily_done_min,
+    daily_goal_min=daily_goal_min,
+)
 
-# ── Row 3: XP + Streak Side by Side ──
+st.markdown(html_dashboard, unsafe_allow_html=True)
+
+# ── XP + Streak (using st.columns) ──
 col_xp, col_streak = st.columns(2, gap="small")
 
 with col_xp:
     xp_points = st.session_state.total_study_seconds // 60
     xp_needed = 100
-    
     if "xp_level" not in st.session_state:
         st.session_state.xp_level = 1
     current_level = st.session_state.xp_level
-    
     if xp_points >= xp_needed:
         current_level += 1
         st.session_state.xp_level = current_level
         xp_points = 0
         st.toast(f"🎉 {t('xp_level_up').format(level=current_level)}")
-    
     xp_progress = min(xp_points / xp_needed, 1.0)
     
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 16px;">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 16px; border-radius: 16px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div style="font-size: 28px;">🏆</div>
             <div style="flex: 1;">
@@ -1810,7 +1823,7 @@ with col_streak:
             else t("streak_keep") if sv < 7 else t("streak_champ"))
     
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 16px;">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 16px; border-radius: 16px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div style="font-size: 28px;">🔥</div>
             <div>
@@ -1824,7 +1837,7 @@ with col_streak:
     </div>
     """, unsafe_allow_html=True)
 
-# ── Row 4: Mini Weekly Overview ──
+# ── Weekly Overview ──
 schedule_data = get_schedule_data()
 if schedule_data:
     week_data = {}
@@ -1860,12 +1873,12 @@ if schedule_data:
         </div>
         ''', unsafe_allow_html=True)
 
-# ── Row 5: Last Subject & Recent Activity ──
+# ── Last Subject & Recent Activity ──
 col_sub, col_act = st.columns(2, gap="small")
 
 with col_sub:
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 14px 16px;">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 14px 16px; border-radius: 16px;">
         <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📖 {t('last_subject')}</div>
         <div style="font-size: 15px; font-weight: 700; color: {TEXT_PRIMARY};">{st.session_state.last_subject}</div>
     </div>
@@ -1874,7 +1887,7 @@ with col_sub:
 with col_act:
     hist = st.session_state.study_history[-4:][::-1]
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 14px 16px;">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 14px 16px; border-radius: 16px;">
         <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📋 {t('recent_activity')}</div>
     """, unsafe_allow_html=True)
     
@@ -1893,10 +1906,11 @@ with col_act:
     
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ── Close the main dashboard card ──
-st.markdown('</div>', unsafe_allow_html=True)
+# ── Divider ──
 st.markdown(f'<div style="height:1px;background:{DIVIDER};margin:18px 0 14px;"></div>', unsafe_allow_html=True)
-    
+
+
+
 # ── Weekly Study Chart ──
 st.markdown(f"""
 <div class="sched-card">
