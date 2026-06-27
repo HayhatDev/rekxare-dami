@@ -273,14 +273,6 @@ def inject_notion_top_bar():
     
     st.markdown(f'''
         <style>
-            /* ── Hide sidebar toggle ── */
-            [data-testid="stSidebarCollapse"] {{
-                display: none !important;
-            }}
-            [data-testid="collapsedControl"] {{
-                display: none !important;
-            }}
-            
             /* ── Remove underlines from ALL links ── */
             a {{
                 text-decoration: none !important;
@@ -300,7 +292,7 @@ def inject_notion_top_bar():
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 0 28px;
+                padding: 0 28px 0 60px;
                 z-index: 999999;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
                 animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
