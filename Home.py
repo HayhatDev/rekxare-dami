@@ -1698,52 +1698,66 @@ if today_tasks_named:
         f'</div></div>'
     )
     st.markdown(html_content, unsafe_allow_html=True)
-    
-# ── DASHBOARD SECTION ──
 
-# ── Dashboard Header ──
+
+# ══════════════════════════════════════════════════════════
+#  DASHBOARD – Professionally Designed
+# ══════════════════════════════════════════════════════════
+
+# ── Header ──
 st.markdown(f"""
-<div style="display: flex; align-items: center; justify-content: space-between; margin: 16px 0 12px 0;">
-    <h2 style="font-size:20px;font-weight:800;letter-spacing:-0.5px;color:{TEXT_PRIMARY};margin:0;">
+<div style="display: flex; align-items: center; justify-content: space-between; margin: 8px 0 20px 0;">
+    <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: {TEXT_PRIMARY}; margin: 0;">
         📊 {t('sidebar_title')}
     </h2>
-    <span style="font-size:12px;color:{TEXT_MUTED};font-weight:500;background:{CARD_BG};padding:4px 12px;border-radius:20px;border:1px solid {CARD_BORDER};">
-        {datetime.now().strftime('%a, %d %b')}
-    </span>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 500; background: {CARD_BG}; padding: 4px 14px; border-radius: 20px; border: 1px solid {CARD_BORDER};">
+            {datetime.now().strftime('%a, %d %b')}
+        </span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Row 1: Stats Cards ──
+# ── Row 1: Three Stat Cards ──
 col1, col2, col3 = st.columns(3, gap="small")
 
 with col1:
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 18px 12px; text-align: center;">
-        <div style="font-size: 28px; margin-bottom: 2px;">⏱️</div>
-        <div style="font-size: 22px; font-weight: 800; color: #4CAF50;">{hours_total}{t('hours_unit')} {mins_total}{t('minutes_unit')}</div>
-        <div style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 600;">{t('total_time')}</div>
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 20px 12px 18px; text-align: center;">
+        <div style="font-size: 28px; margin-bottom: 4px;">⏱️</div>
+        <div style="font-size: 24px; font-weight: 800; color: #4CAF50; letter-spacing: -0.5px; line-height: 1.2;">
+            {hours_total}{t('hours_unit')} {mins_total}{t('minutes_unit')}
+        </div>
+        <div style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 2px;">{t('total_time')}</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col2:
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 18px 12px; text-align: center;">
-        <div style="font-size: 28px; margin-bottom: 2px;">✅</div>
-        <div style="font-size: 22px; font-weight: 800; color: #2196F3;">{st.session_state.completed_sessions}</div>
-        <div style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 600;">{t('sessions')}</div>
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 20px 12px 18px; text-align: center;">
+        <div style="font-size: 28px; margin-bottom: 4px;">✅</div>
+        <div style="font-size: 24px; font-weight: 800; color: #2196F3; letter-spacing: -0.5px; line-height: 1.2;">
+            {st.session_state.completed_sessions}
+        </div>
+        <div style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 2px;">{t('sessions')}</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 18px 12px; text-align: center;">
-        <div style="font-size: 28px; margin-bottom: 2px;">🎯</div>
-        <div style="font-size: 22px; font-weight: 800; color: #FF9800;">{today_h}{t('hours_unit')} {today_m}{t('minutes_unit')}</div>
-        <div style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 600;">{t('today_goal')}</div>
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 20px 12px 18px; text-align: center;">
+        <div style="font-size: 28px; margin-bottom: 4px;">🎯</div>
+        <div style="font-size: 24px; font-weight: 800; color: #FF9800; letter-spacing: -0.5px; line-height: 1.2;">
+            {today_h}{t('hours_unit')} {today_m}{t('minutes_unit')}
+        </div>
+        <div style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 2px;">{t('today_goal')}</div>
     </div>
     """, unsafe_allow_html=True)
 
-# ── Row 2: XP + Streak ──
+# ── Spacer ──
+st.markdown('<div style="height: 12px;"></div>', unsafe_allow_html=True)
+
+# ── Row 2: XP & Streak ──
 col_xp, col_streak = st.columns(2, gap="small")
 
 with col_xp:
@@ -1760,15 +1774,15 @@ with col_xp:
     xp_progress = min(xp_points / xp_needed, 1.0)
 
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px 18px;">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 18px 18px 16px;">
         <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="font-size: 30px; line-height: 1;">🏆</div>
-            <div style="flex: 1;">
+            <div style="font-size: 32px; line-height: 1;">🏆</div>
+            <div style="flex: 1; min-width: 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
                     <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">{t('xp_title')}</span>
                     <span style="font-size: 13px; font-weight: 700; color: #FF9800;">{t('xp_level')} {current_level}</span>
                 </div>
-                <div style="background: {PROG_TRACK}; border-radius: 99px; height: 6px; overflow: hidden; margin: 4px 0 2px 0;">
+                <div style="background: {PROG_TRACK}; border-radius: 99px; height: 6px; overflow: hidden; margin: 4px 0 2px;">
                     <div style="width: {xp_progress * 100}%; height: 6px; background: linear-gradient(90deg, #388e3c, #4caf50); border-radius: 99px; transition: width 0.5s ease;"></div>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">
@@ -1786,34 +1800,40 @@ with col_streak:
             else t("streak_keep") if sv < 7 else t("streak_champ"))
 
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px 18px;">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 18px 18px 16px;">
         <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="font-size: 30px; line-height: 1;">🔥</div>
-            <div>
-                <div style="font-size: 26px; font-weight: 900; color: #FF9800; line-height: 1.2;">{sv}</div>
-                <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{days_lbl}</div>
-            </div>
-            <div style="flex: 1; text-align: right;">
-                <div style="font-size: 13px; font-weight: 600; color: {TEXT_PRIMARY};">{smsg}</div>
+            <div style="font-size: 32px; line-height: 1;">🔥</div>
+            <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: baseline; gap: 6px;">
+                    <span style="font-size: 28px; font-weight: 900; color: #FF9800; line-height: 1.2;">{sv}</span>
+                    <span style="font-size: 13px; color: {TEXT_MUTED}; font-weight: 600;">{days_lbl}</span>
+                </div>
+                <div style="font-size: 13px; color: {TEXT_PRIMARY}; font-weight: 600; margin-top: 2px;">{smsg}</div>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
+# ── Spacer ──
+st.markdown('<div style="height: 12px;"></div>', unsafe_allow_html=True)
+
 # ── Row 3: Daily Goal Progress ──
 st.markdown(f"""
-<div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 14px 18px; margin: 8px 0 12px 0;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">🎯 {t('today_goal')}</span>
+<div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 14px; font-weight: 700; color: {TEXT_PRIMARY};">🎯 {t('today_goal')}</span>
         <span style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 600;">{daily_done_min} / {daily_goal_min} {t('minutes_unit')} — {daily_pct}%</span>
     </div>
-    <div style="background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden;">
-        <div style="width: {daily_pct}%; height: 8px; background: {'#4CAF50' if daily_pct >= 100 else '#2196F3'}; border-radius: 99px; transition: width 0.5s ease;"></div>
+    <div style="background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden; position: relative;">
+        <div style="width: {daily_pct}%; height: 8px; background: {'#4CAF50' if daily_pct >= 100 else '#2196F3'}; border-radius: 99px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);"></div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Row 4: Mini Weekly Overview ──
+# ── Spacer ──
+st.markdown('<div style="height: 12px;"></div>', unsafe_allow_html=True)
+
+# ── Row 4: Mini Weekly Overview (if data exists) ──
 schedule_data = get_schedule_data()
 if schedule_data:
     week_data = {}
@@ -1829,61 +1849,66 @@ if schedule_data:
         for day in day_order:
             val = week_data.get(day, 0)
             pct = (val / max_val * 100) if max_val > 0 else 0
-            bar_color = "#4CAF50" if val > 0 else "rgba(255,255,255,0.06)"
+            bar_color = "#4CAF50" if val > 0 else "rgba(255,255,255,0.08)"
             bars_html += f"""
             <div style="flex: 1; text-align: center; min-width: 0;">
-                <div style="font-size: 9px; color: {TEXT_MUTED}; font-weight: 700; margin-bottom: 3px; letter-spacing: 0.5px;">{day_labels[day]}</div>
-                <div style="height: 5px; background: {PROG_TRACK}; border-radius: 99px; overflow: hidden; width: 70%; margin: 0 auto;">
-                    <div style="height: 5px; width: {pct}%; background: {bar_color}; border-radius: 99px; transition: width 0.5s ease;"></div>
+                <div style="font-size: 10px; color: {TEXT_MUTED}; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.3px;">{day_labels[day]}</div>
+                <div style="height: 6px; background: {PROG_TRACK}; border-radius: 99px; overflow: hidden; width: 80%; margin: 0 auto;">
+                    <div style="height: 6px; width: {pct}%; background: {bar_color}; border-radius: 99px; transition: width 0.5s ease;"></div>
                 </div>
-                <div style="font-size: 8px; color: {TEXT_MUTED}; margin-top: 3px; font-weight: 600;">{val}m</div>
+                <div style="font-size: 9px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 4px;">{val}m</div>
             </div>
             """
 
         st.markdown(f"""
-        <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 14px 16px; margin: 12px 0;">
-            <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 10px;">📊 Weekly Overview</div>
-            <div style="display: flex; gap: 4px; justify-content: space-between; align-items: flex-end;">
+        <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px 12px 14px;">
+            <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 12px; padding-left: 4px;">
+                📊 Weekly Overview
+            </div>
+            <div style="display: flex; gap: 6px; justify-content: space-between; align-items: flex-end;">
                 {bars_html}
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+# ── Spacer ──
+st.markdown('<div style="height: 12px;"></div>', unsafe_allow_html=True)
 
 # ── Row 5: Last Subject & Recent Activity ──
 col_sub, col_act = st.columns(2, gap="small")
 
 with col_sub:
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 14px 16px;">
-        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📖 {t('last_subject')}</div>
-        <div style="font-size: 15px; font-weight: 700; color: {TEXT_PRIMARY};">{st.session_state.last_subject}</div>
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px 18px;">
+        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 8px;">📖 {t('last_subject')}</div>
+        <div style="font-size: 16px; font-weight: 700; color: {TEXT_PRIMARY};">{st.session_state.last_subject}</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col_act:
     hist = st.session_state.study_history[-4:][::-1]
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 14px 16px;">
-        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📋 {t('recent_activity')}</div>
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px 18px;">
+        <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 8px;">📋 {t('recent_activity')}</div>
     """, unsafe_allow_html=True)
 
     if hist:
         for e in hist[:3]:
             st.markdown(f"""
-            <div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; color: {TEXT_MUTED}; border-bottom: 1px solid {DIVIDER};">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 4px 0; font-size: 13px; color: {TEXT_MUTED}; border-bottom: 1px solid {DIVIDER};">
                 <div style="width: 6px; height: 6px; border-radius: 50%; background: #4CAF50; flex-shrink: 0;"></div>
                 <span>{e}</span>
             </div>
             """, unsafe_allow_html=True)
     else:
         st.markdown(f"""
-        <div style="text-align: center; padding: 12px 0; font-size: 12px; color: {TEXT_MUTED};">{t('no_activity')}</div>
+        <div style="text-align: center; padding: 12px 0; font-size: 13px; color: {TEXT_MUTED};">{t('no_activity')}</div>
         """, unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Divider ──
-st.markdown(f'<div style="height:1px;background:{DIVIDER};margin:18px 0 14px;"></div>', unsafe_allow_html=True)
+st.markdown(f'<div style="height: 1px; background: {DIVIDER}; margin: 24px 0 18px;"></div>', unsafe_allow_html=True)
 
 # ── Weekly Overview ──
 schedule_data = get_schedule_data()
