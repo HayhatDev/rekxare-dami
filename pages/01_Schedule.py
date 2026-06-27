@@ -229,6 +229,27 @@ def copy_week_to_next():
     st.session_state.schedule   = new_schedule
     st.session_state.active_day = today_key
     save_schedule()
+
+
+# ── RESTORE PAGE STATE ──
+query_params = st.query_params
+page = query_params.get("page", "schedule")
+
+# Store in session state
+st.session_state.page = page
+st.session_state.current_page = "schedule"
+
+# If the user is on a different page via URL, switch to it
+if page == "home":
+    st.session_state.current_page = "home"
+    st.switch_page("Home.py")
+    st.stop()
+elif page == "about":
+    st.session_state.current_page = "about"
+    st.switch_page("pages/02_About.py")
+    st.stop()
+else:
+    st.session_state.current_page = "schedule"
     
 # ── Handle top bar actions (dark mode & language) ──
 query_params = st.query_params
