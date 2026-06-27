@@ -1028,10 +1028,7 @@ button, input, select, textarea, label {{
 }}
 .stats-card:active {{
     transform: scale(0.97);
-}}
-/* ── Make sure sidebar toggle is visible ── */
-[data-testid="collapsedControl"] {{
-    display: flex !important;
+
 }}
 /* ── Glassmorphism for cards (dark mode) ── */
 .glass-card {{
@@ -1048,7 +1045,16 @@ button, input, select, textarea, label {{
     border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
     padding: 4px 16px !important;
 }}
-
+/* ── Show sidebar toggle ── */
+[data-testid="collapsedControl"] {{
+    display: flex !important;
+}}
+.stSidebarCollapse {{
+    display: flex !important;
+}}
+[data-testid="stSidebarCollapse"] {{
+    display: flex !important;
+}}
 .stApp > header a {{
     color: #e2e2e2 !important;
     font-weight: 600 !important;
