@@ -69,6 +69,22 @@ st.set_page_config(
     layout="centered",
 )
 
+# ── JAVASCRIPT FOR PAGE PERSISTENCE (ADD THIS) ──
+st.markdown("""
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('page');
+    if (page) {
+        localStorage.setItem('rekxare_page', page);
+    } else {
+        const savedPage = localStorage.getItem('rekxare_page');
+        if (savedPage && !window.location.search.includes('page=')) {
+            window.location.href = '/?page=' + savedPage;
+        }
+    }
+</script>
+""", unsafe_allow_html=True)
+
 load_preferences()
 
 # ── PWA manifest (after set_page_config)
