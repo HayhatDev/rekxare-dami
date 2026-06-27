@@ -1391,26 +1391,43 @@ hr {{ border-color: {DIVIDER} !important; margin: 18px 0 !important; }}
 #  SIDEBAR
 # ══════════════════════════════════════════════════════════
 with st.sidebar:
-    # ── Logo + Title + Slogan ──
-    col1, col2 = st.columns([1, 4])
-    with col1:
-        st.image("logo.png", width=40)
-    with col2:
+    # ── User Profile ──
+    if st.user.is_logged_in:
+        user_name = st.user.name if st.user.name else "Student"
+        user_email = st.user.email
+        user_initial = user_name[0].upper() if user_name else "?"
+        
         st.markdown(f"""
-        <div style="padding:14px 0 2px 0;">
-            <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px;line-height:1.2;">Rekxare Dami</div>
-            <div style="font-size:10px;color:{TEXT_MUTED};font-weight:500;line-height:1.2;opacity:0.8;">{t("app_title")}</div>
-            <div style="font-size:9px;color:{TEXT_MUTED};font-weight:400;line-height:1.2;opacity:0.6;">{t('slogan')}</div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0 12px 0; border-bottom: 1px solid {DIVIDER}; margin-bottom: 12px;">
+            <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #388e3c, #4caf50); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: white; flex-shrink: 0; box-shadow: 0 2px 8px rgba(76,175,80,0.3);">
+                {user_initial}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 14px; font-weight: 700; color: {TEXT_PRIMARY}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    {user_name}
+                </div>
+                <div style="font-size: 11px; color: {TEXT_MUTED}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    {user_email}
+                </div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     
-    st.markdown(f'<div style="height:1px;background:{DIVIDER};margin:6px 0 12px;"></div>', unsafe_allow_html=True)
+    # ── Quick Actions ──
+    st.markdown(f'<span class="sb-lbl">⚡ Quick Actions</span>', unsafe_allow_html=True)
+    col_q1, col_q2 = st.columns(2)
+    with col_q1:
+        if st.button("⏱️ Timer", use_container_width=True, key="quick_home"):
+            st.switch_page("Home.py")
+    with col_q2:
+        if st.button("📅 Schedule", use_container_width=True, key="quick_schedule"):
+            st.switch_page("pages/01_Schedule.py")
+    st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
 
     # ── Settings ──
     st.markdown(f'<span class="sb-lbl">{t("settings")}</span>', unsafe_allow_html=True)
     st.markdown('<div class="settings-box">', unsafe_allow_html=True)
     
-    # Daily Goal Slider
     goal_mins = st.slider(
         f'🎯 {t("today_goal")} ({t("minutes_unit")})',
         30, 480, st.session_state.daily_goal_seconds // 60, step=15
@@ -1422,7 +1439,6 @@ with st.sidebar:
     
     st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
     
-    # Dark Mode Toggle
     dc, tc = st.columns([3, 1])
     with dc:
         st.markdown(f'<div style="font-size:13px;padding-top:6px;font-weight:600;">{t("dark_mode")}</div>', unsafe_allow_html=True)
@@ -1498,13 +1514,11 @@ with st.sidebar:
     # ── Export Data Section ──
     st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
     
-    # Helper for JSON serialization
     def json_serial(obj):
         if isinstance(obj, datetime):
             return obj.isoformat()
         raise TypeError(f"Type {type(obj)} not serializable")
     
-    # Prepare JSON data
     export_data = {
         "export_info": {
             "generated": datetime.now().isoformat(),
@@ -1528,7 +1542,6 @@ with st.sidebar:
         "weekly_schedule": {}
     }
     
-    # Load schedule data
     try:
         schedule_file = get_schedule_file()
         if os.path.exists(schedule_file):
@@ -1540,7 +1553,6 @@ with st.sidebar:
     
     json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=json_serial)
     
-    # Prepare CSV data
     csv_lines = ["timestamp,subject,minutes"]
     if st.session_state.study_history:
         for entry in st.session_state.study_history:
@@ -1554,7 +1566,6 @@ with st.sidebar:
         csv_lines.append("No history,,")
     csv_data = "\n".join(csv_lines)
     
-    # Expander with translated title
     with st.expander(t("export_data"), expanded=False):
         col1, col2 = st.columns(2)
         with col1:
@@ -1690,7 +1701,6 @@ if today_tasks_named:
     
 
 # ── DASHBOARD SECTION ──
-# This replaces the sidebar content and makes stats visible
 st.markdown(f"""
 <div style="margin: 20px 0 12px 0;">
     <h2 style="font-size:20px;font-weight:800;letter-spacing:-0.5px;color:{TEXT_PRIMARY};">
@@ -1699,7 +1709,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Row 1: Quick Stats Cards ──
+# ── Row 1: Quick Stats Cards (with hover effect) ──
 st.markdown(f"""
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
     <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
@@ -1720,17 +1730,48 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Row 2: XP + Streak Side by Side ──
-col_left, col_right = st.columns([1, 1], gap="small")
+# ── Row 2: Circular Daily Goal (replaces the bar) ──
+daily_pct = min(100, int(st.session_state.daily_seconds / max(1, st.session_state.daily_goal_seconds) * 100))
+daily_done_min = st.session_state.daily_seconds // 60
+daily_goal_min = st.session_state.daily_goal_seconds // 60
 
-with col_left:
-    # ── XP Progress Bar (Card) ──
+st.markdown(f'''
+<div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px; margin: 12px 0 16px 0;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="position: relative; width: 64px; height: 64px; flex-shrink: 0;">
+            <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="{PROG_TRACK}" stroke-width="3.5"/>
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4CAF50" stroke-width="3.5" 
+                        stroke-dasharray="{daily_pct} 100" stroke-linecap="round"
+                        style="transition: stroke-dasharray 0.6s ease;"/>
+            </svg>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; font-weight: 800; color: {TEXT_PRIMARY};">
+                {daily_pct}%
+            </div>
+        </div>
+        <div style="flex: 1;">
+            <div style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">🎯 {t('today_goal')}</div>
+            <div style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 500;">
+                {daily_done_min} / {daily_goal_min} {t('minutes_unit')}
+            </div>
+            <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 2px;">
+                {daily_pct}% complete
+            </div>
+        </div>
+    </div>
+</div>
+''', unsafe_allow_html=True)
+
+# ── Row 3: XP + Streak Side by Side ──
+col_xp, col_streak = st.columns(2, gap="small")
+
+with col_xp:
+    # XP Progress
     xp_points = st.session_state.total_study_seconds // 60
     xp_needed = 100
     
     if "xp_level" not in st.session_state:
         st.session_state.xp_level = 1
-    
     current_level = st.session_state.xp_level
     
     if xp_points >= xp_needed:
@@ -1742,18 +1783,18 @@ with col_left:
     xp_progress = min(xp_points / xp_needed, 1.0)
     
     st.markdown(f"""
-    <div class="streak-card">
-        <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
-            <div style="font-size: 32px; line-height: 1;">🏆</div>
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="font-size: 28px;">🏆</div>
             <div style="flex: 1;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
                     <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">{t('xp_title')}</span>
                     <span style="font-size: 13px; font-weight: 700; color: #FF9800;">{t('xp_level')} {current_level}</span>
                 </div>
-                <div style="background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden; margin: 4px 0 2px 0;">
-                    <div style="width: {xp_progress * 100}%; height: 8px; background: linear-gradient(90deg, #388e3c, #4caf50); border-radius: 99px; transition: width 0.5s ease;"></div>
+                <div style="background: {PROG_TRACK}; border-radius: 99px; height: 6px; overflow: hidden; margin: 4px 0 2px 0;">
+                    <div style="width: {xp_progress * 100}%; height: 6px; background: linear-gradient(90deg, #388e3c, #4caf50); border-radius: 99px; transition: width 0.5s ease;"></div>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 11px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 2px;">
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">
                     <span>⚡ {xp_points} XP</span>
                     <span>{xp_needed} XP</span>
                 </div>
@@ -1762,43 +1803,68 @@ with col_left:
     </div>
     """, unsafe_allow_html=True)
 
-with col_right:
-    # ── Streak Section ──
+with col_streak:
     sv = st.session_state.streak
     smsg = (t("streak_start") if sv == 0 else t("streak_ready") if sv < 3
             else t("streak_keep") if sv < 7 else t("streak_champ"))
     
     st.markdown(f"""
-    <div class="streak-card">
-        <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
-            <div style="font-size: 32px; line-height: 1;">🔥</div>
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="font-size: 28px;">🔥</div>
             <div>
-                <div class="streak-num">{sv} <span style="font-size:14px;font-weight:500;color:{TEXT_MUTED};">{days_lbl}</span></div>
-                <div class="streak-sub">{smsg}</div>
+                <div style="font-size: 24px; font-weight: 900; color: #FF9800;">{sv}</div>
+                <div style="font-size: 11px; color: {TEXT_MUTED}; font-weight: 600;">{days_lbl}</div>
+            </div>
+            <div style="flex: 1; text-align: right;">
+                <div style="font-size: 13px; font-weight: 600; color: {TEXT_PRIMARY};">{smsg}</div>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# ── Row 3: Daily Goal Progress ──
-st.markdown(f"""
-<div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">🎯 {t('today_goal')}</span>
-        <span style="font-size: 12px; color: {TEXT_MUTED}; font-weight: 600;">{daily_done_min} / {daily_goal_min} {t('minutes_unit')} — {daily_pct}%</span>
-    </div>
-    <div style="background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden;">
-        <div style="width: {daily_pct}%; height: 8px; background: {'#4CAF50' if daily_pct >= 100 else '#2196F3'}; border-radius: 99px; transition: width 0.5s ease;"></div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# ── Row 4: Mini Weekly Overview ──
+schedule_data = get_schedule_data()
+if schedule_data:
+    week_data = {}
+    for day, tasks in schedule_data.items():
+        week_data[day] = total_day_minutes(tasks)
+    
+    if week_data and any(week_data.values()):
+        day_order = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+        day_labels = {"mon": "M", "tue": "T", "wed": "W", "thu": "T", "fri": "F", "sat": "S", "sun": "S"}
+        max_val = max(week_data.values()) if week_data.values() else 1
+        
+        bars_html = ""
+        for day in day_order:
+            val = week_data.get(day, 0)
+            pct = (val / max_val * 100) if max_val > 0 else 0
+            bar_color = "#4CAF50" if val > 0 else "rgba(255,255,255,0.06)"
+            bars_html += f'''
+            <div style="flex: 1; text-align: center; min-width: 0;">
+                <div style="font-size: 9px; color: {TEXT_MUTED}; font-weight: 700; margin-bottom: 3px; letter-spacing: 0.5px;">{day_labels[day]}</div>
+                <div style="height: 5px; background: {PROG_TRACK}; border-radius: 99px; overflow: hidden; width: 70%; margin: 0 auto;">
+                    <div style="height: 5px; width: {pct}%; background: {bar_color}; border-radius: 99px; transition: width 0.5s ease;"></div>
+                </div>
+                <div style="font-size: 8px; color: {TEXT_MUTED}; margin-top: 3px; font-weight: 600;">{val}m</div>
+            </div>
+            '''
+        
+        st.markdown(f'''
+        <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px 12px; margin: 12px 0;">
+            <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 10px;">📊 Weekly Overview</div>
+            <div style="display: flex; gap: 4px; justify-content: space-between; align-items: flex-end;">
+                {bars_html}
+            </div>
+        </div>
+        ''', unsafe_allow_html=True)
 
-# ── Row 4: Last Subject & Recent Activity ──
-col_sub, col_act = st.columns([1, 1.5], gap="small")
+# ── Row 5: Last Subject & Recent Activity ──
+col_sub, col_act = st.columns(2, gap="small")
 
 with col_sub:
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 14px 16px;">
         <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📖 {t('last_subject')}</div>
         <div style="font-size: 15px; font-weight: 700; color: {TEXT_PRIMARY};">{st.session_state.last_subject}</div>
     </div>
@@ -1807,7 +1873,7 @@ with col_sub:
 with col_act:
     hist = st.session_state.study_history[-4:][::-1]
     st.markdown(f"""
-    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER};">
+    <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; padding: 14px 16px;">
         <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 6px;">📋 {t('recent_activity')}</div>
     """, unsafe_allow_html=True)
     
