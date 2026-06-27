@@ -1362,129 +1362,13 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
     
-    st.markdown(f'<div style="height:1px;background:{DIVIDER};margin:6px 0 8px;"></div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="height:1px;background:{DIVIDER};margin:6px 0 12px;"></div>', unsafe_allow_html=True)
 
-    st.markdown('<span class="sb-lbl">زمان | Language</span>', unsafe_allow_html=True)
-    lang = st.radio("", ["badini", "english", "arabic"],
-                    index=["badini", "english", "arabic"].index(st.session_state.lang),
-                    horizontal=True, label_visibility="collapsed")
-    if lang != st.session_state.lang:
-        st.session_state.lang = lang
-        save_data()
-        st.rerun()
-
-    st.markdown(f'<span class="sb-lbl">{t("sidebar_title")}</span>', unsafe_allow_html=True)
-    st.markdown(f"""
-    <div class="stat-row">
-        <div class="stat-card">
-            <div class="stat-icon">⏱️</div>
-            <div class="stat-val">{hours_total}{t("hours_unit")} {mins_total}{t("minutes_unit")}</div>
-            <div class="stat-lbl">{t("total_time")}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">✅</div>
-            <div class="stat-val">{st.session_state.completed_sessions}</div>
-            <div class="stat-lbl">{t("sessions")}</div>
-        </div>
-    </div>
-    <div class="today-stat">
-        <span class="today-stat-label">📅 {t("today_goal")}</span>
-        <span class="today-stat-val">{today_h}{t("hours_unit")} {today_m}{t("minutes_unit")}</span>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # ── XP Progress Bar (Card) ──
-    # XP points: 1 XP per minute of study
-    xp_points = st.session_state.total_study_seconds // 60
-    xp_needed = 100
-    
-    # Get current level
-    if "xp_level" not in st.session_state:
-        st.session_state.xp_level = 1
-    
-    current_level = st.session_state.xp_level
-    
-    # Check level up
-    if xp_points >= xp_needed:
-        current_level += 1
-        st.session_state.xp_level = current_level
-        xp_points = 0
-        st.toast(f"🎉 {t('xp_level_up').format(level=current_level)}")
-    
-    # Calculate progress
-    xp_progress = min(xp_points / xp_needed, 1.0)
-    
-    # Show the card with everything inside
-    st.markdown(f"""
-    <div class="streak-card">
-        <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
-            <div style="font-size: 32px; line-height: 1;">🏆</div>
-            <div style="flex: 1;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                    <span style="font-size: 13px; font-weight: 700; color: {TEXT_PRIMARY};">{t('xp_title')}</span>
-                    <span style="font-size: 13px; font-weight: 700; color: #FF9800;">{t('xp_level')} {current_level}</span>
-                </div>
-                <!-- Progress bar inside the card -->
-                <div style="background: {PROG_TRACK}; border-radius: 99px; height: 8px; overflow: hidden; margin: 4px 0 2px 0;">
-                    <div style="width: {xp_progress * 100}%; height: 8px; background: linear-gradient(90deg, #388e3c, #4caf50); border-radius: 99px; transition: width 0.5s ease;"></div>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 11px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 2px;">
-                    <span>⚡ {xp_points} XP</span>
-                    <span>{xp_needed} XP</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    
-    
-    # ── Streak Section ──
-    st.markdown(f'<span class="sb-lbl">{t("streak_section")}</span>', unsafe_allow_html=True)
-    sv = st.session_state.streak
-    smsg = (t("streak_start") if sv == 0 else t("streak_ready") if sv < 3
-            else t("streak_keep") if sv < 7 else t("streak_champ"))
-    st.markdown(f"""
-    <div class="streak-card">
-        <div style="font-size:32px;line-height:1;">🔥</div>
-        <div>
-            <div class="streak-num">{sv}
-                <span style="font-size:14px;font-weight:500;color:{TEXT_MUTED};">{days_lbl}</span>
-            </div>
-            <div class="streak-sub">{smsg}</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown(f'<span class="sb-lbl">{t("goal_section")}</span>', unsafe_allow_html=True)
-    gc = "#2196F3" if daily_pct >= 100 else "#4CAF50"
-    st.markdown(f"""
-    <div class="goal-wrap">
-        <div class="goal-header">
-            <span class="goal-title">🎯 {t("today_goal")}</span>
-            <span>{daily_done_min} / {daily_goal_min} {t("minutes_unit")} — {daily_pct}%</span>
-        </div>
-        <div class="goal-track">
-            <div class="goal-fill" style="width:{daily_pct}%;background:{gc};"></div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-    st.markdown(f'<span class="sb-lbl">{t("last_subject")}</span>', unsafe_allow_html=True)
-    st.markdown(f'<div style="padding:2px 0 8px;"><span class="subject-tag">📖 {st.session_state.last_subject}</span></div>',
-                unsafe_allow_html=True)
-
-    st.markdown(f'<span class="sb-lbl">{t("recent_activity")}</span>', unsafe_allow_html=True)
-    hist = st.session_state.study_history[-4:][::-1]
-    if hist:
-        rows = "".join(f'<div class="act-item"><div class="act-dot"></div><span>{e}</span></div>' for e in hist)
-        st.markdown(f'<div class="act-list">{rows}</div>', unsafe_allow_html=True)
-    else:
-        st.markdown(f'<div class="act-list"><div class="act-empty">{t("no_activity")}</div></div>',
-                    unsafe_allow_html=True)
-
+    # ── Settings ──
     st.markdown(f'<span class="sb-lbl">{t("settings")}</span>', unsafe_allow_html=True)
     st.markdown('<div class="settings-box">', unsafe_allow_html=True)
+    
+    # Daily Goal Slider
     goal_mins = st.slider(
         f'🎯 {t("today_goal")} ({t("minutes_unit")})',
         30, 480, st.session_state.daily_goal_seconds // 60, step=15
@@ -1493,19 +1377,21 @@ with st.sidebar:
         st.session_state.daily_goal_seconds = goal_mins * 60
         save_data()
         st.rerun()
+    
     st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
+    
+    # Dark Mode Toggle
     dc, tc = st.columns([3, 1])
     with dc:
-        st.markdown(f'<div style="font-size:13px;padding-top:6px;font-weight:600;">{t("dark_mode")}</div>',
-                    unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:13px;padding-top:6px;font-weight:600;">{t("dark_mode")}</div>', unsafe_allow_html=True)
     with tc:
         dark_btn = st.checkbox("", value=is_dark, label_visibility="collapsed", key="dark_mode_sb")
     if dark_btn != is_dark:
         st.session_state.dark_mode = dark_btn
         save_data()
         st.rerun()
-
-        # ── Audio Test Button ──
+    
+    # ── Audio Test Button ──
     st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
     
     if st.button("🔊 " + (t("test_audio") if "test_audio" in TRANSLATIONS.get(st.session_state.lang, {}) else "Test Audio"), use_container_width=True):
@@ -1531,10 +1417,11 @@ with st.sidebar:
         st.success("🔊 " + (t("audio_test_success") if "audio_test_success" in TRANSLATIONS.get(st.session_state.lang, {}) else "Sound played! If you can hear it, audio is working."))
         time.sleep(0.5)
         st.rerun()
-        
+    
     st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
 
+    # ── Clear Stats ──
     if not st.session_state.confirm_clear:
         if st.button(t("clear_stats"), use_container_width=True):
             st.session_state.confirm_clear = True
@@ -1555,18 +1442,19 @@ with st.sidebar:
         with cc2:
             if st.button("✗", use_container_width=True, key="confirm_no"):
                 st.session_state.confirm_clear = False
-            st.rerun()
-                
-            
-    st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True) 
+                st.rerun()
+    
+    st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True) 
+    
+    # ── Logout ──
     if st.button("🚪 " + t("logout"), use_container_width=True):
         for key in ["user_email", "data_key", "logged_in"]:
             st.session_state.pop(key, None)
         st.logout()
         st.rerun()
 
-    # ========== EXPORT DATA SECTION ==========
-    st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True)
+    # ── Export Data Section ──
+    st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
     
     # Helper for JSON serialization
     def json_serial(obj):
