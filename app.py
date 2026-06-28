@@ -3,6 +3,7 @@ import json
 import os
 import hashlib
 import base64
+from datetime import datetime
 
 # ══════════════════════════════════════════════════════════
 #  TRANSLATIONS
@@ -23,7 +24,7 @@ def t(key, **kwargs):
     return text
 
 
-# ── Preference helpers
+# ── Preference helpers ──
 def get_preferences_file():
     email = st.user.email if st.user.is_logged_in else st.session_state.get("user_email", "default")
     return f"preferences_{hashlib.md5(email.encode()).hexdigest()[:8]}.json"
@@ -61,7 +62,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── PWA tags
+# ── PWA tags ──
 st.markdown("""
 <link rel="manifest" href="/manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -73,7 +74,7 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# ── Wire user session + load preferences (runs on every page)
+# ── Wire user session + load preferences ──
 if st.user.is_logged_in:
     if "user_email" not in st.session_state or not st.session_state.user_email:
         st.session_state.user_email = st.user.email
@@ -148,7 +149,7 @@ header[data-testid="stHeader"],#MainMenu,footer,
     st.stop()
 
 # ══════════════════════════════════════════════════════════
-#  QUERY PARAM HANDLERS  (dark mode + language cycle)
+#  QUERY PARAM HANDLERS  (dark mode, language, page switching)
 # ══════════════════════════════════════════════════════════
 if "dark_mode" in st.query_params:
     st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
@@ -164,43 +165,20 @@ if "lang" in st.query_params and st.query_params["lang"] == "cycle":
     st.query_params.clear()
     st.rerun()
 
-# ══════════════════════════════════════════════════════════
-#  NAVIGATION  (position="hidden" → sidebar nav removed;
-#               our custom bar handles all navigation)
-# ══════════════════════════════════════════════════════════
-pg = st.navigation([
-    st.Page("Home.py",              title=t("nav_timer"),    icon="⏱️", default=True),
-    st.Page("pages/01_Schedule.py", title=t("nav_schedule"), icon="📅", url_path="schedule"),
-    st.Page("pages/02_About.py",    title=t("nav_about"),    icon="✨",  url_path="about"),
-], position="hidden")
-
-# Detect active page (robust multi-lang check)
-_ttl = pg.title
-if any(x in _ttl for x in [t("nav_schedule"), "Schedule", "خشتە", "الجدول"]):
-    _active = "schedule"
-elif any(x in _ttl for x in [t("nav_about"), "About", "دەربارە", "حول"]):
-    _active = "about"
-else:
-    _active = "home"
-st.session_state.current_page = _active
-
+# ── PAGE SWITCHING (simple & reliable) ──
+page_param = st.query_params.get("page")
+if page_param == "schedule":
+    st.query_params.clear()
+    st.switch_page("pages/01_Schedule.py")
+    st.stop()
+elif page_param == "about":
+    st.query_params.clear()
+    st.switch_page("pages/02_About.py")
+    st.stop()
+# Otherwise stay on Home (default)
 
 # ══════════════════════════════════════════════════════════
-#  NAV BAR  — fixed visual layer + hidden st.page_link()
-#
-#  Architecture:
-#   • A pure-HTML fixed bar provides the visual look
-#     (background, shadow, brand, user pill, dark/lang btns)
-#   • Clickable <span> nav items overlay it (z-index +1)
-#   • Three hidden st.page_link() elements are kept in the DOM
-#     off-screen (top:-9999px).  When a nav <span> is clicked,
-#     JavaScript dispatches a real MouseEvent on the matching
-#     page_link <a> tag.  Streamlit's React handler fires and
-#     switches the page via WebSocket — no full-page HTTP
-#     request, no service-worker interference, URL updates.
-#   • Sidebar hamburger: Streamlit header collapsed to height:0
-#     with overflow:visible.  The button is re-floated to
-#     position:fixed; z-index:2000000 (above everything).
+#  NAV BAR – Clean, simple, with slide-down animation
 # ══════════════════════════════════════════════════════════
 def render_nav():
     is_dark = st.session_state.get("dark_mode", True)
@@ -209,7 +187,7 @@ def render_nav():
 
     dark_icon = "☀️" if is_dark else "🌙"
     lang_abbr = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(lang, "EN")
-    user_name = (st.user.name or "")[:22] if st.user.is_logged_in else t("student")
+    user_name = (st.user.name or "Student")[:22] if st.user.is_logged_in else t("student")
 
     try:
         with open("logo.png", "rb") as f:
@@ -218,7 +196,7 @@ def render_nav():
     except FileNotFoundError:
         logo_html = "📚"
 
-    # ── Color tokens
+    # ── Theme tokens ──
     if is_dark:
         B  = "#0d0b24"
         Bd = "rgba(255,255,255,0.07)"
@@ -248,19 +226,18 @@ def render_nav():
         Sd = "rgba(46,125,50,0.26)"
         Sc = "#2e7d32"
 
-    ha = " rda" if active == "home"     else ""
-    sa = " rda" if active == "schedule" else ""
-    aa = " rda" if active == "about"    else ""
+    # Active classes
+    ha = " active" if active == "home"     else ""
+    sa = " active" if active == "schedule" else ""
+    aa = " active" if active == "about"    else ""
 
     nav_timer    = t("nav_timer")
     nav_schedule = t("nav_schedule")
     nav_about    = t("nav_about")
 
-    # ── Inject CSS + visual HTML layers
     st.markdown(f"""
 <style>
-/* 1 ── Streamlit header: collapse to 0 height, overflow visible
-        so we can pull the hamburger button out below            */
+/* ── Hamburger button: visible, high z-index ── */
 header[data-testid="stHeader"] {{
     height: 0 !important; min-height: 0 !important;
     overflow: visible !important;
@@ -269,13 +246,12 @@ header[data-testid="stHeader"] {{
 }}
 header[data-testid="stHeader"] * {{ display: none !important; }}
 
-/* 2 ── Hamburger button: floated to fixed position, ABOVE nav bar */
 [data-testid="stSidebarCollapse"],
 [data-testid="collapsedControl"] {{
     display: flex !important; align-items: center !important;
     justify-content: center !important;
     position: fixed !important; top: 10px !important; left: 10px !important;
-    z-index: 2000000 !important;   /* TOP layer — nothing covers this */
+    z-index: 2000000 !important;
     width: 36px !important; height: 36px !important;
     background: {Sb} !important; border: 1px solid {Sd} !important;
     border-radius: 9px !important; cursor: pointer !important;
@@ -300,202 +276,132 @@ header[data-testid="stHeader"] * {{ display: none !important; }}
     width: 18px !important; height: 18px !important;
 }}
 
-/* 3 ── Nav bar background (visual only, pointer-events: none
-        so it never blocks clicks on st.page_link elements)    */
-#rd-nav-bg {{
-    position: fixed !important; top: 0 !important; left: 0 !important;
-    right: 0 !important; height: 52px !important;
-    z-index: 1000 !important;
-    background: {B} !important; border-bottom: 1px solid {Bd} !important;
-    box-shadow: {Sh} !important;
-    backdrop-filter: blur(20px) saturate(1.4) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
-    display: flex !important; align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0 16px 0 56px !important;
-    box-sizing: border-box !important;
-    pointer-events: none !important;
-    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Inter",sans-serif !important;
+/* ── Nav bar ── */
+.rd-nav {{
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 52px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px 0 56px;
+    background: {B};
+    border-bottom: 1px solid {Bd};
+    box-shadow: {Sh};
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    z-index: 1000;
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Inter",sans-serif;
+    box-sizing: border-box;
+    animation: rdSlideDown 0.5s cubic-bezier(0.16,1,0.3,1);
 }}
-#rd-nav-bg .rdb {{
+@keyframes rdSlideDown {{
+    0% {{ transform: translateY(-100%); opacity: 0; }}
+    100% {{ transform: translateY(0); opacity: 1; }}
+}}
+.rd-brand {{
     display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    font-weight: 700; font-size: 15px; color: {T};
 }}
-.rdb-name {{ font-size:15px; font-weight:700; color:{T}; letter-spacing:-.2px; }}
-.rdb-dot {{
-    width:6px; height:6px; border-radius:50%; flex-shrink:0;
-    background:#4caf50; box-shadow:0 0 6px rgba(76,175,80,.7);
-    animation: rdp 2.6s ease-in-out infinite;
+.rd-dot {{
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    background: #4caf50; box-shadow: 0 0 6px rgba(76,175,80,.7);
+    animation: rdPulse 2.6s ease-in-out infinite;
 }}
-@keyframes rdp {{
+@keyframes rdPulse {{
     0%,100% {{ transform:scale(1); opacity:1; }}
     50%      {{ transform:scale(.72); opacity:.5; }}
 }}
-#rd-nav-bg .rdpill {{
-    font-size:11px; font-weight:500; color:{M};
-    background:{Pb}; border:1px solid {Pd};
-    padding:3px 10px; border-radius:20px;
-    max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-    flex-shrink:0;
+.rd-links {{
+    display: flex; align-items: center; gap: 2px;
+    position: absolute; left: 50%; transform: translateX(-50%);
 }}
+.rd-link {{
+    font-size: 13px; font-weight: 500; color: {M};
+    padding: 6px 13px; border-radius: 8px;
+    transition: background .15s ease, color .15s ease;
+    cursor: pointer; white-space: nowrap;
+    text-decoration: none;
+}}
+.rd-link:hover {{ background: {H}; color: {T}; }}
+.rd-link.active {{ background: {A}; color: {Ac}; font-weight: 600; }}
 
-/* 4 ── Nav link spans (centered, pointer-events: auto) */
-#rd-nav-links {{
-    position: fixed !important; top:0 !important; left:0 !important;
-    right:0 !important; height:52px !important;
-    z-index: 1001 !important;
-    display: flex !important; align-items:center !important;
-    justify-content:center !important; gap:2px !important;
-    pointer-events: none !important;
+.rd-right {{
+    display: flex; align-items: center; gap: 5px; flex-shrink: 0;
 }}
-.rdl {{
-    font-size:13px; font-weight:500; color:{M};
-    padding:7px 13px; border-radius:8px;
-    transition:background .15s ease, color .15s ease;
-    cursor:pointer; pointer-events:auto;
-    white-space:nowrap; user-select:none;
+.rd-user {{
+    font-size: 11px; font-weight: 500; color: {M};
+    background: {Pb}; border: 1px solid {Pd};
+    padding: 3px 10px; border-radius: 20px;
+    max-width: 120px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
 }}
-.rdl:hover {{ background:{H}; color:{T}; }}
-.rdl.rda  {{ background:{A}; color:{Ac}; font-weight:650; }}
+.rd-btn {{
+    font-size: 13px; cursor: pointer;
+    background: {Pb}; border: 1px solid {Pd}; color: {M};
+    padding: 5px 9px; border-radius: 8px;
+    transition: background .15s ease, color .15s ease;
+    text-decoration: none; white-space: nowrap;
+}}
+.rd-btn:hover {{ background: {A}; color: {Ac}; border-color: rgba(76,175,80,.3); }}
 
-/* 5 ── Right control buttons */
-#rd-nav-ctrl {{
-    position: fixed !important; top:0 !important; right:16px !important;
-    height:52px !important; z-index:1002 !important;
-    display: flex !important; align-items:center !important; gap:5px !important;
-    pointer-events: auto !important;
-}}
-.rdcb {{
-    font-size:13px; cursor:pointer;
-    background:{Pb}; border:1px solid {Pd}; color:{M};
-    padding:5px 10px; border-radius:8px;
-    transition:background .15s ease, color .15s ease;
-    text-decoration:none !important; white-space:nowrap;
-}}
-.rdcb:hover {{ background:{A}; color:{Ac}; border-color:rgba(76,175,80,.3); }}
-
-/* 6 ── Hidden st.page_link() elements
-        Off-screen at top:-9999px so they're in the DOM but invisible.
-        JS dispatches click events on their <a> tags to trigger
-        Streamlit's WebSocket-based page navigation.             */
-[data-testid="stPageLink"] {{
-    position: fixed !important; top: -9999px !important;
-    left: -9999px !important; height: 0 !important;
-    overflow: hidden !important; pointer-events: none !important;
-    opacity: 0 !important;
-}}
-[data-testid="stPageLink"] a {{ pointer-events: auto !important; }}
-
-/* 7 ── Push page content below the nav bar */
+/* ── Push content down ── */
 .main .block-container,
 section[data-testid="stMain"] .block-container {{
     padding-top: 66px !important;
 }}
 section[data-testid="stMain"] > div:first-child {{ padding-top: 0 !important; }}
 
-/* 8 ── Hide Streamlit chrome */
+/* ── Hide Streamlit chrome ── */
 footer, [data-testid="stStatusWidget"], [data-testid="stToolbar"],
 [data-testid="stDecoration"], #MainMenu {{ display:none !important; }}
 
-/* 9 ── Mobile */
+/* ── Mobile ── */
 @media(max-width:600px) {{
-    #rd-nav-bg   {{ padding: 0 8px 0 50px !important; }}
-    .rdb-name    {{ display:none !important; }}
-    .rdb-dot     {{ display:none !important; }}
-    #rd-nav-bg .rdpill {{ display:none !important; }}
-    .rdl         {{ font-size:11px; padding:6px 8px; }}
-    #rd-nav-ctrl {{ right:8px !important; gap:3px; }}
-    .rdcb        {{ font-size:11px; padding:4px 7px; }}
+    .rd-nav {{ padding: 0 8px 0 50px !important; }}
+    .rd-brand .rd-name {{ display:none !important; }}
+    .rd-dot {{ display:none !important; }}
+    .rd-user {{ display:none !important; }}
+    .rd-link {{ font-size:11px; padding:5px 8px; }}
+    .rd-right {{ gap:3px; }}
+    .rd-btn {{ font-size:11px; padding:4px 7px; }}
 }}
 </style>
 
-<!-- Visual background bar (pointer-events:none — never blocks anything) -->
-<div id="rd-nav-bg">
-  <div class="rdb">
+<div class="rd-nav">
+  <div class="rd-brand">
     {logo_html}
-    <span class="rdb-name">Rekxare Dami</span>
-    <span class="rdb-dot"></span>
+    <span class="rd-name">Rekxare Dami</span>
+    <span class="rd-dot"></span>
   </div>
-  <span class="rdpill">👤 {user_name}</span>
-</div>
-
-<!-- Clickable nav items -->
-<div id="rd-nav-links">
-  <span class="rdl{ha}"  id="rll-home">⏱️ {nav_timer}</span>
-  <span class="rdl{sa}"  id="rll-schedule">📅 {nav_schedule}</span>
-  <span class="rdl{aa}"  id="rll-about">✨ {nav_about}</span>
-</div>
-
-<!-- Right controls (dark mode / language) -->
-<div id="rd-nav-ctrl">
-  <a class="rdcb" href="?dark_mode=1" target="_self" title="Toggle dark/light">{dark_icon}</a>
-  <a class="rdcb" href="?lang=cycle"  target="_self" title="Switch language">{lang_abbr}</a>
+  <div class="rd-links">
+    <a class="rd-link{ha}" href="/?page=home"     target="_self">⏱️ {nav_timer}</a>
+    <a class="rd-link{sa}" href="/?page=schedule" target="_self">📅 {nav_schedule}</a>
+    <a class="rd-link{aa}" href="/?page=about"    target="_self">✨ {nav_about}</a>
+  </div>
+  <div class="rd-right">
+    <span class="rd-user">👤 {user_name}</span>
+    <a class="rd-btn" href="?dark_mode=1" target="_self">{dark_icon}</a>
+    <a class="rd-btn" href="?lang=cycle"  target="_self">{lang_abbr}</a>
+  </div>
 </div>
 """, unsafe_allow_html=True)
-
-    # ── Hidden st.page_link() elements (off-screen, triggered by JS below)
-    #    These use Streamlit's WebSocket routing — URL changes correctly,
-    #    service workers are bypassed, refresh lands on the right page.
-    st.page_link("Home.py",              label="home-nav")
-    st.page_link("pages/01_Schedule.py", label="schedule-nav")
-    st.page_link("pages/02_About.py",    label="about-nav")
-
-    # ── JavaScript: wire span clicks → dispatch real click on page_link <a>
-    st.markdown("""
-<script>
-(function(){
-  var wired = false;
-
-  function findLinks() {
-    // st.page_link() renders <a> tags with href containing the page URL path
-    return document.querySelectorAll('[data-testid="stPageLink"] a');
-  }
-
-  function wire() {
-    if (wired) return;
-    var as = findLinks();
-    if (as.length < 3) { setTimeout(wire, 100); return; }
-
-    // Classify by URL path
-    var map = { home: null, schedule: null, about: null };
-    as.forEach(function(a) {
-      var h = (a.getAttribute('href') || '').toLowerCase();
-      if (h.includes('/schedule'))     map.schedule = a;
-      else if (h.includes('/about'))   map.about    = a;
-      else                             map.home     = a;
-    });
-    // Fallback by index
-    if (!map.home     && as[0]) map.home     = as[0];
-    if (!map.schedule && as[1]) map.schedule = as[1];
-    if (!map.about    && as[2]) map.about    = as[2];
-
-    function bind(spanId, target) {
-      var span = document.getElementById(spanId);
-      if (!span || !target) return;
-      span.addEventListener('click', function(e) {
-        e.preventDefault(); e.stopPropagation();
-        // Dispatch a real MouseEvent — React's SyntheticEvent system picks it up
-        target.dispatchEvent(
-          new MouseEvent('click', { bubbles: true, cancelable: true, view: window })
-        );
-      });
-    }
-
-    bind('rll-home',     map.home);
-    bind('rll-schedule', map.schedule);
-    bind('rll-about',    map.about);
-    wired = true;
-  }
-
-  // Run immediately + after frames (Streamlit finishes rendering async)
-  setTimeout(wire, 50);
-  setTimeout(wire, 200);
-  requestAnimationFrame(function(){ requestAnimationFrame(wire); });
-})();
-</script>
-""", unsafe_allow_html=True)
-
 
 render_nav()
 
-# ── Run the active page (Home.py / pages/01_Schedule.py / pages/02_About.py)
+# ── Set current_page for active highlight ──
+# Detect based on the current file path
+import sys
+if "01_Schedule" in sys.argv[0]:
+    st.session_state.current_page = "schedule"
+elif "02_About" in sys.argv[0]:
+    st.session_state.current_page = "about"
+else:
+    st.session_state.current_page = "home"
+
+# ══════════════════════════════════════════════════════════
+#  RUN THE PAGE
+# ══════════════════════════════════════════════════════════
+pg = st.navigation([
+    st.Page("Home.py",              title=t("nav_timer"),    icon="⏱️", default=True),
+    st.Page("pages/01_Schedule.py", title=t("nav_schedule"), icon="📅", url_path="schedule"),
+    st.Page("pages/02_About.py",    title=t("nav_about"),    icon="✨",  url_path="about"),
+], position="hidden")
 pg.run()
