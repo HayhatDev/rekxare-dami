@@ -5,18 +5,16 @@ import hashlib
 import base64
 from datetime import datetime
 
-if not st.user.is_logged_in:
-    st.switch_page("Home.py")
-    st.stop()
-    
-    
+# ── Translations
 with open("translations.json", "r", encoding="utf-8") as f:
     TRANSLATIONS = json.load(f)
 
+# ── Session-state guards
 if "lang" not in st.session_state:
     st.session_state.lang = "badini"
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = True
+
 
 def t(key, **kwargs):
     text = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get(key, key)
@@ -24,26 +22,21 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
-# ══════════════════════════════════════════════════════════
-#  DATA HELPERS (for saving preferences)
-# ══════════════════════════════════════════════════════════
+
+# ── Preference helpers (sidebar may call save_preferences)
 def get_preferences_file():
-    if st.user.is_logged_in:
-        email = st.user.email
-    else:
-        email = st.session_state.get("user_email", "default")
-    user_hash = hashlib.md5(email.encode()).hexdigest()[:8]
-    return f"preferences_{user_hash}.json"
+    email = st.user.email if st.user.is_logged_in else st.session_state.get("user_email", "default")
+    return f"preferences_{hashlib.md5(email.encode()).hexdigest()[:8]}.json"
+
 
 def save_preferences():
-    """Save only dark_mode and language preferences."""
     filename = get_preferences_file()
-    data = {
-        "dark_mode": st.session_state.get("dark_mode", True),
-        "lang": st.session_state.get("lang", "badini")
-    }
     with open(filename, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump({
+            "dark_mode": st.session_state.get("dark_mode", True),
+            "lang":      st.session_state.get("lang", "badini"),
+        }, f, ensure_ascii=False, indent=2)
+
 
 def load_preferences():
     filename = get_preferences_file()
@@ -52,378 +45,11 @@ def load_preferences():
             with open(filename, "r", encoding="utf-8") as f:
                 data = json.load(f)
             st.session_state.dark_mode = data.get("dark_mode", True)
-            st.session_state.lang = data.get("lang", "badini")
+            st.session_state.lang      = data.get("lang", "badini")
             return True
-        except:
+        except Exception:
             pass
     return False
-
-
-st.set_page_config(
-    page_title=t("about_title"),
-    page_icon="✨",
-    layout="centered",
-)
-
-# ── JAVASCRIPT FOR PAGE PERSISTENCE (ADD THIS) ──
-st.markdown("""
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const page = urlParams.get('page');
-    if (page) {
-        localStorage.setItem('rekxare_page', page);
-    } else {
-        const savedPage = localStorage.getItem('rekxare_page');
-        if (savedPage && !window.location.search.includes('page=')) {
-            window.location.href = '/?page=' + savedPage;
-        }
-    }
-</script>
-""", unsafe_allow_html=True)
-
-
-load_preferences()
-
-# ── RESTORE PAGE STATE ──
-query_params = st.query_params
-page = query_params.get("page", "about")
-
-# Store in session state
-st.session_state.page = page
-st.session_state.current_page = "about"
-
-# If the user is on a different page via URL, switch to it
-if page == "home":
-    st.session_state.current_page = "home"
-    st.switch_page("Home.py")
-    st.stop()
-elif page == "schedule":
-    st.session_state.current_page = "schedule"
-    st.switch_page("pages/01_Schedule.py")
-    st.stop()
-else:
-    st.session_state.current_page = "about"
-
-
-# ── Handle top bar actions (dark mode & language) ──
-query_params = st.query_params
-
-if "dark_mode" in query_params:
-    st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
-    save_preferences()  
-    st.query_params.clear()
-    st.rerun()
-
-if "lang" in query_params and query_params["lang"] == "cycle":
-    lang_order = ["badini", "english", "arabic"]
-    current = st.session_state.get("lang", "badini")
-    try:
-        idx = lang_order.index(current)
-        next_lang = lang_order[(idx + 1) % len(lang_order)]
-    except ValueError:
-        next_lang = "badini"
-    st.session_state.lang = next_lang
-    save_preferences()  
-    st.query_params.clear()
-    st.rerun()
-
-def inject_notion_top_bar():
-    # ── Get current theme and language ──
-    is_dark = st.session_state.get("dark_mode", True)
-    current_lang = st.session_state.get("lang", "badini")
-    
-    # ── Dynamic icons ──
-    dark_icon = "☀️" if is_dark else "🌙"
-    lang_abbr = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(current_lang, "🌍")
-    
-    # ── Encode Logo as Base64 ──
-    try:
-        with open("logo.png", "rb") as f:
-            logo_data = base64.b64encode(f.read()).decode()
-        logo_src = f"data:image/png;base64,{logo_data}"
-    except FileNotFoundError:
-        logo_src = "https://via.placeholder.com/28x28/4CAF50/FFFFFF?text=RD"
-    
-    # ── Theme colors ──
-    if is_dark:
-        bar_bg = "rgba(26, 26, 46, 0.92)"
-        bar_border = "rgba(255, 255, 255, 0.06)"
-        text_color = "#ffffff"
-        text_muted = "rgba(255, 255, 255, 0.55)"
-        text_hover = "#ffffff"
-        user_bg = "rgba(255, 255, 255, 0.06)"
-        user_color = "rgba(255, 255, 255, 0.4)"
-        icon_bg = "rgba(255, 255, 255, 0.04)"
-        icon_hover_bg = "rgba(76, 175, 80, 0.15)"
-        shadow = "0 2px 20px rgba(0, 0, 0, 0.3)"
-    else:
-        bar_bg = "rgba(255, 255, 255, 0.92)"
-        bar_border = "rgba(0, 0, 0, 0.06)"
-        text_color = "#1a1a2e"
-        text_muted = "rgba(0, 0, 0, 0.5)"
-        text_hover = "#1a1a2e"
-        user_bg = "rgba(0, 0, 0, 0.04)"
-        user_color = "rgba(0, 0, 0, 0.4)"
-        icon_bg = "rgba(0, 0, 0, 0.04)"
-        icon_hover_bg = "rgba(76, 175, 80, 0.12)"
-        shadow = "0 2px 20px rgba(0, 0, 0, 0.08)"
-    
-    st.markdown(f'''
-        <style>
-            /* ── Hide sidebar toggle ── */
-            [data-testid="stSidebarCollapse"] {{
-                display: none !important;
-            }}
-            [data-testid="collapsedControl"] {{
-                display: none !important;
-            }}
-            
-            /* ── Remove underlines from ALL links ── */
-            a {{
-                text-decoration: none !important;
-            }}
-            
-            /* ── TOP NAVIGATION BAR ── */
-            .notion-nav-container {{
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 56px;
-                background: {bar_bg};
-                backdrop-filter: blur(16px) saturate(1.2);
-                -webkit-backdrop-filter: blur(16px) saturate(1.2);
-                border-bottom: 1px solid {bar_border};
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 0 28px;
-                z-index: 999999;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
-                animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                box-shadow: {shadow};
-            }}
-            
-            @keyframes slideDown {{
-                0% {{ transform: translateY(-100%); opacity: 0; }}
-                100% {{ transform: translateY(0); opacity: 1; }}
-            }}
-            
-            .notion-nav-brand {{
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                font-weight: 700;
-                font-size: 17px;
-                color: {text_color};
-                letter-spacing: -0.3px;
-                transition: transform 0.2s ease;
-                cursor: default;
-                text-shadow: 0 0 20px rgba(76, 175, 80, 0.2);
-            }}
-            
-            .notion-nav-brand:hover {{
-                transform: scale(1.02);
-                text-shadow: 0 0 30px rgba(76, 175, 80, 0.35);
-            }}
-            
-            .notion-nav-brand img {{
-                height: 28px;
-                width: 28px;
-                object-fit: contain;
-                border-radius: 6px;
-                transition: all 0.3s ease;
-                filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.3));
-            }}
-            
-            .notion-nav-brand img:hover {{
-                transform: rotate(-8deg) scale(1.1);
-                filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.6));
-            }}
-            
-            .notion-nav-brand .brand-name {{
-                transition: all 0.3s ease;
-            }}
-            
-            .notion-nav-brand .brand-name:hover {{
-                color: #4CAF50;
-            }}
-            
-            .notion-nav-brand .brand-dot {{
-                display: inline-block;
-                width: 8px;
-                height: 8px;
-                background: #4CAF50;
-                border-radius: 50%;
-                margin-left: 2px;
-                animation: pulse-dot 2s ease-in-out infinite;
-                box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
-            }}
-            
-            @keyframes pulse-dot {{
-                0%, 100% {{ opacity: 1; transform: scale(1); box-shadow: 0 0 12px rgba(76, 175, 80, 0.5); }}
-                50% {{ opacity: 0.6; transform: scale(0.85); box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }}
-            }}
-            
-            .notion-nav-links {{
-                display: flex;
-                align-items: center;
-                gap: 4px;
-            }}
-            
-            .notion-nav-item {{
-                position: relative;
-                font-size: 14px;
-                color: {text_muted};
-                text-decoration: none !important;
-                padding: 8px 18px;
-                border-radius: 8px;
-                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                font-weight: 500;
-                letter-spacing: 0.2px;
-            }}
-            
-            .notion-nav-item:hover {{
-                background: rgba(76, 175, 80, 0.12);
-                color: {text_hover};
-                transform: translateY(-1px);
-                text-decoration: none !important;
-            }}
-            
-            .notion-nav-item.active {{
-                color: {text_color};
-                font-weight: 600;
-                background: rgba(76, 175, 80, 0.12);
-                text-decoration: none !important;
-            }}
-            
-            .notion-nav-item.active::after {{
-                content: '';
-                position: absolute;
-                bottom: 2px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 24px;
-                height: 3px;
-                background: #4CAF50;
-                border-radius: 99px;
-                animation: underlineIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
-            }}
-            
-            @keyframes underlineIn {{
-                0% {{ width: 0; opacity: 0; }}
-                100% {{ width: 24px; opacity: 1; }}
-            }}
-            
-            .notion-nav-right {{
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }}
-            
-            .notion-nav-user {{
-                font-size: 12px;
-                color: {user_color};
-                font-weight: 500;
-                background: {user_bg};
-                padding: 4px 14px;
-                border-radius: 20px;
-                border: 1px solid {bar_border};
-                transition: all 0.2s ease;
-                max-width: 150px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                text-decoration: none !important;
-            }}
-            
-            .notion-nav-user:hover {{
-                background: rgba(76, 175, 80, 0.08);
-                color: {text_color};
-            }}
-            
-            .notion-nav-icon-btn {{
-                background: {icon_bg};
-                border: 1px solid {bar_border};
-                border-radius: 8px;
-                padding: 6px 10px;
-                color: {user_color};
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-decoration: none !important;
-            }}
-            
-            .notion-nav-icon-btn:hover {{
-                background: {icon_hover_bg};
-                color: #4CAF50;
-                border-color: rgba(76, 175, 80, 0.2);
-                transform: scale(1.05);
-            }}
-            
-            @media (max-width: 640px) {{
-                .notion-nav-container {{
-                    padding: 0 14px;
-                    height: 50px;
-                }}
-                .notion-nav-brand {{
-                    font-size: 14px;
-                    gap: 8px;
-                }}
-                .notion-nav-brand .brand-name {{
-                    display: none;
-                }}
-                .notion-nav-item {{
-                    font-size: 12px;
-                    padding: 6px 12px;
-                }}
-                .notion-nav-user {{
-                    display: none;
-                }}
-                .notion-nav-icon-btn {{
-                    padding: 4px 8px;
-                    font-size: 12px;
-                }}
-            }}
-            
-            @media (max-width: 400px) {{
-                .notion-nav-item {{
-                    font-size: 10px;
-                    padding: 4px 8px;
-                }}
-                .notion-nav-links {{
-                    gap: 2px;
-                }}
-            }}
-            
-            .main .block-container {{
-                padding-top: 72px !important;
-            }}
-        </style>
-        
-        <div class="notion-nav-container">
-            <div class="notion-nav-brand">
-                <img src="{logo_src}" alt="Logo">
-                <span class="brand-name">Rekxare Dami</span>
-                <span class="brand-dot"></span>
-            </div>
-            <div class="notion-nav-links">
-                <a class="notion-nav-item" href="/?page=home" target="_self">⏱️ {t('nav_timer')}</a>
-                <a class="notion-nav-item" href="/?page=schedule" target="_self">📅 {t('nav_schedule')}</a>
-                <a class="notion-nav-item active" href="/?page=about" target="_self">✨ {t('nav_about')}</a>
-            </div>
-            <div class="notion-nav-right">
-                <span class="notion-nav-user">👤 {st.user.name if st.user.is_logged_in else t('student')}</span>
-                <a class="notion-nav-icon-btn" href="?dark_mode=1" target="_self">{dark_icon}</a>
-                <a class="notion-nav-icon-btn" href="?lang=cycle" target="_self">{lang_abbr}</a>
-            </div>
-        </div>
-    ''', unsafe_allow_html=True)
-inject_notion_top_bar()
 
 # ── PWA (after set_page_config)
 st.markdown("""
