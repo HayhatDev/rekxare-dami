@@ -275,239 +275,316 @@ else:
 st.session_state.current_page = _active
 
 # ══════════════════════════════════════════════════════════
-#  TOP BAR — injected once here, appears on ALL pages
+#  TOP BAR  —  JS-persistent, survives Streamlit reruns
 #
-#  Fix vs the old custom bar:
-#    • Hamburger toggle is NEVER hidden (display:none removed)
-#    • Its z-index is raised ABOVE the nav bar (1000001 > 999999)
-#    • Nav bar left padding (62px desktop / 56px mobile) leaves
-#      room so the hamburger is always reachable
-#    • Links use native st.navigation URL paths (/, /schedule,
-#      /about) — no ?page= redirect needed
+#  How it works:
+#   1. st.markdown() injects CSS + a hidden nav template + a script
+#   2. The script moves the nav div to document.body (outside
+#      Streamlit's managed container) so Streamlit's virtual DOM
+#      reconciliation can NEVER remove or re-animate it
+#   3. A MutationObserver on body watches for accidental removal
+#      and re-attaches within ~8 ms if it ever happens
+#   4. On each rerun the script only UPDATES active-link classes
+#      and the user name — no DOM rebuild, no flash, no animation
+#   5. The CSS is moved to <head> with a stable id so dark/light
+#      token changes propagate cleanly without flicker
+#   6. Sidebar hamburger is styled above the bar (z-index 1100000)
+#      and always visible — display:none is never applied to it
 # ══════════════════════════════════════════════════════════
 def inject_notion_top_bar():
     is_dark      = st.session_state.get("dark_mode", True)
     current_lang = st.session_state.get("lang", "badini")
     dark_icon    = "☀️" if is_dark else "🌙"
-    lang_abbr    = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(current_lang, "🌍")
+    lang_abbr    = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(current_lang, "EN")
+    active       = st.session_state.get("current_page", "home")
+
+    raw_name = (st.user.name if st.user.is_logged_in else t("student")) or "Student"
+    user_name = raw_name[:22].replace("\\", "").replace("'", "").replace('"', "")
 
     try:
         with open("logo.png", "rb") as f:
-            logo_data = base64.b64encode(f.read()).decode()
-        logo_src = f"data:image/png;base64,{logo_data}"
+            logo_src = "data:image/png;base64," + base64.b64encode(f.read()).decode()
     except FileNotFoundError:
-        logo_src = "https://via.placeholder.com/28x28/4CAF50/FFFFFF?text=RD"
+        logo_src = "https://placehold.co/26x26/4CAF50/FFFFFF?text=RD"
 
+    # ── Design tokens
     if is_dark:
-        bar_bg       = "rgba(26, 26, 46, 0.92)"
-        bar_border   = "rgba(255, 255, 255, 0.06)"
-        text_color   = "#ffffff"
-        text_muted   = "rgba(255, 255, 255, 0.55)"
-        text_hover   = "#ffffff"
-        user_bg      = "rgba(255, 255, 255, 0.06)"
-        user_color   = "rgba(255, 255, 255, 0.4)"
-        icon_bg      = "rgba(255, 255, 255, 0.04)"
-        icon_hover   = "rgba(76, 175, 80, 0.15)"
-        shadow       = "0 2px 20px rgba(0, 0, 0, 0.3)"
+        bar_bg      = "rgba(13,11,36,0.96)"
+        bar_border  = "rgba(255,255,255,0.07)"
+        text_main   = "#ececec"
+        text_muted  = "rgba(255,255,255,0.42)"
+        active_bg   = "rgba(76,175,80,0.18)"
+        active_clr  = "#7ec87f"
+        hover_bg    = "rgba(255,255,255,0.055)"
+        pill_bg     = "rgba(255,255,255,0.05)"
+        pill_brd    = "rgba(255,255,255,0.08)"
+        shadow      = "0 1px 0 rgba(255,255,255,0.04),0 6px 28px rgba(0,0,0,0.50)"
+        sb_bg       = "rgba(76,175,80,0.13)"
+        sb_brd      = "rgba(76,175,80,0.28)"
+        sb_clr      = "#7ec87f"
     else:
-        bar_bg       = "rgba(255, 255, 255, 0.92)"
-        bar_border   = "rgba(0, 0, 0, 0.06)"
-        text_color   = "#1a1a2e"
-        text_muted   = "rgba(0, 0, 0, 0.5)"
-        text_hover   = "#1a1a2e"
-        user_bg      = "rgba(0, 0, 0, 0.04)"
-        user_color   = "rgba(0, 0, 0, 0.4)"
-        icon_bg      = "rgba(0, 0, 0, 0.04)"
-        icon_hover   = "rgba(76, 175, 80, 0.12)"
-        shadow       = "0 2px 20px rgba(0, 0, 0, 0.08)"
+        bar_bg      = "rgba(255,255,255,0.97)"
+        bar_border  = "rgba(0,0,0,0.07)"
+        text_main   = "#18182a"
+        text_muted  = "rgba(0,0,0,0.42)"
+        active_bg   = "rgba(56,142,60,0.12)"
+        active_clr  = "#2e7d32"
+        hover_bg    = "rgba(0,0,0,0.045)"
+        pill_bg     = "rgba(0,0,0,0.04)"
+        pill_brd    = "rgba(0,0,0,0.08)"
+        shadow      = "0 1px 0 rgba(0,0,0,0.06),0 4px 20px rgba(0,0,0,0.09)"
+        sb_bg       = "rgba(56,142,60,0.10)"
+        sb_brd      = "rgba(56,142,60,0.22)"
+        sb_clr      = "#2e7d32"
 
-    active    = st.session_state.get("current_page", "home")
     home_cls  = "active" if active == "home"     else ""
     sched_cls = "active" if active == "schedule" else ""
     about_cls = "active" if active == "about"    else ""
-    user_name = st.user.name if st.user.is_logged_in else t("student")
 
-    st.markdown(f'''
-<style>
-a {{ text-decoration: none !important; }}
+    nav_timer    = t("nav_timer")
+    nav_schedule = t("nav_schedule")
+    nav_about    = t("nav_about")
 
-/* ── Hamburger ABOVE the nav bar ── */
+    st.markdown(f"""
+<!-- RD NAV INJECTION -->
+<style id="rd-css-src">
+
+/* ── Sidebar toggle: styled, always on top ── */
 [data-testid="stSidebarCollapse"],
-[data-testid="collapsedControl"],
-[data-testid="stBaseButton-header"] {{
-    z-index: 1000001 !important;
-    top: 8px !important;
+[data-testid="collapsedControl"] {{
+    position: fixed !important;
+    top: 11px !important;
+    left: 11px !important;
+    z-index: 1100000 !important;
+    background: {sb_bg} !important;
+    border: 1px solid {sb_brd} !important;
+    border-radius: 9px !important;
+    transition: background 0.18s ease, border-color 0.18s ease !important;
+}}
+[data-testid="stSidebarCollapse"]:hover,
+[data-testid="collapsedControl"]:hover {{
+    background: rgba(76,175,80,0.26) !important;
+    border-color: rgba(76,175,80,0.45) !important;
+}}
+[data-testid="stSidebarCollapse"] svg,
+[data-testid="stSidebarCollapse"] button,
+[data-testid="collapsedControl"] svg,
+[data-testid="collapsedControl"] button {{
+    color: {sb_clr} !important;
+    fill:  {sb_clr} !important;
 }}
 
-/* ── TOP NAVIGATION BAR ── */
-.notion-nav-container {{
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 56px;
-    background: {bar_bg};
-    backdrop-filter: blur(16px) saturate(1.2);
-    -webkit-backdrop-filter: blur(16px) saturate(1.2);
-    border-bottom: 1px solid {bar_border};
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 28px 0 62px;   /* 62px left = room for hamburger */
-    z-index: 999999;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
-    animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    box-shadow: {shadow};
+/* ── Persistent nav bar ── */
+#rd-nav {{
+    position: fixed !important;
+    top: 0 !important; left: 0 !important; right: 0 !important;
+    height: 52px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 18px 0 56px !important;
+    background: {bar_bg} !important;
+    border-bottom: 1px solid {bar_border} !important;
+    box-shadow: {shadow} !important;
+    backdrop-filter: blur(22px) saturate(1.5) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(1.5) !important;
+    z-index: 999999 !important;
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Inter",sans-serif !important;
+    box-sizing: border-box !important;
+}}
+#rd-nav * {{ box-sizing: border-box; text-decoration: none !important; }}
+
+/* Brand */
+.rd-brand {{
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    font-weight: 700; font-size: 15.5px; letter-spacing: -0.25px;
+    color: {text_main};
+}}
+.rd-brand img {{
+    width: 25px; height: 25px; border-radius: 6px; object-fit: contain;
+    filter: drop-shadow(0 0 6px rgba(76,175,80,0.4));
+    flex-shrink: 0;
+}}
+.rd-dot {{
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    background: #4caf50;
+    box-shadow: 0 0 7px rgba(76,175,80,0.65);
+    animation: rd-pulse 2.6s ease-in-out infinite;
+}}
+@keyframes rd-pulse {{
+    0%,100% {{ transform: scale(1);    opacity: 1; }}
+    50%     {{ transform: scale(0.72); opacity: 0.5; }}
 }}
 
-@keyframes slideDown {{
-    0%   {{ transform: translateY(-100%); opacity: 0; }}
-    100% {{ transform: translateY(0);     opacity: 1; }}
+/* Nav links — centered absolutely so they don't shift with sidebar */
+.rd-links {{
+    display: flex; align-items: center; gap: 1px;
+    position: absolute; left: 50%; transform: translateX(-50%);
+}}
+.rd-link {{
+    font-size: 13px; font-weight: 500;
+    color: {text_muted};
+    padding: 6px 13px; border-radius: 8px;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap; cursor: pointer;
+}}
+.rd-link:hover {{ background: {hover_bg}; color: {text_main}; }}
+.rd-link.active {{
+    background: {active_bg} !important;
+    color: {active_clr} !important;
+    font-weight: 600 !important;
 }}
 
-.notion-nav-brand {{
-    display: flex; align-items: center; gap: 12px;
-    font-weight: 700; font-size: 17px;
-    color: {text_color};
-    letter-spacing: -0.3px;
-    transition: transform 0.2s ease;
-    cursor: default;
-    text-shadow: 0 0 20px rgba(76,175,80,0.2);
-}}
-.notion-nav-brand:hover {{
-    transform: scale(1.02);
-    text-shadow: 0 0 30px rgba(76,175,80,0.35);
-}}
-.notion-nav-brand img {{
-    height: 28px; width: 28px;
-    object-fit: contain; border-radius: 6px;
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 0 8px rgba(76,175,80,0.3));
-}}
-.notion-nav-brand img:hover {{
-    transform: rotate(-8deg) scale(1.1);
-    filter: drop-shadow(0 0 20px rgba(76,175,80,0.6));
-}}
-.notion-nav-brand .brand-name {{ transition: all 0.3s ease; }}
-.notion-nav-brand .brand-name:hover {{ color: #4CAF50; }}
-.notion-nav-brand .brand-dot {{
-    display: inline-block;
-    width: 8px; height: 8px;
-    background: #4CAF50; border-radius: 50%;
-    margin-left: 2px;
-    animation: pulse-dot 2s ease-in-out infinite;
-    box-shadow: 0 0 12px rgba(76,175,80,0.5);
-}}
-@keyframes pulse-dot {{
-    0%,100% {{ opacity: 1; transform: scale(1);    box-shadow: 0 0 12px rgba(76,175,80,0.5); }}
-    50%     {{ opacity: 0.6; transform: scale(0.85); box-shadow: 0 0 20px rgba(76,175,80,0.8); }}
-}}
+/* Right controls */
+.rd-right {{ display: flex; align-items: center; gap: 5px; flex-shrink: 0; }}
 
-.notion-nav-links {{ display: flex; align-items: center; gap: 4px; }}
-
-.notion-nav-item {{
-    position: relative;
-    font-size: 14px; color: {text_muted};
-    text-decoration: none !important;
-    padding: 8px 18px; border-radius: 8px;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    font-weight: 500; letter-spacing: 0.2px;
-}}
-.notion-nav-item:hover {{
-    background: rgba(76,175,80,0.12);
-    color: {text_hover};
-    transform: translateY(-1px);
-    text-decoration: none !important;
-}}
-.notion-nav-item.active {{
-    color: {text_color};
-    font-weight: 600;
-    background: rgba(76,175,80,0.12);
-    text-decoration: none !important;
-}}
-.notion-nav-item.active::after {{
-    content: '';
-    position: absolute;
-    bottom: 2px; left: 50%;
-    transform: translateX(-50%);
-    width: 24px; height: 3px;
-    background: #4CAF50; border-radius: 99px;
-    animation: underlineIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    box-shadow: 0 0 12px rgba(76,175,80,0.5);
-}}
-@keyframes underlineIn {{
-    0%   {{ width: 0;   opacity: 0; }}
-    100% {{ width: 24px; opacity: 1; }}
-}}
-
-.notion-nav-right {{ display: flex; align-items: center; gap: 10px; }}
-
-.notion-nav-user {{
-    font-size: 12px; color: {user_color}; font-weight: 500;
-    background: {user_bg};
-    padding: 4px 14px; border-radius: 20px;
-    border: 1px solid {bar_border};
-    transition: all 0.2s ease;
-    max-width: 150px; overflow: hidden;
+.rd-user {{
+    font-size: 11px; font-weight: 500; color: {text_muted};
+    background: {pill_bg}; border: 1px solid {pill_brd};
+    padding: 4px 11px; border-radius: 20px;
+    max-width: 120px; overflow: hidden;
     text-overflow: ellipsis; white-space: nowrap;
-    text-decoration: none !important;
 }}
-.notion-nav-user:hover {{
-    background: rgba(76,175,80,0.08);
-    color: {text_color};
+.rd-btn {{
+    font-size: 13px; cursor: pointer;
+    background: {pill_bg}; border: 1px solid {pill_brd};
+    color: {text_muted};
+    padding: 5px 9px; border-radius: 8px;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    white-space: nowrap;
 }}
-
-.notion-nav-icon-btn {{
-    background: {icon_bg}; border: 1px solid {bar_border};
-    border-radius: 8px; padding: 6px 10px;
-    color: {user_color}; font-size: 14px;
-    cursor: pointer; transition: all 0.2s ease;
-    display: flex; align-items: center; justify-content: center;
-    text-decoration: none !important;
-}}
-.notion-nav-icon-btn:hover {{
-    background: {icon_hover}; color: #4CAF50;
-    border-color: rgba(76,175,80,0.2);
-    transform: scale(1.05);
+.rd-btn:hover {{
+    background: {active_bg}; color: {active_clr};
+    border-color: rgba(76,175,80,0.28);
 }}
 
-/* ── Push main content below the fixed bar ── */
-.main .block-container {{ padding-top: 72px !important; }}
-
-/* ── Mobile ── */
-@media (max-width: 640px) {{
-    .notion-nav-container {{
-        padding: 0 14px 0 56px;  /* 56px left on mobile */
-        height: 50px;
-    }}
-    .notion-nav-brand {{ font-size: 14px; gap: 8px; }}
-    .notion-nav-brand .brand-name {{ display: none; }}
-    .notion-nav-item {{ font-size: 12px; padding: 6px 12px; }}
-    .notion-nav-user {{ display: none; }}
-    .notion-nav-icon-btn {{ padding: 4px 8px; font-size: 12px; }}
+/* Push page content below the bar */
+.main .block-container,
+section[data-testid="stMain"] .block-container {{
+    padding-top: 68px !important;
 }}
-@media (max-width: 400px) {{
-    .notion-nav-item {{ font-size: 10px; padding: 4px 8px; }}
-    .notion-nav-links {{ gap: 2px; }}
+
+/* Mobile */
+@media (max-width: 600px) {{
+    #rd-nav {{ padding: 0 10px 0 50px !important; height: 48px !important; }}
+    .rd-brand-name {{ display: none !important; }}
+    .rd-dot {{ display: none !important; }}
+    .rd-link {{ font-size: 11px; padding: 5px 8px; }}
+    .rd-user {{ display: none !important; }}
+    .rd-btn {{ font-size: 11px; padding: 4px 7px; }}
+    .rd-links {{ gap: 0; }}
+}}
+@media (max-width: 360px) {{
+    .rd-link {{ font-size: 10px; padding: 4px 6px; }}
+    .rd-right {{ gap: 3px; }}
 }}
 </style>
 
-<div class="notion-nav-container">
-    <div class="notion-nav-brand">
-        <img src="{logo_src}" alt="Logo">
-        <span class="brand-name">Rekxare Dami</span>
-        <span class="brand-dot"></span>
+<!-- Hidden template — JS lifts this into document.body -->
+<div id="rd-nav-tpl" style="display:none!important;visibility:hidden!important">
+  <div id="rd-nav">
+    <div class="rd-brand">
+      <img src="{logo_src}" alt="">
+      <span class="rd-brand-name">Rekxare Dami</span>
+      <span class="rd-dot"></span>
     </div>
-    <div class="notion-nav-links">
-        <a class="notion-nav-item {home_cls}"  href="/"         target="_self">⏱️ {t('nav_timer')}</a>
-        <a class="notion-nav-item {sched_cls}" href="/schedule" target="_self">📅 {t('nav_schedule')}</a>
-        <a class="notion-nav-item {about_cls}" href="/about"    target="_self">✨ {t('nav_about')}</a>
+    <div class="rd-links">
+      <a id="rd-lnk-home"     class="rd-link {home_cls}"  href="/"         target="_self">⏱️ {nav_timer}</a>
+      <a id="rd-lnk-schedule" class="rd-link {sched_cls}" href="/schedule" target="_self">📅 {nav_schedule}</a>
+      <a id="rd-lnk-about"    class="rd-link {about_cls}" href="/about"    target="_self">✨ {nav_about}</a>
     </div>
-    <div class="notion-nav-right">
-        <span class="notion-nav-user">👤 {user_name}</span>
-        <a class="notion-nav-icon-btn" href="?dark_mode=1"  target="_self">{dark_icon}</a>
-        <a class="notion-nav-icon-btn" href="?lang=cycle"   target="_self">{lang_abbr}</a>
+    <div class="rd-right">
+      <span id="rd-username" class="rd-user">👤 {user_name}</span>
+      <a class="rd-btn" href="?dark_mode=1" target="_self">{dark_icon}</a>
+      <a class="rd-btn" href="?lang=cycle"  target="_self">{lang_abbr}</a>
     </div>
+  </div>
 </div>
-''', unsafe_allow_html=True)
+
+<script>
+(function() {{
+  var ACTIVE = '{active}';
+  var UNAME  = '👤 {user_name}';
+
+  function moveCSS() {{
+    var src = document.getElementById('rd-css-src');
+    if (!src) return;
+    var dest = document.getElementById('rd-css');
+    if (!dest) {{
+      dest    = document.createElement('style');
+      dest.id = 'rd-css';
+      document.head.appendChild(dest);
+    }}
+    dest.textContent = src.textContent;
+    src.remove();
+  }}
+
+  function mountNav() {{
+    var tpl = document.getElementById('rd-nav-tpl');
+    var nav = document.getElementById('rd-nav');
+
+    // If nav already in body, skip full mount
+    if (nav && nav.parentElement === document.body) {{
+      updateNav(nav);
+      if (tpl) tpl.remove();
+      return;
+    }}
+
+    // Lift nav from template into body
+    if (tpl) {{
+      var inner = tpl.querySelector('#rd-nav');
+      if (inner) {{
+        document.body.appendChild(inner);
+        nav = inner;
+      }}
+      tpl.remove();
+    }}
+
+    if (nav) updateNav(nav);
+  }}
+
+  function updateNav(nav) {{
+    // Update active link (no DOM rebuild — just class swap)
+    ['home','schedule','about'].forEach(function(p) {{
+      var el = document.getElementById('rd-lnk-' + p);
+      if (!el) return;
+      if (p === ACTIVE) el.classList.add('active');
+      else              el.classList.remove('active');
+    }});
+    // Update user name
+    var u = document.getElementById('rd-username');
+    if (u) u.textContent = UNAME;
+  }}
+
+  function init() {{
+    moveCSS();
+    mountNav();
+  }}
+
+  init();
+  requestAnimationFrame(init);
+
+  // Guard: if Streamlit ever removes #rd-nav from body, re-mount fast
+  if (!window.__rdObs) {{
+    window.__rdObs = new MutationObserver(function(muts) {{
+      for (var i = 0; i < muts.length; i++) {{
+        var removed = muts[i].removedNodes;
+        for (var j = 0; j < removed.length; j++) {{
+          if (removed[j].id === 'rd-nav') {{
+            setTimeout(function() {{
+              document.body.appendChild(removed[0]);
+              updateNav(removed[0]);
+            }}, 8);
+            return;
+          }}
+        }}
+      }}
+    }});
+    window.__rdObs.observe(document.body, {{childList: true}});
+  }}
+}})();
+</script>
+""", unsafe_allow_html=True)
 
 
 inject_notion_top_bar()
