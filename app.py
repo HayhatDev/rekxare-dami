@@ -307,24 +307,14 @@ header[data-testid="stHeader"] {{
 footer {{ display: none !important; }}
 
 /* ════════════════════════════════════════════════
-   2. HIDE ALL NATIVE STREAMLIT SIDEBAR TOGGLES
-   — our custom JS hamburger replaces them all.
-   We cast a wide net across Streamlit versions.
-   ════════════════════════════════════════════════ */
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="stSidebarCollapse"],
-[data-testid="collapsedControl"] {{
-    display: none !important;
-}}
-
-/* ════════════════════════════════════════════════
-   3. CUSTOM HAMBURGER  (top-left, fixed)
+   2. CUSTOM HAMBURGER  (visual layer, z-index below
+   the transparent native button)
    ════════════════════════════════════════════════ */
 .rd-ham {{
     position: fixed !important;
     top: 8px !important;
     left: 10px !important;
-    z-index: 2200000 !important;
+    z-index: 2100000 !important;
     width: 36px !important;
     height: 36px !important;
     background: {HAM_BG} !important;
@@ -337,16 +327,46 @@ footer {{ display: none !important; }}
     box-shadow: 0 2px 12px rgba(0,0,0,.22) !important;
     transition: background 0.18s, border-color 0.18s, box-shadow 0.18s, transform 0.15s !important;
     outline: none !important;
+    pointer-events: none !important;
     -webkit-tap-highlight-color: transparent !important;
 }}
-.rd-ham:hover {{
+.rd-ham svg {{ fill: {HAM_C}; width: 18px; height: 18px; }}
+
+/* ════════════════════════════════════════════════
+   3. NATIVE SIDEBAR TOGGLES — kept in the DOM and
+   clickable, but rendered transparent and stacked
+   exactly over our visual hamburger. Clicking the
+   area hits the real Streamlit button so the sidebar
+   actually opens/closes. Works across all versions.
+   ════════════════════════════════════════════════ */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapse"],
+[data-testid="collapsedControl"] {{
+    opacity: 0 !important;
+    position: fixed !important;
+    top: 8px !important;
+    left: 10px !important;
+    width: 36px !important;
+    height: 36px !important;
+    z-index: 2200000 !important;
+    cursor: pointer !important;
+    pointer-events: all !important;
+}}
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="stSidebarCollapse"] button,
+[data-testid="collapsedControl"] button {{
+    width: 100% !important;
+    height: 100% !important;
+    cursor: pointer !important;
+}}
+/* Hover: show our hamburger's glow via a sibling effect */
+[data-testid="stSidebarCollapsedControl"]:hover ~ * .rd-ham,
+[data-testid="stSidebarCollapse"]:hover ~ * .rd-ham,
+[data-testid="collapsedControl"]:hover ~ * .rd-ham {{
     background: rgba(76,175,80,0.28) !important;
     border-color: rgba(76,175,80,0.65) !important;
     box-shadow: 0 0 16px rgba(76,175,80,.40) !important;
-    transform: scale(1.06) !important;
 }}
-.rd-ham:active {{ transform: scale(0.94) !important; }}
-.rd-ham svg {{ fill: {HAM_C}; width: 18px; height: 18px; }}
 
 /* ════════════════════════════════════════════════
    4. NAV BAR
@@ -358,7 +378,7 @@ footer {{ display: none !important; }}
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 12px 0 54px;
+    padding: 0 12px 0 76px;
     background: {NAV_BG};
     border-bottom: 1px solid {NAV_BDR};
     box-shadow: {NAV_SH};
@@ -381,53 +401,53 @@ footer {{ display: none !important; }}
     gap: 7px;
     flex-shrink: 0;
     text-decoration: none !important;
+    cursor: pointer;
 }}
+/* Logo — no constant animation; smooth hover only */
 .rd-logo {{
     width: 24px; height: 24px;
     border-radius: 6px;
     display: inline-block;
-    animation: logoFloat 3.5s ease-in-out infinite, logoGlow 3.5s ease-in-out infinite;
-}}
-@keyframes logoFloat {{
-    0%,100% {{ transform: translateY(0);    }}
-    50%      {{ transform: translateY(-3px); }}
-}}
-@keyframes logoGlow {{
-    0%,100% {{ filter: drop-shadow(0 0  5px rgba(76,175,80,.40)); }}
-    50%      {{ filter: drop-shadow(0 0 14px rgba(76,175,80,.85))
-                        drop-shadow(0 0 30px rgba(76,175,80,.30)); }}
+    filter: drop-shadow(0 0 4px rgba(76,175,80,.35));
+    transition: transform 0.30s cubic-bezier(0.34,1.56,0.64,1),
+                filter  0.28s ease;
 }}
 .rd-logo-emoji {{
     font-size: 22px;
     display: inline-block;
-    animation: logoFloat 3.5s ease-in-out infinite, logoGlow 3.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 4px rgba(76,175,80,.35));
+    transition: transform 0.30s cubic-bezier(0.34,1.56,0.64,1),
+                filter  0.28s ease;
 }}
+.rd-brand:hover .rd-logo,
+.rd-brand:hover .rd-logo-emoji {{
+    transform: translateY(-3px) scale(1.10);
+    filter: drop-shadow(0 0 10px rgba(76,175,80,.75));
+}}
+/* Name — plain color; subtle glow on hover only */
 .rd-name {{
     font-size: 14px;
     font-weight: 800;
     letter-spacing: -0.3px;
-    background: linear-gradient(110deg, {TXT} 0%, #4CAF50 50%, {TXT} 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: shimmerText 5s linear infinite;
+    color: {TXT};
+    transition: text-shadow 0.25s ease, color 0.25s ease;
 }}
-@keyframes shimmerText {{
-    0%   {{ background-position: 0%   center; }}
-    100% {{ background-position: 200% center; }}
+.rd-brand:hover .rd-name {{
+    color: #7ec87f;
+    text-shadow: 0 0 12px rgba(76,175,80,.50);
 }}
+/* Dot — very slow, very subtle pulse (barely noticeable) */
 .rd-dot {{
     width: 6px; height: 6px;
     border-radius: 50%;
     background: #4caf50;
-    box-shadow: 0 0 6px 2px rgba(76,175,80,.65);
+    box-shadow: 0 0 5px 1px rgba(76,175,80,.55);
     flex-shrink: 0;
-    animation: dotPulse 2.4s ease-in-out infinite;
+    animation: dotPulse 5s ease-in-out infinite;
 }}
 @keyframes dotPulse {{
-    0%,100% {{ transform: scale(1);    box-shadow: 0 0 6px 2px rgba(76,175,80,.65); }}
-    50%      {{ transform: scale(0.60); box-shadow: 0 0 3px 1px rgba(76,175,80,.28); }}
+    0%,100% {{ opacity: 1;    box-shadow: 0 0 5px 1px rgba(76,175,80,.55); }}
+    50%      {{ opacity: 0.50; box-shadow: 0 0 2px 0px rgba(76,175,80,.25); }}
 }}
 
 /* ── Centered nav links ── */
@@ -527,7 +547,7 @@ section[data-testid="stMain"] .block-container {{
 
 /* ── Mobile ── */
 @media (max-width: 600px) {{
-    .rd-nav   {{ padding: 0 8px 0 52px !important; height: 48px; }}
+    .rd-nav   {{ padding: 0 8px 0 56px !important; height: 48px; }}
     .rd-name  {{ display: none !important; }}
     .rd-dot   {{ display: none !important; }}
     .rd-user  {{ display: none !important; }}
@@ -540,39 +560,9 @@ section[data-testid="stMain"] .block-container {{
 }}
 </style>
 
-<script>
-/* ── Sidebar toggle: clicks Streamlit's real button (even if hidden).
-   Tries every known selector across Streamlit versions. ── */
-function rdToggleSidebar() {{
-    var selectors = [
-        '[data-testid="stSidebarCollapsedControl"] button',
-        '[data-testid="stSidebarCollapse"] button',
-        '[data-testid="collapsedControl"] button',
-        'button[aria-label="Open sidebar"]',
-        'button[aria-label="Close sidebar"]',
-        'button[aria-label="open sidebar"]',
-        'button[aria-label="close sidebar"]',
-        'button[title="Open sidebar"]',
-        'button[title="Close sidebar"]',
-    ];
-    for (var i = 0; i < selectors.length; i++) {{
-        var el = document.querySelector(selectors[i]);
-        if (el) {{ el.click(); return; }}
-    }}
-    /* Fallback: directly manipulate sidebar visibility */
-    var sb = document.querySelector('section[data-testid="stSidebar"]');
-    if (sb) {{
-        var w = parseInt(window.getComputedStyle(sb).width);
-        if (!w || w < 20) {{
-            sb.style.cssText = 'display:block!important;visibility:visible!important;transform:translateX(0)!important;width:270px!important;min-width:270px!important;';
-        }} else {{
-            sb.style.cssText = 'transform:translateX(-110%)!important;';
-        }}
-    }}
-}}
-</script>
-
-<button class="rd-ham" onclick="rdToggleSidebar()" aria-label="Toggle sidebar" title="Open sidebar">
+<!-- Visual hamburger — pointer-events:none so clicks pass through to
+     the transparent native Streamlit sidebar toggle sitting on top of it -->
+<button class="rd-ham" tabindex="-1" aria-hidden="true">
   <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
     <rect y="3"  width="18" height="2" rx="1"/>
     <rect y="8"  width="13" height="2" rx="1"/>
