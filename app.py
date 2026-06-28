@@ -53,7 +53,7 @@ def load_preferences():
 
 
 # ══════════════════════════════════════════════════════════
-#  PAGE CONFIG  ← must be FIRST Streamlit call
+#  PAGE CONFIG  ← must be first Streamlit call
 # ══════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="Rekxare Dami",
@@ -69,7 +69,7 @@ st.markdown("""
 <meta name="theme-color" content="#1a1a2e">
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
+    navigator.serviceWorker.register('/service-worker.js').catch(function(){});
   }
 </script>
 """, unsafe_allow_html=True)
@@ -106,15 +106,14 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
 }}
 .lw{{width:100%;display:flex;flex-direction:column;align-items:center;}}
 .ll{{font-size:72px;line-height:1;margin-bottom:12px;
-    animation:float 3s ease-in-out infinite, glow-icon 3s ease-in-out infinite;}}
+    animation:float 3s ease-in-out infinite,glow-icon 3s ease-in-out infinite;}}
 @keyframes float{{0%,100%{{transform:translateY(0);}}50%{{transform:translateY(-10px);}}}}
 @keyframes glow-icon{{
   0%,100%{{filter:drop-shadow(0 4px 16px rgba(76,175,80,.4));}}
   50%{{filter:drop-shadow(0 4px 28px rgba(76,175,80,.85)) drop-shadow(0 0 40px rgba(76,175,80,.4));}}
 }}
 .lt{{font-size:32px;font-weight:900;letter-spacing:-.8px;color:#fff;text-align:center;
-    margin-bottom:4px;
-    animation:glow-text 4s ease-in-out infinite;}}
+    margin-bottom:4px;animation:glow-text 4s ease-in-out infinite;}}
 @keyframes glow-text{{
   0%,100%{{text-shadow:0 0 10px rgba(76,175,80,.3);}}
   50%{{text-shadow:0 0 20px rgba(76,175,80,.7),0 0 40px rgba(76,175,80,.4),0 0 60px rgba(76,175,80,.2);}}
@@ -168,9 +167,30 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
     st.stop()
 
 # ══════════════════════════════════════════════════════════
-#  NAVIGATION  — position="hidden" means we draw our own nav bar.
-#  st.navigation() handles URL path changes and browser tab titles
-#  automatically.  Do NOT call st.switch_page() anywhere in this file.
+#  QUERY PARAM HANDLERS
+#  These MUST run before st.navigation() so the rerun sees
+#  the updated session state before the page renders.
+#  Note: only dark_mode and lang use query params;
+#  page routing is handled by st.navigation() via URL paths.
+# ══════════════════════════════════════════════════════════
+if "dark_mode" in st.query_params:
+    st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
+    save_preferences()
+    st.query_params.clear()
+    st.rerun()
+
+if st.query_params.get("lang") == "cycle":
+    order = ["badini", "english", "arabic"]
+    cur = st.session_state.get("lang", "badini")
+    st.session_state.lang = order[(order.index(cur) + 1) % 3] if cur in order else "badini"
+    save_preferences()
+    st.query_params.clear()
+    st.rerun()
+
+# ══════════════════════════════════════════════════════════
+#  NAVIGATION  — position="hidden" = we render our own nav.
+#  URL paths:  /  →  Home        /schedule  →  Schedule
+#              /about  →  About
 # ══════════════════════════════════════════════════════════
 pg = st.navigation(
     [
@@ -181,8 +201,8 @@ pg = st.navigation(
     position="hidden",
 )
 
-# ── Detect active page from the live Page object ──
-_upath = getattr(pg, "url_path", "")
+# ── Detect active page reliably via the returned Page object ──
+_upath = getattr(pg, "url_path", "") or ""
 if _upath == "schedule":
     _active = "schedule"
 elif _upath == "about":
@@ -196,8 +216,10 @@ st.session_state.current_page = _active
 #  CUSTOM NAV BAR
 # ══════════════════════════════════════════════════════════
 def render_nav(active: str):
-    is_dark = st.session_state.get("dark_mode", True)
-    lang    = st.session_state.get("lang", "badini")
+    is_dark   = st.session_state.get("dark_mode", True)
+    lang      = st.session_state.get("lang", "badini")
+    dark_icon = "☀️" if is_dark else "🌙"
+    lang_abbr = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(lang, "EN")
 
     user_name = "Student"
     if st.user.is_logged_in:
@@ -216,53 +238,58 @@ def render_nav(active: str):
 
     # ── Theme tokens ──
     if is_dark:
-        NAV_BG   = "rgba(13,11,36,0.92)"
+        NAV_BG   = "rgba(13,11,36,0.95)"
         NAV_BDR  = "rgba(255,255,255,0.08)"
         NAV_SH   = "0 4px 32px rgba(0,0,0,0.60)"
         TXT      = "#ececec"
         MUTED    = "rgba(255,255,255,0.42)"
-        ACTIVE_BG= "rgba(76,175,80,0.18)"
-        ACTIVE_C = "#7ec87f"
-        HOVER_BG = "rgba(255,255,255,0.07)"
+        ACT_BG   = "rgba(76,175,80,0.18)"
+        ACT_C    = "#7ec87f"
+        HOV_BG   = "rgba(255,255,255,0.07)"
         PILL_BG  = "rgba(255,255,255,0.06)"
         PILL_BDR = "rgba(255,255,255,0.10)"
-        SB_BG    = "rgba(76,175,80,0.13)"
-        SB_BDR   = "rgba(76,175,80,0.35)"
-        SB_ICON  = "#7ec87f"
+        HAM_BG   = "rgba(76,175,80,0.13)"
+        HAM_BDR  = "rgba(76,175,80,0.38)"
+        HAM_C    = "#7ec87f"
+        BTN_BG   = "rgba(255,255,255,0.06)"
+        BTN_BDR  = "rgba(255,255,255,0.10)"
+        BTN_HOV  = "rgba(76,175,80,0.20)"
     else:
-        NAV_BG   = "rgba(255,255,255,0.94)"
+        NAV_BG   = "rgba(255,255,255,0.96)"
         NAV_BDR  = "rgba(0,0,0,0.08)"
         NAV_SH   = "0 4px 24px rgba(0,0,0,0.12)"
         TXT      = "#18182a"
         MUTED    = "rgba(0,0,0,0.44)"
-        ACTIVE_BG= "rgba(46,125,50,0.12)"
-        ACTIVE_C = "#2e7d32"
-        HOVER_BG = "rgba(0,0,0,0.05)"
+        ACT_BG   = "rgba(46,125,50,0.12)"
+        ACT_C    = "#2e7d32"
+        HOV_BG   = "rgba(0,0,0,0.05)"
         PILL_BG  = "rgba(0,0,0,0.05)"
         PILL_BDR = "rgba(0,0,0,0.09)"
-        SB_BG    = "rgba(46,125,50,0.10)"
-        SB_BDR   = "rgba(46,125,50,0.28)"
-        SB_ICON  = "#2e7d32"
+        HAM_BG   = "rgba(46,125,50,0.10)"
+        HAM_BDR  = "rgba(46,125,50,0.30)"
+        HAM_C    = "#2e7d32"
+        BTN_BG   = "rgba(0,0,0,0.05)"
+        BTN_BDR  = "rgba(0,0,0,0.09)"
+        BTN_HOV  = "rgba(76,175,80,0.12)"
 
     ha = " nav-active" if active == "home"     else ""
     sa = " nav-active" if active == "schedule" else ""
     aa = " nav-active" if active == "about"    else ""
 
-    nav_timer    = t("nav_timer")
-    nav_schedule = t("nav_schedule")
-    nav_about    = t("nav_about")
-    lang_abbr    = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(lang, "EN")
+    nt = t("nav_timer")
+    ns = t("nav_schedule")
+    na = t("nav_about")
 
     st.markdown(f"""
 <style>
-/* ════════════════════════════════════════════════════════
-   SIDEBAR TOGGLE BUTTON — fixed using the correct
-   Streamlit 1.36+ test-id.  This element is OUTSIDE the
-   stHeader, so "header * {{ display:none }}" does NOT touch it.
-   ════════════════════════════════════════════════════════ */
-
-/* 1. Collapse the stHeader strip to zero height (keep overflow
-      visible so nothing clips the sibling sidebar button)      */
+/* ════════════════════════════════════════════════
+   1. SHRINK THE STREAMLIT HEADER STRIP TO ZERO
+   — but use overflow:visible so nothing clips.
+   We do NOT hide header > * because in some
+   Streamlit versions the sidebar collapse button
+   lives there. Instead we target only the known
+   non-essential toolbar children by test-id.
+   ════════════════════════════════════════════════ */
 header[data-testid="stHeader"] {{
     height: 0 !important;
     min-height: 0 !important;
@@ -272,53 +299,58 @@ header[data-testid="stHeader"] {{
     border: none !important;
     padding: 0 !important;
 }}
-/* 2. Hide ONLY the inner toolbar divs, NOT the sidebar control */
-header[data-testid="stHeader"] > div {{
+/* Hide the toolbar and decoration strips only */
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+[data-testid="stStatusWidget"],
+#MainMenu,
+footer {{ display: none !important; }}
+
+/* ════════════════════════════════════════════════
+   2. HIDE ALL NATIVE STREAMLIT SIDEBAR TOGGLES
+   — our custom JS hamburger replaces them all.
+   We cast a wide net across Streamlit versions.
+   ════════════════════════════════════════════════ */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapse"],
+[data-testid="collapsedControl"] {{
     display: none !important;
 }}
 
-/* 3. Style the real sidebar collapse control                   */
-[data-testid="stSidebarCollapsedControl"] {{
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+/* ════════════════════════════════════════════════
+   3. CUSTOM HAMBURGER  (top-left, fixed)
+   ════════════════════════════════════════════════ */
+.rd-ham {{
     position: fixed !important;
     top: 8px !important;
     left: 10px !important;
-    z-index: 2100000 !important;
+    z-index: 2200000 !important;
     width: 36px !important;
     height: 36px !important;
-    background: {SB_BG} !important;
-    border: 1.5px solid {SB_BDR} !important;
+    background: {HAM_BG} !important;
+    border: 1.5px solid {HAM_BDR} !important;
     border-radius: 10px !important;
     cursor: pointer !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,.22) !important;
-    transition: background 0.18s, border-color 0.18s, box-shadow 0.18s !important;
-}}
-[data-testid="stSidebarCollapsedControl"]:hover {{
-    background: rgba(76,175,80,0.28) !important;
-    border-color: rgba(76,175,80,0.60) !important;
-    box-shadow: 0 0 14px rgba(76,175,80,.35) !important;
-}}
-[data-testid="stSidebarCollapsedControl"] button {{
-    all: unset !important;
-    width: 100% !important;
-    height: 100% !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    cursor: pointer !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,.22) !important;
+    transition: background 0.18s, border-color 0.18s, box-shadow 0.18s, transform 0.15s !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
 }}
-[data-testid="stSidebarCollapsedControl"] svg {{
-    fill: {SB_ICON} !important;
-    color: {SB_ICON} !important;
-    width: 18px !important;
-    height: 18px !important;
+.rd-ham:hover {{
+    background: rgba(76,175,80,0.28) !important;
+    border-color: rgba(76,175,80,0.65) !important;
+    box-shadow: 0 0 16px rgba(76,175,80,.40) !important;
+    transform: scale(1.06) !important;
 }}
+.rd-ham:active {{ transform: scale(0.94) !important; }}
+.rd-ham svg {{ fill: {HAM_C}; width: 18px; height: 18px; }}
 
-/* ════════════════════════════════════════════════════════
-   NAVBAR
-   ════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════
+   4. NAV BAR
+   ════════════════════════════════════════════════ */
 .rd-nav {{
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -326,7 +358,7 @@ header[data-testid="stHeader"] > div {{
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 14px 0 54px;
+    padding: 0 12px 0 54px;
     background: {NAV_BG};
     border-bottom: 1px solid {NAV_BDR};
     box-shadow: {NAV_SH};
@@ -335,8 +367,7 @@ header[data-testid="stHeader"] > div {{
     z-index: 1500000;
     font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
     box-sizing: border-box;
-    /* Slide-down entry animation */
-    animation: rdSlideDown 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: rdSlideDown 0.55s cubic-bezier(0.16,1,0.3,1) both;
 }}
 @keyframes rdSlideDown {{
     0%   {{ transform: translateY(-100%); opacity: 0; }}
@@ -347,14 +378,14 @@ header[data-testid="stHeader"] > div {{
 .rd-brand {{
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     flex-shrink: 0;
     text-decoration: none !important;
 }}
 .rd-logo {{
     width: 24px; height: 24px;
     border-radius: 6px;
-    vertical-align: middle;
+    display: inline-block;
     animation: logoFloat 3.5s ease-in-out infinite, logoGlow 3.5s ease-in-out infinite;
 }}
 @keyframes logoFloat {{
@@ -364,49 +395,42 @@ header[data-testid="stHeader"] > div {{
 @keyframes logoGlow {{
     0%,100% {{ filter: drop-shadow(0 0  5px rgba(76,175,80,.40)); }}
     50%      {{ filter: drop-shadow(0 0 14px rgba(76,175,80,.85))
-                        drop-shadow(0 0 28px rgba(76,175,80,.35)); }}
+                        drop-shadow(0 0 30px rgba(76,175,80,.30)); }}
 }}
 .rd-logo-emoji {{
     font-size: 22px;
-    animation: logoFloat 3.5s ease-in-out infinite, logoGlow 3.5s ease-in-out infinite;
     display: inline-block;
+    animation: logoFloat 3.5s ease-in-out infinite, logoGlow 3.5s ease-in-out infinite;
 }}
 .rd-name {{
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 800;
     letter-spacing: -0.3px;
-    color: {TXT} !important;
-    /* Pulsing glow on the brand name */
-    animation: brandGlow 4s ease-in-out infinite;
-    background: linear-gradient(135deg, {TXT}, #4CAF50, {TXT});
+    background: linear-gradient(110deg, {TXT} 0%, #4CAF50 50%, {TXT} 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: shimmerText 4s linear infinite, brandPulse 4s ease-in-out infinite;
+    animation: shimmerText 5s linear infinite;
 }}
 @keyframes shimmerText {{
     0%   {{ background-position: 0%   center; }}
     100% {{ background-position: 200% center; }}
-}}
-@keyframes brandPulse {{
-    0%,100% {{ opacity: 1;    }}
-    50%      {{ opacity: 0.85; }}
 }}
 .rd-dot {{
     width: 6px; height: 6px;
     border-radius: 50%;
     background: #4caf50;
     box-shadow: 0 0 6px 2px rgba(76,175,80,.65);
-    animation: dotPulse 2.4s ease-in-out infinite;
     flex-shrink: 0;
+    animation: dotPulse 2.4s ease-in-out infinite;
 }}
 @keyframes dotPulse {{
     0%,100% {{ transform: scale(1);    box-shadow: 0 0 6px 2px rgba(76,175,80,.65); }}
-    50%      {{ transform: scale(0.65); box-shadow: 0 0 3px 1px rgba(76,175,80,.30); }}
+    50%      {{ transform: scale(0.60); box-shadow: 0 0 3px 1px rgba(76,175,80,.28); }}
 }}
 
-/* ── Nav links (centered) ── */
+/* ── Centered nav links ── */
 .rd-links {{
     display: flex;
     align-items: center;
@@ -419,9 +443,9 @@ header[data-testid="stHeader"] > div {{
     font-size: 13px;
     font-weight: 500;
     color: {MUTED} !important;
-    padding: 6px 13px;
+    padding: 6px 12px;
     border-radius: 9px;
-    transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
     cursor: pointer;
     white-space: nowrap;
     text-decoration: none !important;
@@ -430,31 +454,28 @@ header[data-testid="stHeader"] > div {{
 .rd-link::after {{
     content: '';
     position: absolute;
-    bottom: 4px; left: 50%; transform: translateX(-50%);
-    width: 0; height: 2px;
-    background: {ACTIVE_C};
+    bottom: 3px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 2.5px;
+    background: {ACT_C};
     border-radius: 2px;
     transition: width 0.22s ease;
 }}
-.rd-link:hover {{
-    background: {HOVER_BG} !important;
-    color: {TXT} !important;
-}}
-.rd-link:hover::after {{ width: 60%; }}
+.rd-link:hover {{ background: {HOV_BG} !important; color: {TXT} !important; }}
+.rd-link:hover::after {{ width: 55%; }}
 .rd-link.nav-active {{
-    background: {ACTIVE_BG} !important;
-    color: {ACTIVE_C} !important;
+    background: {ACT_BG} !important;
+    color: {ACT_C} !important;
     font-weight: 700 !important;
-    box-shadow: 0 0 12px rgba(76,175,80,0.28),
+    box-shadow: 0 0 14px rgba(76,175,80,0.28),
                 inset 0 0 10px rgba(76,175,80,0.08);
 }}
-.rd-link.nav-active::after {{ width: 70%; }}
+.rd-link.nav-active::after {{ width: 65%; }}
 
-/* ── Right pill (user + lang pill) ── */
+/* ── Right controls ── */
 .rd-right {{
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     flex-shrink: 0;
 }}
 .rd-user {{
@@ -463,50 +484,101 @@ header[data-testid="stHeader"] > div {{
     color: {MUTED} !important;
     background: {PILL_BG};
     border: 1px solid {PILL_BDR};
-    padding: 4px 10px;
+    padding: 3px 9px;
     border-radius: 20px;
-    max-width: 110px;
+    max-width: 100px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }}
-.rd-lang {{
-    font-size: 11px;
-    font-weight: 700;
-    color: {ACTIVE_C} !important;
-    background: {ACTIVE_BG};
-    border: 1px solid rgba(76,175,80,0.28);
-    padding: 4px 8px;
+/* Dark mode and lang toggle buttons in nav */
+.rd-btn {{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    background: {BTN_BG};
+    border: 1px solid {BTN_BDR};
+    color: {MUTED} !important;
+    padding: 4px 9px;
     border-radius: 8px;
-    letter-spacing: 0.4px;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.12s;
+    text-decoration: none !important;
+    white-space: nowrap;
+    min-height: 28px;
+    line-height: 1;
+    font-family: inherit;
 }}
+.rd-btn:hover {{
+    background: {BTN_HOV} !important;
+    color: {ACT_C} !important;
+    border-color: rgba(76,175,80,0.35) !important;
+    box-shadow: 0 0 8px rgba(76,175,80,0.20) !important;
+    transform: translateY(-1px);
+}}
+.rd-btn:active {{ transform: scale(0.93); }}
 
-/* ── Push page content below fixed nav ── */
+/* ── Push content below nav ── */
 .main .block-container,
 section[data-testid="stMain"] .block-container {{
     padding-top: 68px !important;
 }}
 
-/* ── Hide Streamlit chrome we don't need ── */
-footer,
-[data-testid="stStatusWidget"],
-[data-testid="stToolbar"],
-[data-testid="stDecoration"],
-#MainMenu {{ display: none !important; }}
-
-/* ── Mobile responsive ── */
+/* ── Mobile ── */
 @media (max-width: 600px) {{
-    .rd-nav  {{ padding: 0 8px 0 52px !important; height: 48px; }}
-    .rd-name {{ display: none !important; }}
-    .rd-dot  {{ display: none !important; }}
-    .rd-user {{ display: none !important; }}
-    .rd-link {{ font-size: 11px !important; padding: 5px 8px !important; }}
-    .rd-lang {{ font-size: 10px !important; padding: 3px 6px !important; }}
+    .rd-nav   {{ padding: 0 8px 0 52px !important; height: 48px; }}
+    .rd-name  {{ display: none !important; }}
+    .rd-dot   {{ display: none !important; }}
+    .rd-user  {{ display: none !important; }}
+    .rd-link  {{ font-size: 11px !important; padding: 5px 7px !important; }}
+    .rd-btn   {{ font-size: 11px !important; padding: 3px 7px !important; }}
 }}
 @media (max-width: 380px) {{
-    .rd-link {{ font-size: 10px !important; padding: 4px 6px !important; }}
+    .rd-link  {{ font-size: 10px !important; padding: 4px 5px !important; }}
+    .rd-right {{ gap: 2px; }}
 }}
 </style>
+
+<script>
+/* ── Sidebar toggle: clicks Streamlit's real button (even if hidden).
+   Tries every known selector across Streamlit versions. ── */
+function rdToggleSidebar() {{
+    var selectors = [
+        '[data-testid="stSidebarCollapsedControl"] button',
+        '[data-testid="stSidebarCollapse"] button',
+        '[data-testid="collapsedControl"] button',
+        'button[aria-label="Open sidebar"]',
+        'button[aria-label="Close sidebar"]',
+        'button[aria-label="open sidebar"]',
+        'button[aria-label="close sidebar"]',
+        'button[title="Open sidebar"]',
+        'button[title="Close sidebar"]',
+    ];
+    for (var i = 0; i < selectors.length; i++) {{
+        var el = document.querySelector(selectors[i]);
+        if (el) {{ el.click(); return; }}
+    }}
+    /* Fallback: directly manipulate sidebar visibility */
+    var sb = document.querySelector('section[data-testid="stSidebar"]');
+    if (sb) {{
+        var w = parseInt(window.getComputedStyle(sb).width);
+        if (!w || w < 20) {{
+            sb.style.cssText = 'display:block!important;visibility:visible!important;transform:translateX(0)!important;width:270px!important;min-width:270px!important;';
+        }} else {{
+            sb.style.cssText = 'transform:translateX(-110%)!important;';
+        }}
+    }}
+}}
+</script>
+
+<button class="rd-ham" onclick="rdToggleSidebar()" aria-label="Toggle sidebar" title="Open sidebar">
+  <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+    <rect y="3"  width="18" height="2" rx="1"/>
+    <rect y="8"  width="13" height="2" rx="1"/>
+    <rect y="13" width="18" height="2" rx="1"/>
+  </svg>
+</button>
 
 <div class="rd-nav">
   <a class="rd-brand" href="/" target="_self">
@@ -516,14 +588,15 @@ footer,
   </a>
 
   <div class="rd-links">
-    <a class="rd-link{ha}" href="/"          target="_self">⏱️ {nav_timer}</a>
-    <a class="rd-link{sa}" href="/schedule"  target="_self">📅 {nav_schedule}</a>
-    <a class="rd-link{aa}" href="/about"     target="_self">✨ {nav_about}</a>
+    <a class="rd-link{ha}" href="/"         target="_self">⏱️ {nt}</a>
+    <a class="rd-link{sa}" href="/schedule" target="_self">📅 {ns}</a>
+    <a class="rd-link{aa}" href="/about"    target="_self">✨ {na}</a>
   </div>
 
   <div class="rd-right">
     <span class="rd-user">👤 {user_name}</span>
-    <span class="rd-lang">{lang_abbr}</span>
+    <a class="rd-btn" href="?dark_mode=1" target="_self" title="Toggle dark/light mode">{dark_icon}</a>
+    <a class="rd-btn" href="?lang=cycle"  target="_self" title="Cycle language">{lang_abbr}</a>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -534,6 +607,7 @@ render_nav(_active)
 # ══════════════════════════════════════════════════════════
 #  RUN THE CURRENT PAGE
 #  st.navigation() updates the browser URL and tab title
-#  automatically — no st.switch_page() needed.
+#  automatically — no st.switch_page() or query param
+#  tricks needed for navigation.
 # ══════════════════════════════════════════════════════════
 pg.run()
