@@ -307,14 +307,38 @@ header[data-testid="stHeader"] {{
 footer {{ display: none !important; }}
 
 /* ════════════════════════════════════════════════
-   2. CUSTOM HAMBURGER  (visual layer, z-index below
-   the transparent native button)
+   2. NATIVE SIDEBAR CONTROLS
+   — "stSidebarCollapseButton" (inside sidebar) is
+   the only real toggle button in Streamlit 1.58.
+   Hide it visually but keep it clickable via JS.
+   Nuke the old stSidebarCollapsedControl variants
+   which don't exist in this version.
+   ════════════════════════════════════════════════ */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapse"],
+[data-testid="collapsedControl"] {{
+    display: none !important;
+}}
+/* Keep stSidebarCollapseButton in the DOM but
+   invisible — our JS hamburger clicks it */
+[data-testid="stSidebarCollapseButton"] {{
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: all !important;
+}}
+
+/* ════════════════════════════════════════════════
+   3. CUSTOM HAMBURGER — fully clickable, drives
+   sidebar via JavaScript
    ════════════════════════════════════════════════ */
 .rd-ham {{
     position: fixed !important;
     top: 8px !important;
     left: 10px !important;
-    z-index: 2100000 !important;
+    z-index: 2200000 !important;
     width: 36px !important;
     height: 36px !important;
     background: {HAM_BG} !important;
@@ -327,46 +351,17 @@ footer {{ display: none !important; }}
     box-shadow: 0 2px 12px rgba(0,0,0,.22) !important;
     transition: background 0.18s, border-color 0.18s, box-shadow 0.18s, transform 0.15s !important;
     outline: none !important;
-    pointer-events: none !important;
+    pointer-events: all !important;
     -webkit-tap-highlight-color: transparent !important;
 }}
-.rd-ham svg {{ fill: {HAM_C}; width: 18px; height: 18px; }}
-
-/* ════════════════════════════════════════════════
-   3. NATIVE SIDEBAR TOGGLES — kept in the DOM and
-   clickable, but rendered transparent and stacked
-   exactly over our visual hamburger. Clicking the
-   area hits the real Streamlit button so the sidebar
-   actually opens/closes. Works across all versions.
-   ════════════════════════════════════════════════ */
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="stSidebarCollapse"],
-[data-testid="collapsedControl"] {{
-    opacity: 0 !important;
-    position: fixed !important;
-    top: 8px !important;
-    left: 10px !important;
-    width: 36px !important;
-    height: 36px !important;
-    z-index: 2200000 !important;
-    cursor: pointer !important;
-    pointer-events: all !important;
+.rd-ham:hover {{
+    background: rgba(76,175,80,0.30) !important;
+    border-color: rgba(76,175,80,0.70) !important;
+    box-shadow: 0 0 18px rgba(76,175,80,.45) !important;
+    transform: scale(1.06) !important;
 }}
-[data-testid="stSidebarCollapsedControl"] button,
-[data-testid="stSidebarCollapse"] button,
-[data-testid="collapsedControl"] button {{
-    width: 100% !important;
-    height: 100% !important;
-    cursor: pointer !important;
-}}
-/* Hover: show our hamburger's glow via a sibling effect */
-[data-testid="stSidebarCollapsedControl"]:hover ~ * .rd-ham,
-[data-testid="stSidebarCollapse"]:hover ~ * .rd-ham,
-[data-testid="collapsedControl"]:hover ~ * .rd-ham {{
-    background: rgba(76,175,80,0.28) !important;
-    border-color: rgba(76,175,80,0.65) !important;
-    box-shadow: 0 0 16px rgba(76,175,80,.40) !important;
-}}
+.rd-ham:active {{ transform: scale(0.91) !important; }}
+.rd-ham svg {{ fill: {HAM_C}; width: 18px; height: 18px; pointer-events: none; }}
 
 /* ════════════════════════════════════════════════
    4. NAV BAR
@@ -436,18 +431,32 @@ footer {{ display: none !important; }}
     color: #7ec87f;
     text-shadow: 0 0 12px rgba(76,175,80,.50);
 }}
-/* Dot — very slow, very subtle pulse (barely noticeable) */
+/* Dot — visible heartbeat: grows, glows, shrinks back */
 .rd-dot {{
-    width: 6px; height: 6px;
+    width: 7px; height: 7px;
     border-radius: 50%;
     background: #4caf50;
-    box-shadow: 0 0 5px 1px rgba(76,175,80,.55);
+    box-shadow: 0 0 6px 2px rgba(76,175,80,.60);
     flex-shrink: 0;
-    animation: dotPulse 5s ease-in-out infinite;
+    animation: dotPulse 2.4s ease-in-out infinite;
 }}
 @keyframes dotPulse {{
-    0%,100% {{ opacity: 1;    box-shadow: 0 0 5px 1px rgba(76,175,80,.55); }}
-    50%      {{ opacity: 0.50; box-shadow: 0 0 2px 0px rgba(76,175,80,.25); }}
+    0%,100% {{
+        transform: scale(1);
+        box-shadow: 0 0 6px 2px rgba(76,175,80,.60);
+        opacity: 1;
+    }}
+    40% {{
+        transform: scale(1.75);
+        box-shadow: 0 0 12px 5px rgba(76,175,80,.80),
+                    0 0 22px 8px rgba(76,175,80,.30);
+        opacity: 1;
+    }}
+    70% {{
+        transform: scale(0.55);
+        box-shadow: 0 0 3px 1px rgba(76,175,80,.30);
+        opacity: 0.70;
+    }}
 }}
 
 /* ── Centered nav links ── */
@@ -560,9 +569,48 @@ section[data-testid="stMain"] .block-container {{
 }}
 </style>
 
-<!-- Visual hamburger — pointer-events:none so clicks pass through to
-     the transparent native Streamlit sidebar toggle sitting on top of it -->
-<button class="rd-ham" tabindex="-1" aria-hidden="true">
+<script>
+/* ── Sidebar toggle ────────────────────────────────────────
+   In Streamlit 1.58 the ONLY reliable toggle is
+   [data-testid="stSidebarCollapseButton"].
+   This element is always in the DOM (inside the sidebar
+   section), whether the sidebar is open or collapsed.
+   JS .click() fires even when the element is off-screen,
+   so we don't need a fallback for display/visibility.
+   ────────────────────────────────────────────────────── */
+function rdToggleSidebar() {{
+    /* Primary: Streamlit 1.58 internal toggle button */
+    var targets = [
+        '[data-testid="stSidebarCollapseButton"]',
+        '[data-testid="stSidebarCollapseButton"] button',
+        /* legacy selectors for other Streamlit versions */
+        '[data-testid="stSidebarCollapsedControl"] button',
+        '[data-testid="stSidebarCollapse"] button',
+        '[data-testid="collapsedControl"] button',
+    ];
+    for (var i = 0; i < targets.length; i++) {{
+        var el = document.querySelector(targets[i]);
+        if (el) {{ el.click(); return; }}
+    }}
+    /* Last-resort: find any button inside the sidebar section */
+    var sb = document.querySelector('section[data-testid="stSidebar"]');
+    if (sb) {{
+        var btns = sb.querySelectorAll('button');
+        if (btns.length) {{ btns[0].click(); return; }}
+    }}
+    /* Ultimate fallback: directly show/hide sidebar via CSS */
+    var sbs = document.querySelector('section[data-testid="stSidebar"]');
+    if (sbs) {{
+        var rect = sbs.getBoundingClientRect();
+        var open = rect.left > -50;
+        sbs.style.cssText = open
+            ? 'transform:translateX(-110%) !important;'
+            : 'transform:none !important;display:flex !important;min-width:244px !important;';
+    }}
+}}
+</script>
+
+<button class="rd-ham" onclick="rdToggleSidebar()" aria-label="Toggle sidebar">
   <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
     <rect y="3"  width="18" height="2" rx="1"/>
     <rect y="8"  width="13" height="2" rx="1"/>
