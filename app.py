@@ -127,7 +127,7 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
 .lf{{font-size:12px;color:rgba(255,255,255,.30);text-align:center;margin-top:24px;}}
 </style>
 <div class="lw">
-  <div class="ll"><img src="https://raw.githubusercontent.com/HayhatDev/rekxare-dami/refs/heads/main/logo.png" alt="📚"></div>
+  <div class="ll">📚</div>
   <div class="lt">Rekxare Dami</div>
   <div class="ls">{t('login_sub')}</div>
   <div class="lb">✨ {t('login_badge')}</div>
