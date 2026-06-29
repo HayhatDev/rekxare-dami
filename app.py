@@ -103,7 +103,7 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
     padding-right:20px!important;max-width:480px!important;
 }}
 .lw{{width:100%;display:flex;flex-direction:column;align-items:center;}}
-.ll{{font-size:72px;line-height:1;margin-bottom:12px;animation:lfloat 3s ease-in-out infinite,lglow 3s ease-in-out infinite;}}
+.ll{{font-size:72px;line-height:1.6;margin-bottom:12px;animation:lfloat 3s ease-in-out infinite,lglow 3s ease-in-out infinite;}}
 @keyframes lfloat{{0%,100%{{transform:translateY(0);}}50%{{transform:translateY(-10px);}}}}
 @keyframes lglow{{
   0%,100%{{filter:drop-shadow(0 4px 16px rgba(76,175,80,.4));}}
