@@ -3,6 +3,7 @@ import json
 import os
 import hashlib
 import base64
+import streamlit.components.v1 as components
 from datetime import datetime
 
 # ══════════════════════════════════════════════════════════
@@ -191,25 +192,21 @@ else:
 
 st.session_state.current_page = _active
 
-
 # ══════════════════════════════════════════════════════════
 #  SIDEBAR CONTENT
 #
-#  CRITICAL: This must run before render_nav().
+#  MUST run before render_nav().
 #  Without at least one st.sidebar call, Streamlit does NOT
-#  render section[data-testid="stSidebar"] or any of the
-#  native toggle buttons in the DOM — so JS cannot find or
-#  click them.  Adding content here ensures the sidebar
-#  element exists and Streamlit's toggle buttons are present.
+#  render section[data-testid="stSidebar"] in the DOM, so
+#  JS from the iframe component cannot find the element.
 # ══════════════════════════════════════════════════════════
 def render_sidebar():
-    is_dark   = st.session_state.get("dark_mode", True)
-    lang      = st.session_state.get("lang", "badini")
-    dark_icon = "☀️" if is_dark else "🌙"
-    lang_label = "Light mode" if is_dark else "Dark mode"
+    is_dark    = st.session_state.get("dark_mode", True)
+    lang       = st.session_state.get("lang", "badini")
+    dark_icon  = "☀️" if is_dark else "🌙"
+    mode_label = t("light_mode") if is_dark else t("dark_mode")
     lang_abbr  = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(lang, "EN")
-
-    user_name  = t("student") if not st.user.is_logged_in else (st.user.name or st.user.email or "")[:24]
+    user_name  = (st.user.name or st.user.email or "Student")[:24] if st.user.is_logged_in else "Student"
     user_email = st.user.email if st.user.is_logged_in else ""
 
     with st.sidebar:
@@ -235,7 +232,7 @@ def render_sidebar():
         st.caption("⚙️ Settings")
         c1, c2 = st.columns(2)
         with c1:
-            if st.button(f"{dark_icon} {lang_label}", key="sb_dark_btn", use_container_width=True):
+            if st.button(f"{dark_icon} {mode_label}", key="sb_dark_btn", use_container_width=True):
                 st.session_state.dark_mode = not is_dark
                 save_preferences()
                 st.rerun()
@@ -247,7 +244,7 @@ def render_sidebar():
                 st.rerun()
 
         st.divider()
-        c1, c2 = st.columns(2)
+        _, c2 = st.columns(2)
         with c2:
             st.button("🔓 Sign out", key="sb_logout_btn",
                       on_click=st.logout, use_container_width=True)
@@ -257,40 +254,16 @@ render_sidebar()
 
 
 # ══════════════════════════════════════════════════════════
-#  CUSTOM NAV BAR + HAMBURGER BUTTON
-#
-#  HOW THE SIDEBAR TOGGLE WORKS
-#  ─────────────────────────────────────────────────────────
-#  1. render_sidebar() is called first — this forces Streamlit
-#     to render section[data-testid="stSidebar"] and the
-#     native toggle buttons into the DOM.
-#
-#  2. CSS moves every known native toggle selector off-screen
-#     (position:fixed; top:-9999px) so they are in the DOM
-#     and clickable via JS, but not visually visible.
-#
-#  3. A custom <button id="rd-ham"> is rendered as the
-#     visible hamburger in the nav bar.
-#
-#  4. A <script> (NO inline onclick — CSP blocks that) wires
-#     addEventListener('click') to the custom button.
-#
-#  5. On click, JS calls el.click() on the first native
-#     toggle element it finds.  Because render_sidebar()
-#     guarantees the elements exist, this now works.
-#     A CSS-class body-toggle fallback also fires in case the
-#     native click doesn't propagate through React.
+#  CUSTOM NAV BAR
 # ══════════════════════════════════════════════════════════
 def render_nav(active: str):
     is_dark   = st.session_state.get("dark_mode", True)
     lang      = st.session_state.get("lang", "badini")
     dark_icon = "☀️" if is_dark else "🌙"
     lang_abbr = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(lang, "EN")
-
     user_name = "Student"
     if st.user.is_logged_in:
-        raw = st.user.name or st.user.email or "Student"
-        user_name = raw[:20]
+        user_name = (st.user.name or st.user.email or "Student")[:20]
 
     try:
         with open("logo.png", "rb") as f:
@@ -341,16 +314,13 @@ def render_nav(active: str):
     ha = " nav-active" if active == "home"     else ""
     sa = " nav-active" if active == "schedule" else ""
     aa = " nav-active" if active == "about"    else ""
-
-    nt = t("nav_timer")
-    ns = t("nav_schedule")
-    na = t("nav_about")
+    nt, ns, na = t("nav_timer"), t("nav_schedule"), t("nav_about")
 
     st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* ── 1. Collapse Streamlit header strip ── */
+/* ── 1. Strip Streamlit header ── */
 header[data-testid="stHeader"] {{
     height:0!important;min-height:0!important;
     overflow:visible!important;background:transparent!important;
@@ -359,9 +329,9 @@ header[data-testid="stHeader"] {{
 [data-testid="stToolbar"],[data-testid="stDecoration"],
 [data-testid="stStatusWidget"],#MainMenu,footer{{display:none!important;}}
 
-/* ── 2. Native sidebar toggle buttons — OFF-SCREEN but in DOM ──
-   They must NOT be display:none — dispatchEvent/click() needs
-   them physically in the document. We just hide them visually. */
+/* ── 2. All native sidebar toggle buttons — moved off-screen.
+   MUST NOT be display:none — the iframe JS needs them in the DOM.
+   pointer-events:auto keeps them JS-clickable even off-screen. ── */
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="collapsedControl"],
 [data-testid="stSidebarCollapse"],
@@ -370,63 +340,53 @@ header[data-testid="stHeader"] {{
     top:-9999px!important;left:-9999px!important;
     width:1px!important;height:1px!important;
     opacity:0!important;pointer-events:auto!important;
-    overflow:hidden!important;z-index:-1!important;
+    overflow:hidden!important;
 }}
 
-/* ── 3. Sidebar panel styling ── */
+/* ── 3. Sidebar panel ── */
 section[data-testid="stSidebar"] {{
     background:{SB_BG}!important;
     border-right:1px solid {SB_BDR}!important;
     box-shadow:4px 0 24px rgba(0,0,0,.18)!important;
     transition:transform .28s cubic-bezier(0.4,0,0.2,1)!important;
+    z-index:1100000!important;
 }}
 section[data-testid="stSidebar"] [data-testid="stPageLink"] a {{
     font-size:14px!important;font-weight:500!important;
     padding:8px 12px!important;border-radius:8px!important;
     display:block!important;text-decoration:none!important;
-    transition:background .15s ease,color .15s ease!important;
-    margin-bottom:2px!important;
+    transition:background .15s,color .15s!important;margin-bottom:2px!important;
 }}
 section[data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-current="page"] {{
     background:{ACT_BG}!important;color:{ACT_C}!important;font-weight:700!important;
 }}
 
-/* ── 4. CSS-class sidebar override (body toggle fallback) ──
-   When the native .click() doesn't propagate through React,
-   we also toggle a CSS class on <body> to force-show/hide
-   the sidebar. Since !important beats inline styles in CSS
-   cascade, this works even when React tries to override. */
+/* ── 4. CSS-class sidebar override  (backup for JS approach)
+   When JS sets body.rd-sb-open the sidebar shows regardless of
+   what Streamlit's own React state says. ── */
 body.rd-sb-open section[data-testid="stSidebar"] {{
     transform:translateX(0)!important;
     visibility:visible!important;
-    display:block!important;
-    width:244px!important;min-width:244px!important;
-    position:fixed!important;
-    top:0!important;left:0!important;
-    height:100vh!important;
-    z-index:1100000!important;
+    display:flex!important;
+    min-width:244px!important;width:244px!important;
 }}
+/* Default hidden state when body class is absent */
 body:not(.rd-sb-open) section[data-testid="stSidebar"] {{
     transform:translateX(-110%)!important;
 }}
 
-/* ── 5. Custom hamburger button — always visible in nav bar ── */
+/* ── 5. Hamburger button ── */
 #rd-ham {{
-    position:fixed!important;
-    top:8px!important;left:10px!important;
+    position:fixed!important;top:8px!important;left:10px!important;
     z-index:2200000!important;
     width:36px!important;height:36px!important;
     background:{HAM_BG}!important;
     border:1.5px solid {HAM_BDR}!important;
-    border-radius:10px!important;
-    cursor:pointer!important;
-    display:flex!important;
-    align-items:center!important;justify-content:center!important;
+    border-radius:10px!important;cursor:pointer!important;
+    display:flex!important;align-items:center!important;justify-content:center!important;
     box-shadow:0 2px 12px rgba(0,0,0,.22)!important;
-    transition:background .18s ease,border-color .18s ease,
-               box-shadow .18s ease,transform .14s ease!important;
-    outline:none!important;
-    -webkit-tap-highlight-color:transparent!important;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .14s!important;
+    outline:none!important;-webkit-tap-highlight-color:transparent!important;
     padding:0!important;margin:0!important;
 }}
 #rd-ham:hover {{
@@ -440,89 +400,67 @@ body:not(.rd-sb-open) section[data-testid="stSidebar"] {{
 
 /* ── 6. Nav bar ── */
 .rd-nav {{
-    position:fixed;
-    top:0;left:0;right:0;
-    height:52px;
+    position:fixed;top:0;left:0;right:0;height:52px;
     display:flex;align-items:center;justify-content:space-between;
     padding:0 12px 0 56px;
-    background:{NAV_BG};
-    border-bottom:1px solid {NAV_BDR};
-    box-shadow:{NAV_SH};
-    backdrop-filter:blur(28px) saturate(1.6);
-    -webkit-backdrop-filter:blur(28px) saturate(1.6);
-    z-index:1500000;
-    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
-    box-sizing:border-box;
-    animation:rdSlideDown .48s cubic-bezier(0.16,1,0.3,1) both;
+    background:{NAV_BG};border-bottom:1px solid {NAV_BDR};box-shadow:{NAV_SH};
+    backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);
+    z-index:1500000;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    box-sizing:border-box;animation:rdSlideDown .48s cubic-bezier(0.16,1,0.3,1) both;
 }}
 @keyframes rdSlideDown {{
     from{{transform:translateY(-100%);opacity:0;}}
-    to{{transform:translateY(0);opacity:1;}}
+    to  {{transform:translateY(0);    opacity:1;}}
 }}
 .rd-brand {{
     display:flex;align-items:center;gap:7px;flex-shrink:0;
     text-decoration:none!important;cursor:pointer;
-    padding:4px 6px;border-radius:8px;
-    transition:background .18s ease;
+    padding:4px 6px;border-radius:8px;transition:background .18s;
 }}
 .rd-brand:hover{{background:{HOV_BG};}}
-.rd-logo {{
-    width:24px;height:24px;border-radius:6px;
+.rd-logo,.rd-logo-emoji {{
+    width:24px;height:24px;border-radius:6px;font-size:22px;
     filter:drop-shadow(0 0 4px rgba(76,175,80,.35));
-    transition:transform .28s cubic-bezier(0.34,1.56,0.64,1),filter .25s ease;
+    transition:transform .28s cubic-bezier(0.34,1.56,0.64,1),filter .25s;
 }}
-.rd-logo-emoji {{
-    font-size:22px;
-    filter:drop-shadow(0 0 4px rgba(76,175,80,.35));
-    transition:transform .28s cubic-bezier(0.34,1.56,0.64,1),filter .25s ease;
-}}
-.rd-brand:hover .rd-logo,
-.rd-brand:hover .rd-logo-emoji {{
+.rd-brand:hover .rd-logo,.rd-brand:hover .rd-logo-emoji {{
     transform:translateY(-3px) scale(1.12);
     filter:drop-shadow(0 0 10px rgba(76,175,80,.80));
 }}
 .rd-name {{
     font-size:14px;font-weight:800;letter-spacing:-0.3px;color:{TXT};
-    transition:color .22s ease;
+    transition:color .22s;
 }}
 .rd-brand:hover .rd-name{{color:{ACT_C};}}
 .rd-dot {{
     width:7px;height:7px;border-radius:50%;flex-shrink:0;
-    background:#4caf50;
-    box-shadow:0 0 5px 1px rgba(76,175,80,.50);
-    animation:dotBreath 3.5s ease-in-out infinite;
+    background:#4caf50;box-shadow:0 0 5px 1px rgba(76,175,80,.55);
+    animation:dotBreath 2.4s ease-in-out infinite;
 }}
 @keyframes dotBreath {{
-    0%,100%{{transform:scale(1);  opacity:.85;box-shadow:0 0 4px 1px rgba(76,175,80,.45);}}
-    50%     {{transform:scale(1.35);opacity:1;  box-shadow:0 0 8px 3px rgba(76,175,80,.60);}}
+    0%,100%{{transform:scale(1);   box-shadow:0 0 4px 1px rgba(76,175,80,.50);opacity:.9;}}
+    40%     {{transform:scale(1.8); box-shadow:0 0 12px 5px rgba(76,175,80,.80),0 0 20px 7px rgba(76,175,80,.25);opacity:1;}}
+    70%     {{transform:scale(0.55);box-shadow:0 0 2px 0px rgba(76,175,80,.25);opacity:.65;}}
 }}
 .rd-links {{
     display:flex;align-items:center;gap:2px;
     position:absolute;left:50%;transform:translateX(-50%);
 }}
 .rd-link {{
-    font-size:13px;font-weight:500;
-    color:{MUTED}!important;
-    padding:6px 12px;border-radius:9px;
-    transition:background .17s ease,color .17s ease,box-shadow .17s ease;
-    cursor:pointer;white-space:nowrap;
-    text-decoration:none!important;
-    position:relative;
+    font-size:13px;font-weight:500;color:{MUTED}!important;
+    padding:6px 12px;border-radius:9px;cursor:pointer;white-space:nowrap;
+    text-decoration:none!important;position:relative;
+    transition:background .17s,color .17s,box-shadow .17s;
 }}
 .rd-link::after {{
-    content:'';
-    position:absolute;bottom:4px;left:50%;
-    transform:translateX(-50%);
-    width:0;height:2px;
-    background:{ACT_C};
-    border-radius:1px;
+    content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);
+    width:0;height:2px;background:{ACT_C};border-radius:1px;
     transition:width .22s cubic-bezier(0.25,1,0.5,1);
 }}
 .rd-link:hover{{background:{HOV_BG}!important;color:{TXT}!important;}}
 .rd-link:hover::after{{width:50%;}}
 .rd-link.nav-active{{
-    background:{ACT_BG}!important;color:{ACT_C}!important;
-    font-weight:700!important;
+    background:{ACT_BG}!important;color:{ACT_C}!important;font-weight:700!important;
     box-shadow:0 0 14px rgba(76,175,80,.18),inset 0 0 10px rgba(76,175,80,.07);
 }}
 .rd-link.nav-active::after{{width:58%;}}
@@ -531,35 +469,29 @@ body:not(.rd-sb-open) section[data-testid="stSidebar"] {{
 .rd-link:nth-child(3){{animation:rdFadeUp .44s .22s cubic-bezier(0.16,1,0.3,1) both;}}
 @keyframes rdFadeUp {{
     from{{transform:translateY(7px);opacity:0;}}
-    to{{transform:translateY(0);opacity:1;}}
+    to  {{transform:translateY(0);  opacity:1;}}
 }}
 .rd-right {{
     display:flex;align-items:center;gap:4px;flex-shrink:0;
     animation:rdFadeUp .44s .28s cubic-bezier(0.16,1,0.3,1) both;
 }}
 .rd-user {{
-    font-size:11px;font-weight:600;
-    color:{MUTED}!important;
+    font-size:11px;font-weight:600;color:{MUTED}!important;
     background:{PILL_BG};border:1px solid {PILL_BDR};
     padding:3px 9px;border-radius:20px;
     max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }}
 .rd-btn {{
     display:inline-flex;align-items:center;justify-content:center;
-    font-size:13px;cursor:pointer;
-    background:{BTN_BG};border:1px solid {BTN_BDR};
-    color:{MUTED}!important;
-    padding:4px 9px;border-radius:8px;
-    transition:background .17s ease,color .17s ease,
-               box-shadow .17s ease,transform .12s ease,border-color .17s ease;
-    text-decoration:none!important;white-space:nowrap;
-    min-height:28px;line-height:1;font-family:inherit;
+    font-size:13px;cursor:pointer;background:{BTN_BG};border:1px solid {BTN_BDR};
+    color:{MUTED}!important;padding:4px 9px;border-radius:8px;
+    transition:background .17s,color .17s,box-shadow .17s,transform .12s,border-color .17s;
+    text-decoration:none!important;white-space:nowrap;min-height:28px;line-height:1;font-family:inherit;
 }}
 .rd-btn:hover {{
     background:{BTN_HOV}!important;color:{ACT_C}!important;
     border-color:rgba(76,175,80,.38)!important;
-    box-shadow:0 0 10px rgba(76,175,80,.20)!important;
-    transform:translateY(-1px);
+    box-shadow:0 0 10px rgba(76,175,80,.20)!important;transform:translateY(-1px);
 }}
 .rd-btn:active{{transform:scale(0.93);}}
 .main .block-container,
@@ -576,7 +508,8 @@ section[data-testid="stMain"] .block-container{{padding-top:68px!important;}}
 }}
 </style>
 
-<!-- Hamburger button — click wired via addEventListener below (CSP-safe) -->
+<!-- Hamburger — NO inline onclick (Streamlit CSP blocks inline handlers).
+     The click is wired via addEventListener inside the iframe component below. -->
 <button id="rd-ham" aria-label="Toggle sidebar" title="Open menu">
   <svg width="18" height="18" viewBox="0 0 18 18" fill="{HAM_C}" xmlns="http://www.w3.org/2000/svg">
     <rect y="3"  width="18" height="2" rx="1"/>
@@ -585,7 +518,6 @@ section[data-testid="stMain"] .block-container{{padding-top:68px!important;}}
   </svg>
 </button>
 
-<!-- Nav bar -->
 <div class="rd-nav">
   <a class="rd-brand" href="/" target="_self">
     {logo_html}
@@ -603,70 +535,144 @@ section[data-testid="stMain"] .block-container{{padding-top:68px!important;}}
     <a class="rd-btn" href="?lang=cycle"  target="_self" title="Cycle language">{lang_abbr}</a>
   </div>
 </div>
-
-<!--
-  SIDEBAR TOGGLE SCRIPT
-  ─────────────────────────────────────────────────────────
-  NO inline onclick= (Streamlit CSP blocks it).
-  addEventListener is always allowed.
-
-  Two-track approach:
-   Track A — click() the native Streamlit toggle button.
-             Works because render_sidebar() ensures the
-             element exists in the DOM.
-   Track B — toggle body.rd-sb-open CSS class.
-             CSS !important overrides React's inline style,
-             so the sidebar shows/hides even if Track A's
-             event doesn't propagate through React's handler.
-  Both tracks fire on every click for maximum reliability.
--->
-<script>
-(function() {{
-  var NATIVE = [
-    '[data-testid="stSidebarCollapseButton"] button',
-    '[data-testid="stSidebarCollapseButton"]',
-    '[data-testid="stSidebarCollapsedControl"] button',
-    '[data-testid="stSidebarCollapsedControl"]',
-    '[data-testid="collapsedControl"] button',
-    '[data-testid="collapsedControl"]',
-    '[data-testid="stSidebarCollapse"] button',
-    '[data-testid="stSidebarCollapse"]',
-  ];
-
-  function clickNative() {{
-    for (var i = 0; i < NATIVE.length; i++) {{
-      var el = document.querySelector(NATIVE[i]);
-      if (el) {{ el.click(); return; }}
-    }}
-  }}
-
-  function toggleBodyClass() {{
-    document.body.classList.toggle('rd-sb-open');
-  }}
-
-  function onHamClick() {{
-    clickNative();     /* Track A: trigger Streamlit's own handler */
-    toggleBodyClass(); /* Track B: CSS override as visual guarantee */
-  }}
-
-  function wire() {{
-    var ham = document.getElementById('rd-ham');
-    if (!ham) {{ setTimeout(wire, 80); return; }}
-    if (ham.__rdWired) return;
-    ham.__rdWired = true;
-    ham.addEventListener('click', onHamClick);
-  }}
-
-  wire();
-  requestAnimationFrame(wire);
-  setTimeout(wire, 200);
-  setTimeout(wire, 600);
-}})();
-</script>
 """, unsafe_allow_html=True)
 
 
 render_nav(_active)
+
+
+# ══════════════════════════════════════════════════════════
+#  SIDEBAR TOGGLE — iframe component (bypasses page CSP)
+#
+#  WHY THIS WORKS
+#  ─────────────────────────────────────────────────────────
+#  Streamlit's Content Security Policy blocks ALL inline
+#  JavaScript on the main page (onclick=, onload=, and
+#  even <script> tags injected via st.markdown).
+#
+#  st.components.v1.html() runs inside a sandboxed iframe
+#  served from the SAME origin as the main Streamlit page.
+#  Same-origin iframes can access window.parent.document
+#  freely, so we can:
+#    • find #rd-ham in the parent DOM
+#    • attach a real click listener (addEventListener)
+#    • toggle body.rd-sb-open on the parent document
+#    • directly set inline styles on the sidebar element
+#
+#  Two-track toggle:
+#   Track A — CSS body class:
+#     body.rd-sb-open overrides Streamlit's sidebar CSS
+#     with !important, making the sidebar visible even if
+#     React's isCollapsed state says closed.
+#   Track B — inline style with setProperty(...,'important'):
+#     Inline !important beats stylesheet rules, so even if
+#     Streamlit applies a CSS class to hide the sidebar,
+#     our inline override wins.
+#
+#  State persistence:
+#   localStorage key 'rdSB' (1 = open, 0 = closed) survives
+#   Streamlit reruns and dark-mode changes.  A setInterval
+#   re-applies the open state after any rerun that rebuilds
+#   the sidebar DOM element.
+# ══════════════════════════════════════════════════════════
+components.html("""
+<script>
+(function() {
+  var LS_KEY = 'rdSB';
+  var p = window.parent.document;
+
+  /* ── helpers ── */
+  function getSidebar() {
+    return p.querySelector('section[data-testid="stSidebar"]');
+  }
+
+  function wantOpen() {
+    try { return window.parent.localStorage.getItem(LS_KEY) === '1'; } catch(e) { return false; }
+  }
+
+  function setWant(v) {
+    try { window.parent.localStorage.setItem(LS_KEY, v ? '1' : '0'); } catch(e) {}
+  }
+
+  /* ── open sidebar (Track A + B) ── */
+  function openSidebar() {
+    setWant(true);
+    // Track A — CSS body class
+    p.body.classList.add('rd-sb-open');
+    // Track B — inline !important overrides Streamlit's CSS class
+    var sb = getSidebar();
+    if (sb) {
+      sb.style.setProperty('transform',  'translateX(0)',  'important');
+      sb.style.setProperty('visibility', 'visible',        'important');
+      sb.style.setProperty('display',    'flex',           'important');
+      sb.style.setProperty('min-width',  '244px',          'important');
+    }
+  }
+
+  /* ── close sidebar ── */
+  function closeSidebar() {
+    setWant(false);
+    // Track A — remove CSS class so Streamlit's own CSS hides it
+    p.body.classList.remove('rd-sb-open');
+    // Track B — remove our inline overrides so Streamlit's rules apply
+    var sb = getSidebar();
+    if (sb) {
+      sb.style.removeProperty('transform');
+      sb.style.removeProperty('visibility');
+      sb.style.removeProperty('display');
+      sb.style.removeProperty('min-width');
+    }
+  }
+
+  /* ── is sidebar currently open? ── */
+  function isOpen() {
+    var sb = getSidebar();
+    if (!sb) return false;
+    var rect = sb.getBoundingClientRect();
+    return rect.left > -50 && rect.width > 50;
+  }
+
+  /* ── toggle ── */
+  function toggle() {
+    if (isOpen()) { closeSidebar(); } else { openSidebar(); }
+  }
+
+  /* ── wire hamburger ── */
+  function wireHam() {
+    var ham = p.getElementById('rd-ham');
+    if (!ham) { setTimeout(wireHam, 120); return; }
+    if (ham.__rdWired) return;
+    ham.__rdWired = true;
+    ham.addEventListener('click', toggle);
+  }
+
+  /* ── restore state on reruns (sidebar DOM rebuilds) ── */
+  setInterval(function() {
+    if (!wantOpen()) return;
+    if (!isOpen()) {
+      // Streamlit rebuilt/collapsed the sidebar after a rerun — reopen it
+      p.body.classList.add('rd-sb-open');
+      var sb = getSidebar();
+      if (sb) {
+        sb.style.setProperty('transform',  'translateX(0)', 'important');
+        sb.style.setProperty('visibility', 'visible',       'important');
+        sb.style.setProperty('display',    'flex',          'important');
+        sb.style.setProperty('min-width',  '244px',         'important');
+      }
+    }
+  }, 300);
+
+  /* ── restore on iframe reload (dark-mode / lang change) ── */
+  if (wantOpen()) { openSidebar(); }
+
+  /* ── start wiring ── */
+  wireHam();
+  setTimeout(wireHam, 300);
+  setTimeout(wireHam, 800);
+})();
+</script>
+""", height=0)
+
 
 # ══════════════════════════════════════════════════════════
 #  RUN THE CURRENT PAGE
