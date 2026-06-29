@@ -24,7 +24,6 @@ def t(key, **kwargs):
     return text
 
 
-# ── Preference helpers ──
 def get_preferences_file():
     email = st.user.email if st.user.is_logged_in else st.session_state.get("user_email", "default")
     return f"preferences_{hashlib.md5(email.encode()).hexdigest()[:8]}.json"
@@ -53,7 +52,7 @@ def load_preferences():
 
 
 # ══════════════════════════════════════════════════════════
-#  PAGE CONFIG  ← must be first Streamlit call
+#  PAGE CONFIG
 # ══════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="Rekxare Dami",
@@ -62,7 +61,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── PWA meta ──
 st.markdown("""
 <link rel="manifest" href="/manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -74,7 +72,6 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# ── Wire user session + load preferences ──
 if st.user.is_logged_in:
     if "user_email" not in st.session_state or not st.session_state.user_email:
         st.session_state.user_email = st.user.email
@@ -106,18 +103,14 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
 }}
 .lw{{width:100%;display:flex;flex-direction:column;align-items:center;}}
 .ll{{font-size:72px;line-height:1;margin-bottom:12px;
-    animation:float 3s ease-in-out infinite,glow-icon 3s ease-in-out infinite;}}
-@keyframes float{{0%,100%{{transform:translateY(0);}}50%{{transform:translateY(-10px);}}}}
-@keyframes glow-icon{{
+    animation:lfloat 3s ease-in-out infinite,lglow 3s ease-in-out infinite;}}
+@keyframes lfloat{{0%,100%{{transform:translateY(0);}}50%{{transform:translateY(-10px);}}}}
+@keyframes lglow{{
   0%,100%{{filter:drop-shadow(0 4px 16px rgba(76,175,80,.4));}}
-  50%{{filter:drop-shadow(0 4px 28px rgba(76,175,80,.85)) drop-shadow(0 0 40px rgba(76,175,80,.4));}}
+  50%{{filter:drop-shadow(0 4px 28px rgba(76,175,80,.85));}}
 }}
 .lt{{font-size:32px;font-weight:900;letter-spacing:-.8px;color:#fff;text-align:center;
-    margin-bottom:4px;animation:glow-text 4s ease-in-out infinite;}}
-@keyframes glow-text{{
-  0%,100%{{text-shadow:0 0 10px rgba(76,175,80,.3);}}
-  50%{{text-shadow:0 0 20px rgba(76,175,80,.7),0 0 40px rgba(76,175,80,.4),0 0 60px rgba(76,175,80,.2);}}
-}}
+    margin-bottom:4px;}}
 .ls{{font-size:14px;color:rgba(255,255,255,.55);text-align:center;margin-bottom:24px;font-weight:500;}}
 .lb{{display:inline-flex;align-items:center;gap:6px;background:rgba(76,175,80,.15);
     border:1px solid rgba(76,175,80,.25);color:#81c784;border-radius:20px;
@@ -132,8 +125,7 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
     width:100%!important;}}
 .stButton>button:hover{{transform:translateY(-2px)!important;
     box-shadow:0 6px 16px rgba(76,175,80,.45)!important;filter:brightness(1.05)!important;}}
-.lc .stButton>button{{font-size:16px!important;min-height:52px!important;
-    box-shadow:0 4px 18px rgba(76,175,80,.35)!important;}}
+.lc .stButton>button{{font-size:16px!important;min-height:52px!important;}}
 .dv{{display:flex;align-items:center;gap:12px;margin:24px 0 20px;
     color:rgba(255,255,255,.35);font-size:12px;font-weight:600;}}
 .dv::before,.dv::after{{content:"";flex:1;height:1px;background:rgba(255,255,255,.15);}}
@@ -205,25 +197,21 @@ else:
 
 st.session_state.current_page = _active
 
+
 # ══════════════════════════════════════════════════════════
 #  CUSTOM NAV BAR
 #
-#  SIDEBAR FIX STRATEGY
+#  SIDEBAR BUTTON STRATEGY
 #  ─────────────────────────────────────────────────────────
-#  Previous approach: hide native buttons → custom button →
-#  JS onclick → click hidden native element.
-#  PROBLEM: Streamlit's CSP blocks inline onclick handlers,
-#  and the native "collapsed control" button was hidden so
-#  there was nothing functional left to click.
-#
-#  New approach: NEVER hide the native sidebar buttons.
-#  Instead, CSS repositions every known Streamlit sidebar
-#  toggle variant to exactly where our hamburger should be
-#  and reskins it to match our design.  Because they are
-#  Streamlit's own DOM elements, they always work regardless
-#  of CSP.  We still inject a JS addEventListener (not
-#  onclick=) as a belt-and-braces approach for any variant
-#  that CSS alone might miss.
+#  Problem: Streamlit's CSP blocks inline `onclick=` handlers.
+#  Solution:
+#   1. Render a custom <button id="rd-ham"> for the visual.
+#   2. Native Streamlit sidebar buttons are moved off-screen
+#      (NOT display:none) so JS can still .dispatchEvent on them.
+#   3. A <script> after the button uses addEventListener (not
+#      onclick attribute) — addEventListener is NOT blocked by CSP.
+#   4. The JS tries every known Streamlit sidebar toggle selector
+#      in priority order, falling back to direct CSS transform.
 # ══════════════════════════════════════════════════════════
 def render_nav(active: str):
     is_dark   = st.session_state.get("dark_mode", True)
@@ -243,7 +231,6 @@ def render_nav(active: str):
     except FileNotFoundError:
         logo_html = '<span class="rd-logo-emoji">📚</span>'
 
-    # ── Theme tokens ──
     if is_dark:
         NAV_BG   = "rgba(13,11,36,0.96)"
         NAV_BDR  = "rgba(255,255,255,0.08)"
@@ -287,167 +274,80 @@ def render_nav(active: str):
     ns = t("nav_schedule")
     na = t("nav_about")
 
-    # Inline SVG for hamburger lines (used as mask-image on native buttons)
-    ham_svg_url = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Crect y='3' width='18' height='2' rx='1' fill='%23" + ("7ec87f" if is_dark else "2e7d32") + "'/%3E%3Crect y='8' width='13' height='2' rx='1' fill='%23" + ("7ec87f" if is_dark else "2e7d32") + "'/%3E%3Crect y='13' width='18' height='2' rx='1' fill='%23" + ("7ec87f" if is_dark else "2e7d32") + "'/%3E%3C/svg%3E\")"
-
     st.markdown(f"""
 <style>
-/* ════════════════════════════════════════════════════════
-   GOOGLE FONT
-   ════════════════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* ════════════════════════════════════════════════════════
-   1.  STREAMLIT HEADER — collapse height, keep overflow
-       visible so native sidebar buttons can float out.
-   ════════════════════════════════════════════════════════ */
+/* ── 1. Collapse Streamlit header strip ──────────────────── */
 header[data-testid="stHeader"] {{
-    height: 0 !important;
-    min-height: 0 !important;
+    height: 0 !important; min-height: 0 !important;
     overflow: visible !important;
     background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
+    box-shadow: none !important; border: none !important; padding: 0 !important;
 }}
-/* Hide noisy header decorations (NOT the sidebar buttons) */
-[data-testid="stToolbar"],
-[data-testid="stDecoration"],
-[data-testid="stStatusWidget"],
-#MainMenu,
-footer {{ display: none !important; }}
+[data-testid="stToolbar"], [data-testid="stDecoration"],
+[data-testid="stStatusWidget"], #MainMenu, footer {{ display: none !important; }}
 
-/* ════════════════════════════════════════════════════════
-   2.  NATIVE SIDEBAR TOGGLE BUTTONS — restyle, not hide.
-       Every known Streamlit variant is targeted so it
-       shows up as our custom hamburger at the top-left.
-       Because these are Streamlit's own elements they
-       always respond to clicks regardless of CSP.
-   ════════════════════════════════════════════════════════ */
+/* ── 2. Native Streamlit sidebar controls ────────────────────
+   Move off-screen (NOT display:none) so JS can .click() them.
+   They must remain in the DOM and respond to programmatic clicks. */
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="stSidebarCollapse"],
 [data-testid="collapsedControl"],
 [data-testid="stSidebarCollapseButton"] {{
-    /* Float it to a fixed position above our nav bar */
     position: fixed !important;
-    top: 8px !important;
-    left: 10px !important;
-    z-index: 2200000 !important;   /* top of everything */
-    /* Size */
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
-    min-height: 36px !important;
-    /* Appearance */
+    top: -999px !important; left: -999px !important;
+    width: 1px !important; height: 1px !important;
+    opacity: 0 !important; pointer-events: auto !important;
+    overflow: hidden !important; z-index: -1 !important;
+}}
+
+/* ── 3. Custom hamburger button ─────────────────────────────
+   This is the VISIBLE button. Click is wired via addEventListener
+   in the <script> below (NOT onclick= which CSP can block).       */
+#rd-ham {{
+    position: fixed !important;
+    top: 8px !important; left: 10px !important;
+    z-index: 2200000 !important;
+    width: 36px !important; height: 36px !important;
     background: {HAM_BG} !important;
     border: 1.5px solid {HAM_BDR} !important;
     border-radius: 10px !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,.22) !important;
-    /* Layout */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    overflow: hidden !important;
     cursor: pointer !important;
-    /* Transitions */
+    display: flex !important;
+    align-items: center !important; justify-content: center !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,.22) !important;
     transition: background .18s ease, border-color .18s ease,
                 box-shadow .18s ease, transform .14s ease !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    padding: 0 !important; margin: 0 !important;
 }}
-[data-testid="stSidebarCollapsedControl"]:hover,
-[data-testid="stSidebarCollapse"]:hover,
-[data-testid="collapsedControl"]:hover,
-[data-testid="stSidebarCollapseButton"]:hover {{
+#rd-ham:hover {{
     background: rgba(76,175,80,.28) !important;
     border-color: rgba(76,175,80,.65) !important;
-    box-shadow: 0 0 18px rgba(76,175,80,.40) !important;
+    box-shadow: 0 0 16px rgba(76,175,80,.38) !important;
     transform: scale(1.07) !important;
 }}
-[data-testid="stSidebarCollapsedControl"]:active,
-[data-testid="stSidebarCollapse"]:active,
-[data-testid="collapsedControl"]:active,
-[data-testid="stSidebarCollapseButton"]:active {{
-    transform: scale(0.91) !important;
-}}
-/* Inner <button> elements */
-[data-testid="stSidebarCollapsedControl"] button,
-[data-testid="stSidebarCollapse"] button,
-[data-testid="collapsedControl"] button,
-[data-testid="stSidebarCollapseButton"] button {{
-    all: unset !important;
-    width: 100% !important;
-    height: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-}}
-/* Swap the native chevron/arrow SVG for our hamburger lines */
-[data-testid="stSidebarCollapsedControl"] svg,
-[data-testid="stSidebarCollapse"] svg,
-[data-testid="collapsedControl"] svg,
-[data-testid="stSidebarCollapseButton"] svg {{
-    display: none !important;
-}}
-/* Inject hamburger lines via ::before on the inner button */
-[data-testid="stSidebarCollapsedControl"] button::before,
-[data-testid="stSidebarCollapse"] button::before,
-[data-testid="collapsedControl"] button::before,
-[data-testid="stSidebarCollapseButton"] button::before {{
-    content: '' !important;
-    display: block !important;
-    width: 18px !important;
-    height: 18px !important;
-    background-color: {HAM_C} !important;
-    -webkit-mask-image: {ham_svg_url} !important;
-    mask-image: {ham_svg_url} !important;
-    -webkit-mask-repeat: no-repeat !important;
-    mask-repeat: no-repeat !important;
-    -webkit-mask-size: contain !important;
-    mask-size: contain !important;
-    -webkit-mask-position: center !important;
-    mask-position: center !important;
-    transition: opacity .15s ease !important;
-}}
-/* If there's no inner button (bare element), add ::before directly */
-[data-testid="stSidebarCollapsedControl"]::before,
-[data-testid="collapsedControl"]::before {{
-    content: '' !important;
-    display: block !important;
-    width: 18px !important;
-    height: 18px !important;
-    background-color: {HAM_C} !important;
-    -webkit-mask-image: {ham_svg_url} !important;
-    mask-image: {ham_svg_url} !important;
-    -webkit-mask-repeat: no-repeat !important;
-    mask-repeat: no-repeat !important;
-    -webkit-mask-size: contain !important;
-    mask-size: contain !important;
-    -webkit-mask-position: center !important;
-    mask-position: center !important;
-}}
+#rd-ham:active {{ transform: scale(0.91) !important; }}
+#rd-ham svg {{ fill: {HAM_C}; pointer-events: none; }}
 
-/* ════════════════════════════════════════════════════════
-   3.  NAV BAR SHELL
-   ════════════════════════════════════════════════════════ */
+/* ── 4. Nav bar ─────────────────────────────────────────── */
 .rd-nav {{
     position: fixed;
     top: 0; left: 0; right: 0;
     height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 12px 0 76px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px 0 56px;
     background: {NAV_BG};
     border-bottom: 1px solid {NAV_BDR};
     box-shadow: {NAV_SH};
     backdrop-filter: blur(28px) saturate(1.6);
     -webkit-backdrop-filter: blur(28px) saturate(1.6);
     z-index: 1500000;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     box-sizing: border-box;
-    animation: rdSlideDown 0.50s cubic-bezier(0.16,1,0.3,1) both;
+    animation: rdSlideDown 0.48s cubic-bezier(0.16,1,0.3,1) both;
 }}
 @keyframes rdSlideDown {{
     from {{ transform: translateY(-100%); opacity: 0; }}
@@ -456,31 +356,21 @@ footer {{ display: none !important; }}
 
 /* ── Brand ── */
 .rd-brand {{
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    flex-shrink: 0;
-    text-decoration: none !important;
-    cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 8px;
+    display: flex; align-items: center; gap: 7px; flex-shrink: 0;
+    text-decoration: none !important; cursor: pointer;
+    padding: 4px 6px; border-radius: 8px;
     transition: background .18s ease;
 }}
 .rd-brand:hover {{ background: {HOV_BG}; }}
 .rd-logo {{
-    width: 24px; height: 24px;
-    border-radius: 6px;
-    display: inline-block;
+    width: 24px; height: 24px; border-radius: 6px;
     filter: drop-shadow(0 0 4px rgba(76,175,80,.35));
-    transition: transform .28s cubic-bezier(0.34,1.56,0.64,1),
-                filter  .25s ease;
+    transition: transform .28s cubic-bezier(0.34,1.56,0.64,1), filter .25s ease;
 }}
 .rd-logo-emoji {{
     font-size: 22px;
-    display: inline-block;
     filter: drop-shadow(0 0 4px rgba(76,175,80,.35));
-    transition: transform .28s cubic-bezier(0.34,1.56,0.64,1),
-                filter  .25s ease;
+    transition: transform .28s cubic-bezier(0.34,1.56,0.64,1), filter .25s ease;
 }}
 .rd-brand:hover .rd-logo,
 .rd-brand:hover .rd-logo-emoji {{
@@ -488,162 +378,97 @@ footer {{ display: none !important; }}
     filter: drop-shadow(0 0 10px rgba(76,175,80,.80));
 }}
 .rd-name {{
-    font-size: 14px;
-    font-weight: 800;
-    letter-spacing: -0.3px;
-    color: {TXT};
+    font-size: 14px; font-weight: 800; letter-spacing: -0.3px; color: {TXT};
     transition: color .22s ease;
 }}
-.rd-brand:hover .rd-name {{ color: #7ec87f; }}
-/* Heartbeat dot */
+.rd-brand:hover .rd-name {{ color: {ACT_C}; }}
+
+/* Subtle breathing dot — calm, not distracting */
 .rd-dot {{
-    width: 7px; height: 7px;
-    border-radius: 50%;
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
     background: #4caf50;
-    box-shadow: 0 0 6px 2px rgba(76,175,80,.60);
-    flex-shrink: 0;
-    animation: dotPulse 2.4s ease-in-out infinite;
+    box-shadow: 0 0 5px 1px rgba(76,175,80,.50);
+    animation: dotBreath 3.5s ease-in-out infinite;
 }}
-@keyframes dotPulse {{
-    0%,100% {{
-        transform: scale(1);
-        box-shadow: 0 0 5px 2px rgba(76,175,80,.55);
-        opacity: 1;
-    }}
-    40% {{
-        transform: scale(1.80);
-        box-shadow: 0 0 12px 5px rgba(76,175,80,.80),
-                    0 0 24px 8px rgba(76,175,80,.28);
-        opacity: 1;
-    }}
-    70% {{
-        transform: scale(0.55);
-        box-shadow: 0 0 3px 1px rgba(76,175,80,.28);
-        opacity: 0.65;
-    }}
+@keyframes dotBreath {{
+    0%, 100% {{ transform: scale(1);    opacity: 0.85; box-shadow: 0 0 5px 1px rgba(76,175,80,.50); }}
+    50%       {{ transform: scale(1.35); opacity: 1;    box-shadow: 0 0 8px 3px rgba(76,175,80,.65); }}
 }}
 
 /* ── Centered nav links ── */
 .rd-links {{
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 2px;
+    position: absolute; left: 50%; transform: translateX(-50%);
 }}
 .rd-link {{
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 13px; font-weight: 500;
     color: {MUTED} !important;
-    padding: 6px 12px;
-    border-radius: 9px;
+    padding: 6px 12px; border-radius: 9px;
     transition: background .17s ease, color .17s ease, box-shadow .17s ease;
-    cursor: pointer;
-    white-space: nowrap;
+    cursor: pointer; white-space: nowrap;
     text-decoration: none !important;
     position: relative;
-    overflow: hidden;
 }}
-/* Animated underline on hover / active */
+/* Animated underline indicator */
 .rd-link::after {{
     content: '';
-    position: absolute;
-    bottom: 4px; left: 50%;
+    position: absolute; bottom: 4px; left: 50%;
     transform: translateX(-50%);
     width: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, {ACT_C}, transparent);
+    background: {ACT_C};
     border-radius: 1px;
     transition: width .22s cubic-bezier(0.25,1,0.5,1);
 }}
-/* Ripple layer */
-.rd-link::before {{
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at var(--rx,50%) var(--ry,50%),
-                rgba(76,175,80,.25) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity .35s ease;
-    pointer-events: none;
-}}
-.rd-link:hover {{
-    background: {HOV_BG} !important;
-    color: {TXT} !important;
-}}
-.rd-link:hover::after {{ width: 55%; }}
-.rd-link:active::before {{ opacity: 1; }}
+.rd-link:hover {{ background: {HOV_BG} !important; color: {TXT} !important; }}
+.rd-link:hover::after {{ width: 50%; }}
 .rd-link.nav-active {{
-    background: {ACT_BG} !important;
-    color: {ACT_C} !important;
+    background: {ACT_BG} !important; color: {ACT_C} !important;
     font-weight: 700 !important;
-    box-shadow: 0 0 16px rgba(76,175,80,.22),
-                inset 0 0 12px rgba(76,175,80,.07);
+    box-shadow: 0 0 14px rgba(76,175,80,.20), inset 0 0 10px rgba(76,175,80,.07);
 }}
-.rd-link.nav-active::after {{ width: 60%; }}
+.rd-link.nav-active::after {{ width: 58%; }}
 
-/* Stagger-in animation for each link */
-.rd-link:nth-child(1) {{ animation: rdFadeUp .45s .08s cubic-bezier(0.16,1,0.3,1) both; }}
-.rd-link:nth-child(2) {{ animation: rdFadeUp .45s .16s cubic-bezier(0.16,1,0.3,1) both; }}
-.rd-link:nth-child(3) {{ animation: rdFadeUp .45s .24s cubic-bezier(0.16,1,0.3,1) both; }}
+/* Stagger entrance */
+.rd-link:nth-child(1) {{ animation: rdFadeUp .44s .08s cubic-bezier(0.16,1,0.3,1) both; }}
+.rd-link:nth-child(2) {{ animation: rdFadeUp .44s .15s cubic-bezier(0.16,1,0.3,1) both; }}
+.rd-link:nth-child(3) {{ animation: rdFadeUp .44s .22s cubic-bezier(0.16,1,0.3,1) both; }}
 @keyframes rdFadeUp {{
-    from {{ transform: translateY(6px); opacity: 0; }}
+    from {{ transform: translateY(7px); opacity: 0; }}
     to   {{ transform: translateY(0);   opacity: 1; }}
 }}
 
 /* ── Right controls ── */
 .rd-right {{
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-    animation: rdFadeUp .45s .30s cubic-bezier(0.16,1,0.3,1) both;
+    display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+    animation: rdFadeUp .44s .28s cubic-bezier(0.16,1,0.3,1) both;
 }}
 .rd-user {{
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 11px; font-weight: 600;
     color: {MUTED} !important;
-    background: {PILL_BG};
-    border: 1px solid {PILL_BDR};
-    padding: 3px 9px;
-    border-radius: 20px;
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    background: {PILL_BG}; border: 1px solid {PILL_BDR};
+    padding: 3px 9px; border-radius: 20px;
+    max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }}
 .rd-btn {{
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    cursor: pointer;
-    background: {BTN_BG};
-    border: 1px solid {BTN_BDR};
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; cursor: pointer;
+    background: {BTN_BG}; border: 1px solid {BTN_BDR};
     color: {MUTED} !important;
-    padding: 4px 9px;
-    border-radius: 8px;
+    padding: 4px 9px; border-radius: 8px;
     transition: background .17s ease, color .17s ease,
-                box-shadow .17s ease, transform .12s ease,
-                border-color .17s ease;
-    text-decoration: none !important;
-    white-space: nowrap;
-    min-height: 28px;
-    line-height: 1;
-    font-family: inherit;
-    position: relative;
-    overflow: hidden;
+                box-shadow .17s ease, transform .12s ease, border-color .17s ease;
+    text-decoration: none !important; white-space: nowrap;
+    min-height: 28px; line-height: 1; font-family: inherit;
 }}
 .rd-btn:hover {{
-    background: {BTN_HOV} !important;
-    color: {ACT_C} !important;
+    background: {BTN_HOV} !important; color: {ACT_C} !important;
     border-color: rgba(76,175,80,.38) !important;
-    box-shadow: 0 0 10px rgba(76,175,80,.22) !important;
+    box-shadow: 0 0 10px rgba(76,175,80,.20) !important;
     transform: translateY(-1px);
 }}
 .rd-btn:active {{ transform: scale(0.93); }}
 
-/* ── Push page content below nav ── */
+/* ── Content padding ── */
 .main .block-container,
 section[data-testid="stMain"] .block-container {{
     padding-top: 68px !important;
@@ -664,6 +489,16 @@ section[data-testid="stMain"] .block-container {{
 }}
 </style>
 
+<!-- Custom hamburger button — click wired via addEventListener below, NOT onclick= -->
+<button id="rd-ham" aria-label="Toggle sidebar" title="Open menu">
+  <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+    <rect y="3"  width="18" height="2" rx="1"/>
+    <rect y="8"  width="13" height="2" rx="1"/>
+    <rect y="13" width="18" height="2" rx="1"/>
+  </svg>
+</button>
+
+<!-- Nav bar -->
 <div class="rd-nav">
   <a class="rd-brand" href="/" target="_self">
     {logo_html}
@@ -683,6 +518,68 @@ section[data-testid="stMain"] .block-container {{
     <a class="rd-btn" href="?lang=cycle"  target="_self" title="Cycle language">{lang_abbr}</a>
   </div>
 </div>
+
+<!-- Sidebar toggle logic (addEventListener — NOT onclick attribute which CSP blocks) -->
+<script>
+(function() {{
+  /* Try every known Streamlit sidebar toggle selector in priority order */
+  var SELECTORS = [
+    '[data-testid="stSidebarCollapseButton"] button',
+    '[data-testid="stSidebarCollapseButton"]',
+    '[data-testid="stSidebarCollapsedControl"] button',
+    '[data-testid="stSidebarCollapsedControl"]',
+    '[data-testid="collapsedControl"] button',
+    '[data-testid="collapsedControl"]',
+    '[data-testid="stSidebarCollapse"] button',
+    '[data-testid="stSidebarCollapse"]',
+  ];
+
+  function clickNative() {{
+    for (var i = 0; i < SELECTORS.length; i++) {{
+      var el = document.querySelector(SELECTORS[i]);
+      if (el) {{
+        el.dispatchEvent(new MouseEvent('click', {{bubbles: true, cancelable: true, view: window}}));
+        return true;
+      }}
+    }}
+    return false;
+  }}
+
+  function toggleViaCss() {{
+    var sb = document.querySelector('section[data-testid="stSidebar"]');
+    if (!sb) return;
+    var rect = sb.getBoundingClientRect();
+    /* If left edge is at/near 0, sidebar is open → close it */
+    if (rect.left >= -10) {{
+      sb.style.setProperty('transform', 'translateX(-110%)', 'important');
+      sb.style.setProperty('min-width', '0', 'important');
+    }} else {{
+      sb.style.removeProperty('transform');
+      sb.style.setProperty('min-width', '244px', 'important');
+      sb.style.setProperty('width', '244px', 'important');
+    }}
+  }}
+
+  function handleHamClick() {{
+    /* Try native click first; fallback to direct CSS */
+    if (!clickNative()) {{ toggleViaCss(); }}
+  }}
+
+  function wireButton() {{
+    var ham = document.getElementById('rd-ham');
+    if (!ham) {{ setTimeout(wireButton, 80); return; }}
+    if (ham.__rdWired) return;
+    ham.__rdWired = true;
+    ham.addEventListener('click', handleHamClick);
+  }}
+
+  /* Wire immediately and after next frames to handle async Streamlit rendering */
+  wireButton();
+  requestAnimationFrame(wireButton);
+  setTimeout(wireButton, 150);
+  setTimeout(wireButton, 400);
+}})();
+</script>
 """, unsafe_allow_html=True)
 
 
