@@ -168,10 +168,6 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
 
 # ══════════════════════════════════════════════════════════
 #  QUERY PARAM HANDLERS
-#  These MUST run before st.navigation() so the rerun sees
-#  the updated session state before the page renders.
-#  Note: only dark_mode and lang use query params;
-#  page routing is handled by st.navigation() via URL paths.
 # ══════════════════════════════════════════════════════════
 if "dark_mode" in st.query_params:
     st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
@@ -188,9 +184,7 @@ if st.query_params.get("lang") == "cycle":
     st.rerun()
 
 # ══════════════════════════════════════════════════════════
-#  NAVIGATION  — position="hidden" = we render our own nav.
-#  URL paths:  /  →  Home        /schedule  →  Schedule
-#              /about  →  About
+#  NAVIGATION
 # ══════════════════════════════════════════════════════════
 pg = st.navigation(
     [
@@ -201,7 +195,6 @@ pg = st.navigation(
     position="hidden",
 )
 
-# ── Detect active page reliably via the returned Page object ──
 _upath = getattr(pg, "url_path", "") or ""
 if _upath == "schedule":
     _active = "schedule"
@@ -214,6 +207,23 @@ st.session_state.current_page = _active
 
 # ══════════════════════════════════════════════════════════
 #  CUSTOM NAV BAR
+#
+#  SIDEBAR FIX STRATEGY
+#  ─────────────────────────────────────────────────────────
+#  Previous approach: hide native buttons → custom button →
+#  JS onclick → click hidden native element.
+#  PROBLEM: Streamlit's CSP blocks inline onclick handlers,
+#  and the native "collapsed control" button was hidden so
+#  there was nothing functional left to click.
+#
+#  New approach: NEVER hide the native sidebar buttons.
+#  Instead, CSS repositions every known Streamlit sidebar
+#  toggle variant to exactly where our hamburger should be
+#  and reskins it to match our design.  Because they are
+#  Streamlit's own DOM elements, they always work regardless
+#  of CSP.  We still inject a JS addEventListener (not
+#  onclick=) as a belt-and-braces approach for any variant
+#  that CSS alone might miss.
 # ══════════════════════════════════════════════════════════
 def render_nav(active: str):
     is_dark   = st.session_state.get("dark_mode", True)
@@ -229,18 +239,15 @@ def render_nav(active: str):
     try:
         with open("logo.png", "rb") as f:
             logo_b64 = base64.b64encode(f.read()).decode()
-        logo_html = (
-            f'<img src="data:image/png;base64,{logo_b64}" '
-            f'class="rd-logo" alt="logo">'
-        )
+        logo_html = f'<img src="data:image/png;base64,{logo_b64}" class="rd-logo" alt="logo">'
     except FileNotFoundError:
         logo_html = '<span class="rd-logo-emoji">📚</span>'
 
     # ── Theme tokens ──
     if is_dark:
-        NAV_BG   = "rgba(13,11,36,0.95)"
+        NAV_BG   = "rgba(13,11,36,0.96)"
         NAV_BDR  = "rgba(255,255,255,0.08)"
-        NAV_SH   = "0 4px 32px rgba(0,0,0,0.60)"
+        NAV_SH   = "0 4px 32px rgba(0,0,0,0.60), 0 1px 0 rgba(255,255,255,0.04)"
         TXT      = "#ececec"
         MUTED    = "rgba(255,255,255,0.42)"
         ACT_BG   = "rgba(76,175,80,0.18)"
@@ -248,16 +255,16 @@ def render_nav(active: str):
         HOV_BG   = "rgba(255,255,255,0.07)"
         PILL_BG  = "rgba(255,255,255,0.06)"
         PILL_BDR = "rgba(255,255,255,0.10)"
-        HAM_BG   = "rgba(76,175,80,0.13)"
-        HAM_BDR  = "rgba(76,175,80,0.38)"
+        HAM_BG   = "rgba(76,175,80,0.14)"
+        HAM_BDR  = "rgba(76,175,80,0.40)"
         HAM_C    = "#7ec87f"
         BTN_BG   = "rgba(255,255,255,0.06)"
         BTN_BDR  = "rgba(255,255,255,0.10)"
         BTN_HOV  = "rgba(76,175,80,0.20)"
     else:
-        NAV_BG   = "rgba(255,255,255,0.96)"
+        NAV_BG   = "rgba(255,255,255,0.97)"
         NAV_BDR  = "rgba(0,0,0,0.08)"
-        NAV_SH   = "0 4px 24px rgba(0,0,0,0.12)"
+        NAV_SH   = "0 4px 24px rgba(0,0,0,0.12), 0 1px 0 rgba(0,0,0,0.04)"
         TXT      = "#18182a"
         MUTED    = "rgba(0,0,0,0.44)"
         ACT_BG   = "rgba(46,125,50,0.12)"
@@ -265,8 +272,8 @@ def render_nav(active: str):
         HOV_BG   = "rgba(0,0,0,0.05)"
         PILL_BG  = "rgba(0,0,0,0.05)"
         PILL_BDR = "rgba(0,0,0,0.09)"
-        HAM_BG   = "rgba(46,125,50,0.10)"
-        HAM_BDR  = "rgba(46,125,50,0.30)"
+        HAM_BG   = "rgba(46,125,50,0.11)"
+        HAM_BDR  = "rgba(46,125,50,0.32)"
         HAM_C    = "#2e7d32"
         BTN_BG   = "rgba(0,0,0,0.05)"
         BTN_BDR  = "rgba(0,0,0,0.09)"
@@ -280,16 +287,20 @@ def render_nav(active: str):
     ns = t("nav_schedule")
     na = t("nav_about")
 
+    # Inline SVG for hamburger lines (used as mask-image on native buttons)
+    ham_svg_url = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Crect y='3' width='18' height='2' rx='1' fill='%23" + ("7ec87f" if is_dark else "2e7d32") + "'/%3E%3Crect y='8' width='13' height='2' rx='1' fill='%23" + ("7ec87f" if is_dark else "2e7d32") + "'/%3E%3Crect y='13' width='18' height='2' rx='1' fill='%23" + ("7ec87f" if is_dark else "2e7d32") + "'/%3E%3C/svg%3E\")"
+
     st.markdown(f"""
 <style>
-/* ════════════════════════════════════════════════
-   1. SHRINK THE STREAMLIT HEADER STRIP TO ZERO
-   — but use overflow:visible so nothing clips.
-   We do NOT hide header > * because in some
-   Streamlit versions the sidebar collapse button
-   lives there. Instead we target only the known
-   non-essential toolbar children by test-id.
-   ════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   GOOGLE FONT
+   ════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ════════════════════════════════════════════════════════
+   1.  STREAMLIT HEADER — collapse height, keep overflow
+       visible so native sidebar buttons can float out.
+   ════════════════════════════════════════════════════════ */
 header[data-testid="stHeader"] {{
     height: 0 !important;
     min-height: 0 !important;
@@ -299,73 +310,127 @@ header[data-testid="stHeader"] {{
     border: none !important;
     padding: 0 !important;
 }}
-/* Hide the toolbar and decoration strips only */
+/* Hide noisy header decorations (NOT the sidebar buttons) */
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"],
 #MainMenu,
 footer {{ display: none !important; }}
 
-/* ════════════════════════════════════════════════
-   2. NATIVE SIDEBAR CONTROLS
-   — "stSidebarCollapseButton" (inside sidebar) is
-   the only real toggle button in Streamlit 1.58.
-   Hide it visually but keep it clickable via JS.
-   Nuke the old stSidebarCollapsedControl variants
-   which don't exist in this version.
-   ════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   2.  NATIVE SIDEBAR TOGGLE BUTTONS — restyle, not hide.
+       Every known Streamlit variant is targeted so it
+       shows up as our custom hamburger at the top-left.
+       Because these are Streamlit's own elements they
+       always respond to clicks regardless of CSP.
+   ════════════════════════════════════════════════════════ */
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="stSidebarCollapse"],
-[data-testid="collapsedControl"] {{
-    display: none !important;
-}}
-/* Keep stSidebarCollapseButton in the DOM but
-   invisible — our JS hamburger clicks it */
+[data-testid="collapsedControl"],
 [data-testid="stSidebarCollapseButton"] {{
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    overflow: hidden !important;
-    opacity: 0 !important;
-    pointer-events: all !important;
-}}
-
-/* ════════════════════════════════════════════════
-   3. CUSTOM HAMBURGER — fully clickable, drives
-   sidebar via JavaScript
-   ════════════════════════════════════════════════ */
-.rd-ham {{
+    /* Float it to a fixed position above our nav bar */
     position: fixed !important;
     top: 8px !important;
     left: 10px !important;
-    z-index: 2200000 !important;
+    z-index: 2200000 !important;   /* top of everything */
+    /* Size */
     width: 36px !important;
     height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    /* Appearance */
     background: {HAM_BG} !important;
     border: 1.5px solid {HAM_BDR} !important;
     border-radius: 10px !important;
-    cursor: pointer !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,.22) !important;
+    /* Layout */
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,.22) !important;
-    transition: background 0.18s, border-color 0.18s, box-shadow 0.18s, transform 0.15s !important;
-    outline: none !important;
-    pointer-events: all !important;
-    -webkit-tap-highlight-color: transparent !important;
+    overflow: hidden !important;
+    cursor: pointer !important;
+    /* Transitions */
+    transition: background .18s ease, border-color .18s ease,
+                box-shadow .18s ease, transform .14s ease !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }}
-.rd-ham:hover {{
-    background: rgba(76,175,80,0.30) !important;
-    border-color: rgba(76,175,80,0.70) !important;
-    box-shadow: 0 0 18px rgba(76,175,80,.45) !important;
-    transform: scale(1.06) !important;
+[data-testid="stSidebarCollapsedControl"]:hover,
+[data-testid="stSidebarCollapse"]:hover,
+[data-testid="collapsedControl"]:hover,
+[data-testid="stSidebarCollapseButton"]:hover {{
+    background: rgba(76,175,80,.28) !important;
+    border-color: rgba(76,175,80,.65) !important;
+    box-shadow: 0 0 18px rgba(76,175,80,.40) !important;
+    transform: scale(1.07) !important;
 }}
-.rd-ham:active {{ transform: scale(0.91) !important; }}
-.rd-ham svg {{ fill: {HAM_C}; width: 18px; height: 18px; pointer-events: none; }}
+[data-testid="stSidebarCollapsedControl"]:active,
+[data-testid="stSidebarCollapse"]:active,
+[data-testid="collapsedControl"]:active,
+[data-testid="stSidebarCollapseButton"]:active {{
+    transform: scale(0.91) !important;
+}}
+/* Inner <button> elements */
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="stSidebarCollapse"] button,
+[data-testid="collapsedControl"] button,
+[data-testid="stSidebarCollapseButton"] button {{
+    all: unset !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+}}
+/* Swap the native chevron/arrow SVG for our hamburger lines */
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="stSidebarCollapse"] svg,
+[data-testid="collapsedControl"] svg,
+[data-testid="stSidebarCollapseButton"] svg {{
+    display: none !important;
+}}
+/* Inject hamburger lines via ::before on the inner button */
+[data-testid="stSidebarCollapsedControl"] button::before,
+[data-testid="stSidebarCollapse"] button::before,
+[data-testid="collapsedControl"] button::before,
+[data-testid="stSidebarCollapseButton"] button::before {{
+    content: '' !important;
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+    background-color: {HAM_C} !important;
+    -webkit-mask-image: {ham_svg_url} !important;
+    mask-image: {ham_svg_url} !important;
+    -webkit-mask-repeat: no-repeat !important;
+    mask-repeat: no-repeat !important;
+    -webkit-mask-size: contain !important;
+    mask-size: contain !important;
+    -webkit-mask-position: center !important;
+    mask-position: center !important;
+    transition: opacity .15s ease !important;
+}}
+/* If there's no inner button (bare element), add ::before directly */
+[data-testid="stSidebarCollapsedControl"]::before,
+[data-testid="collapsedControl"]::before {{
+    content: '' !important;
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+    background-color: {HAM_C} !important;
+    -webkit-mask-image: {ham_svg_url} !important;
+    mask-image: {ham_svg_url} !important;
+    -webkit-mask-repeat: no-repeat !important;
+    mask-repeat: no-repeat !important;
+    -webkit-mask-size: contain !important;
+    mask-size: contain !important;
+    -webkit-mask-position: center !important;
+    mask-position: center !important;
+}}
 
-/* ════════════════════════════════════════════════
-   4. NAV BAR
-   ════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   3.  NAV BAR SHELL
+   ════════════════════════════════════════════════════════ */
 .rd-nav {{
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -377,16 +442,16 @@ footer {{ display: none !important; }}
     background: {NAV_BG};
     border-bottom: 1px solid {NAV_BDR};
     box-shadow: {NAV_SH};
-    backdrop-filter: blur(24px) saturate(1.5);
-    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    backdrop-filter: blur(28px) saturate(1.6);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
     z-index: 1500000;
-    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     box-sizing: border-box;
-    animation: rdSlideDown 0.55s cubic-bezier(0.16,1,0.3,1) both;
+    animation: rdSlideDown 0.50s cubic-bezier(0.16,1,0.3,1) both;
 }}
 @keyframes rdSlideDown {{
-    0%   {{ transform: translateY(-100%); opacity: 0; }}
-    100% {{ transform: translateY(0);     opacity: 1; }}
+    from {{ transform: translateY(-100%); opacity: 0; }}
+    to   {{ transform: translateY(0);     opacity: 1; }}
 }}
 
 /* ── Brand ── */
@@ -397,41 +462,40 @@ footer {{ display: none !important; }}
     flex-shrink: 0;
     text-decoration: none !important;
     cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 8px;
+    transition: background .18s ease;
 }}
-/* Logo — no constant animation; smooth hover only */
+.rd-brand:hover {{ background: {HOV_BG}; }}
 .rd-logo {{
     width: 24px; height: 24px;
     border-radius: 6px;
     display: inline-block;
     filter: drop-shadow(0 0 4px rgba(76,175,80,.35));
-    transition: transform 0.30s cubic-bezier(0.34,1.56,0.64,1),
-                filter  0.28s ease;
+    transition: transform .28s cubic-bezier(0.34,1.56,0.64,1),
+                filter  .25s ease;
 }}
 .rd-logo-emoji {{
     font-size: 22px;
     display: inline-block;
     filter: drop-shadow(0 0 4px rgba(76,175,80,.35));
-    transition: transform 0.30s cubic-bezier(0.34,1.56,0.64,1),
-                filter  0.28s ease;
+    transition: transform .28s cubic-bezier(0.34,1.56,0.64,1),
+                filter  .25s ease;
 }}
 .rd-brand:hover .rd-logo,
 .rd-brand:hover .rd-logo-emoji {{
-    transform: translateY(-3px) scale(1.10);
-    filter: drop-shadow(0 0 10px rgba(76,175,80,.75));
+    transform: translateY(-3px) scale(1.12);
+    filter: drop-shadow(0 0 10px rgba(76,175,80,.80));
 }}
-/* Name — plain color; subtle glow on hover only */
 .rd-name {{
     font-size: 14px;
     font-weight: 800;
     letter-spacing: -0.3px;
     color: {TXT};
-    transition: text-shadow 0.25s ease, color 0.25s ease;
+    transition: color .22s ease;
 }}
-.rd-brand:hover .rd-name {{
-    color: #7ec87f;
-    text-shadow: 0 0 12px rgba(76,175,80,.50);
-}}
-/* Dot — visible heartbeat: grows, glows, shrinks back */
+.rd-brand:hover .rd-name {{ color: #7ec87f; }}
+/* Heartbeat dot */
 .rd-dot {{
     width: 7px; height: 7px;
     border-radius: 50%;
@@ -443,19 +507,19 @@ footer {{ display: none !important; }}
 @keyframes dotPulse {{
     0%,100% {{
         transform: scale(1);
-        box-shadow: 0 0 6px 2px rgba(76,175,80,.60);
+        box-shadow: 0 0 5px 2px rgba(76,175,80,.55);
         opacity: 1;
     }}
     40% {{
-        transform: scale(1.75);
+        transform: scale(1.80);
         box-shadow: 0 0 12px 5px rgba(76,175,80,.80),
-                    0 0 22px 8px rgba(76,175,80,.30);
+                    0 0 24px 8px rgba(76,175,80,.28);
         opacity: 1;
     }}
     70% {{
         transform: scale(0.55);
-        box-shadow: 0 0 3px 1px rgba(76,175,80,.30);
-        opacity: 0.70;
+        box-shadow: 0 0 3px 1px rgba(76,175,80,.28);
+        opacity: 0.65;
     }}
 }}
 
@@ -474,31 +538,58 @@ footer {{ display: none !important; }}
     color: {MUTED} !important;
     padding: 6px 12px;
     border-radius: 9px;
-    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    transition: background .17s ease, color .17s ease, box-shadow .17s ease;
     cursor: pointer;
     white-space: nowrap;
     text-decoration: none !important;
     position: relative;
+    overflow: hidden;
 }}
+/* Animated underline on hover / active */
 .rd-link::after {{
     content: '';
     position: absolute;
-    bottom: 3px; left: 50%; transform: translateX(-50%);
-    width: 0; height: 2.5px;
-    background: {ACT_C};
-    border-radius: 2px;
-    transition: width 0.22s ease;
+    bottom: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, {ACT_C}, transparent);
+    border-radius: 1px;
+    transition: width .22s cubic-bezier(0.25,1,0.5,1);
 }}
-.rd-link:hover {{ background: {HOV_BG} !important; color: {TXT} !important; }}
+/* Ripple layer */
+.rd-link::before {{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--rx,50%) var(--ry,50%),
+                rgba(76,175,80,.25) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity .35s ease;
+    pointer-events: none;
+}}
+.rd-link:hover {{
+    background: {HOV_BG} !important;
+    color: {TXT} !important;
+}}
 .rd-link:hover::after {{ width: 55%; }}
+.rd-link:active::before {{ opacity: 1; }}
 .rd-link.nav-active {{
     background: {ACT_BG} !important;
     color: {ACT_C} !important;
     font-weight: 700 !important;
-    box-shadow: 0 0 14px rgba(76,175,80,0.28),
-                inset 0 0 10px rgba(76,175,80,0.08);
+    box-shadow: 0 0 16px rgba(76,175,80,.22),
+                inset 0 0 12px rgba(76,175,80,.07);
 }}
-.rd-link.nav-active::after {{ width: 65%; }}
+.rd-link.nav-active::after {{ width: 60%; }}
+
+/* Stagger-in animation for each link */
+.rd-link:nth-child(1) {{ animation: rdFadeUp .45s .08s cubic-bezier(0.16,1,0.3,1) both; }}
+.rd-link:nth-child(2) {{ animation: rdFadeUp .45s .16s cubic-bezier(0.16,1,0.3,1) both; }}
+.rd-link:nth-child(3) {{ animation: rdFadeUp .45s .24s cubic-bezier(0.16,1,0.3,1) both; }}
+@keyframes rdFadeUp {{
+    from {{ transform: translateY(6px); opacity: 0; }}
+    to   {{ transform: translateY(0);   opacity: 1; }}
+}}
 
 /* ── Right controls ── */
 .rd-right {{
@@ -506,6 +597,7 @@ footer {{ display: none !important; }}
     align-items: center;
     gap: 4px;
     flex-shrink: 0;
+    animation: rdFadeUp .45s .30s cubic-bezier(0.16,1,0.3,1) both;
 }}
 .rd-user {{
     font-size: 11px;
@@ -520,7 +612,6 @@ footer {{ display: none !important; }}
     text-overflow: ellipsis;
     white-space: nowrap;
 }}
-/* Dark mode and lang toggle buttons in nav */
 .rd-btn {{
     display: inline-flex;
     align-items: center;
@@ -532,23 +623,27 @@ footer {{ display: none !important; }}
     color: {MUTED} !important;
     padding: 4px 9px;
     border-radius: 8px;
-    transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.12s;
+    transition: background .17s ease, color .17s ease,
+                box-shadow .17s ease, transform .12s ease,
+                border-color .17s ease;
     text-decoration: none !important;
     white-space: nowrap;
     min-height: 28px;
     line-height: 1;
     font-family: inherit;
+    position: relative;
+    overflow: hidden;
 }}
 .rd-btn:hover {{
     background: {BTN_HOV} !important;
     color: {ACT_C} !important;
-    border-color: rgba(76,175,80,0.35) !important;
-    box-shadow: 0 0 8px rgba(76,175,80,0.20) !important;
+    border-color: rgba(76,175,80,.38) !important;
+    box-shadow: 0 0 10px rgba(76,175,80,.22) !important;
     transform: translateY(-1px);
 }}
 .rd-btn:active {{ transform: scale(0.93); }}
 
-/* ── Push content below nav ── */
+/* ── Push page content below nav ── */
 .main .block-container,
 section[data-testid="stMain"] .block-container {{
     padding-top: 68px !important;
@@ -556,67 +651,18 @@ section[data-testid="stMain"] .block-container {{
 
 /* ── Mobile ── */
 @media (max-width: 600px) {{
-    .rd-nav   {{ padding: 0 8px 0 56px !important; height: 48px; }}
-    .rd-name  {{ display: none !important; }}
-    .rd-dot   {{ display: none !important; }}
-    .rd-user  {{ display: none !important; }}
-    .rd-link  {{ font-size: 11px !important; padding: 5px 7px !important; }}
-    .rd-btn   {{ font-size: 11px !important; padding: 3px 7px !important; }}
+    .rd-nav  {{ padding: 0 8px 0 56px !important; height: 48px; }}
+    .rd-name {{ display: none !important; }}
+    .rd-dot  {{ display: none !important; }}
+    .rd-user {{ display: none !important; }}
+    .rd-link {{ font-size: 11px !important; padding: 5px 7px !important; }}
+    .rd-btn  {{ font-size: 11px !important; padding: 3px 7px !important; }}
 }}
 @media (max-width: 380px) {{
     .rd-link  {{ font-size: 10px !important; padding: 4px 5px !important; }}
     .rd-right {{ gap: 2px; }}
 }}
 </style>
-
-<script>
-/* ── Sidebar toggle ────────────────────────────────────────
-   In Streamlit 1.58 the ONLY reliable toggle is
-   [data-testid="stSidebarCollapseButton"].
-   This element is always in the DOM (inside the sidebar
-   section), whether the sidebar is open or collapsed.
-   JS .click() fires even when the element is off-screen,
-   so we don't need a fallback for display/visibility.
-   ────────────────────────────────────────────────────── */
-function rdToggleSidebar() {{
-    /* Primary: Streamlit 1.58 internal toggle button */
-    var targets = [
-        '[data-testid="stSidebarCollapseButton"]',
-        '[data-testid="stSidebarCollapseButton"] button',
-        /* legacy selectors for other Streamlit versions */
-        '[data-testid="stSidebarCollapsedControl"] button',
-        '[data-testid="stSidebarCollapse"] button',
-        '[data-testid="collapsedControl"] button',
-    ];
-    for (var i = 0; i < targets.length; i++) {{
-        var el = document.querySelector(targets[i]);
-        if (el) {{ el.click(); return; }}
-    }}
-    /* Last-resort: find any button inside the sidebar section */
-    var sb = document.querySelector('section[data-testid="stSidebar"]');
-    if (sb) {{
-        var btns = sb.querySelectorAll('button');
-        if (btns.length) {{ btns[0].click(); return; }}
-    }}
-    /* Ultimate fallback: directly show/hide sidebar via CSS */
-    var sbs = document.querySelector('section[data-testid="stSidebar"]');
-    if (sbs) {{
-        var rect = sbs.getBoundingClientRect();
-        var open = rect.left > -50;
-        sbs.style.cssText = open
-            ? 'transform:translateX(-110%) !important;'
-            : 'transform:none !important;display:flex !important;min-width:244px !important;';
-    }}
-}}
-</script>
-
-<button class="rd-ham" onclick="rdToggleSidebar()" aria-label="Toggle sidebar">
-  <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-    <rect y="3"  width="18" height="2" rx="1"/>
-    <rect y="8"  width="13" height="2" rx="1"/>
-    <rect y="13" width="18" height="2" rx="1"/>
-  </svg>
-</button>
 
 <div class="rd-nav">
   <a class="rd-brand" href="/" target="_self">
@@ -633,7 +679,7 @@ function rdToggleSidebar() {{
 
   <div class="rd-right">
     <span class="rd-user">👤 {user_name}</span>
-    <a class="rd-btn" href="?dark_mode=1" target="_self" title="Toggle dark/light mode">{dark_icon}</a>
+    <a class="rd-btn" href="?dark_mode=1" target="_self" title="Toggle dark/light">{dark_icon}</a>
     <a class="rd-btn" href="?lang=cycle"  target="_self" title="Cycle language">{lang_abbr}</a>
   </div>
 </div>
@@ -644,8 +690,5 @@ render_nav(_active)
 
 # ══════════════════════════════════════════════════════════
 #  RUN THE CURRENT PAGE
-#  st.navigation() updates the browser URL and tab title
-#  automatically — no st.switch_page() or query param
-#  tricks needed for navigation.
 # ══════════════════════════════════════════════════════════
 pg.run()
