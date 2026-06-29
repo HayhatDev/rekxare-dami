@@ -192,65 +192,505 @@ else:
 
 st.session_state.current_page = _active
 
-# ══════════════════════════════════════════════════════════
-#  SIDEBAR CONTENT
-#
-#  MUST run before render_nav().
-#  Without at least one st.sidebar call, Streamlit does NOT
-#  render section[data-testid="stSidebar"] in the DOM, so
-#  JS from the iframe component cannot find the element.
-# ══════════════════════════════════════════════════════════
-def render_sidebar():
-    is_dark    = st.session_state.get("dark_mode", True)
-    lang       = st.session_state.get("lang", "badini")
-    dark_icon  = "☀️" if is_dark else "🌙"
-    mode_label = t("light_mode") if is_dark else t("dark_mode")
-    lang_abbr  = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(lang, "EN")
-    user_name  = (st.user.name or st.user.email or "Student")[:24] if st.user.is_logged_in else "Student"
-    user_email = st.user.email if st.user.is_logged_in else ""
 
-    with st.sidebar:
-        st.markdown(f"""
-<div style="padding:14px 4px 2px;display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-  <div style="width:38px;height:38px;border-radius:50%;
-              background:linear-gradient(135deg,#388e3c,#66bb6a);
-              display:flex;align-items:center;justify-content:center;
-              font-size:18px;flex-shrink:0;">👤</div>
-  <div>
-    <div style="font-weight:700;font-size:14px;line-height:1.3;">{user_name}</div>
-    <div style="font-size:11px;opacity:0.55;word-break:break-all;">{user_email}</div>
+# ══════════════════════════════════════════════════════════
+#  SIDEBAR  (must run before render_nav so the DOM exists)
+# ══════════════════════════════════════════════════════════
+def render_sidebar(active: str = "home"):
+    is_dark = st.session_state.get("dark_mode", True)
+    lang    = st.session_state.get("lang", "badini")
+
+    # ── Palette ──────────────────────────────────────────
+    if is_dark:
+        SB_BG       = "#0e0c24"
+        PROF_BG     = "rgba(255,255,255,0.03)"
+        CARD_BG     = "rgba(255,255,255,0.055)"
+        CARD_BDR    = "rgba(255,255,255,0.09)"
+        ACT_BG      = "rgba(76,175,80,0.20)"
+        ACT_C       = "#7ec87f"
+        MUTED       = "rgba(255,255,255,0.42)"
+        TXT         = "#e8e8f0"
+        DIVIDER     = "rgba(255,255,255,0.07)"
+        STAT_BG     = "rgba(76,175,80,0.10)"
+        STAT_BDR    = "rgba(76,175,80,0.22)"
+        GOAL_TRACK  = "rgba(76,175,80,0.14)"
+        BTN_BG      = "rgba(255,255,255,0.06)"
+        BTN_BDR     = "rgba(255,255,255,0.11)"
+        NAV_HOV     = "rgba(255,255,255,0.06)"
+        NAV_BDR_HOV = "rgba(255,255,255,0.10)"
+        SIGN_BG     = "rgba(239,83,80,0.10)"
+        SIGN_BDR    = "rgba(239,83,80,0.24)"
+        SIGN_C      = "#ef9a9a"
+        SCHED_BG    = "rgba(33,150,243,0.10)"
+        SCHED_BDR   = "rgba(33,150,243,0.22)"
+        SCHED_C     = "#64b5f6"
+        ABOUT_BG    = "rgba(171,71,188,0.10)"
+        ABOUT_BDR   = "rgba(171,71,188,0.22)"
+        RING_EMPTY  = "rgba(76,175,80,0.18)"
+        RING_FILL   = "#4caf50"
+    else:
+        SB_BG       = "#f4f6fb"
+        PROF_BG     = "rgba(0,0,0,0.03)"
+        CARD_BG     = "#ffffff"
+        CARD_BDR    = "#dde4f0"
+        ACT_BG      = "rgba(46,125,50,0.12)"
+        ACT_C       = "#2e7d32"
+        MUTED       = "#6b7280"
+        TXT         = "#1a1a2e"
+        DIVIDER     = "#e2e8f5"
+        STAT_BG     = "rgba(76,175,80,0.07)"
+        STAT_BDR    = "rgba(76,175,80,0.18)"
+        GOAL_TRACK  = "rgba(76,175,80,0.12)"
+        BTN_BG      = "#edf0f7"
+        BTN_BDR     = "#c8d4e8"
+        NAV_HOV     = "rgba(0,0,0,0.05)"
+        NAV_BDR_HOV = "#dde4f0"
+        SIGN_BG     = "#ffebee"
+        SIGN_BDR    = "#ef9a9a"
+        SIGN_C      = "#c62828"
+        SCHED_BG    = "rgba(33,150,243,0.07)"
+        SCHED_BDR   = "rgba(33,150,243,0.18)"
+        SCHED_C     = "#1565c0"
+        ABOUT_BG    = "rgba(171,71,188,0.07)"
+        ABOUT_BDR   = "rgba(171,71,188,0.18)"
+        RING_EMPTY  = "rgba(76,175,80,0.15)"
+        RING_FILL   = "#388e3c"
+
+    # ── User info ────────────────────────────────────────
+    if st.user.is_logged_in:
+        user_name  = (st.user.name or st.user.email or t("student"))[:24]
+        user_email = st.user.email or ""
+    else:
+        user_name  = t("student")
+        user_email = ""
+    initials = next((c for c in user_name if c.isalpha()), "S").upper()
+
+    # ── Study stats (safe defaults for first load) ────────
+    total_s      = st.session_state.get("total_study_seconds", 0)
+    sessions     = st.session_state.get("completed_sessions", 0)
+    streak       = st.session_state.get("streak", 0)
+    daily_s      = st.session_state.get("daily_seconds", 0)
+    daily_goal_s = st.session_state.get("daily_goal_seconds", 7200)
+    daily_pct    = min(100, int(daily_s / max(1, daily_goal_s) * 100))
+    total_h      = total_s // 3600
+    total_m      = (total_s % 3600) // 60
+    daily_min    = daily_s // 60
+    goal_min     = daily_goal_s // 60
+
+    if total_h > 0:
+        time_str = f"{total_h}h {total_m}m"
+    elif total_m > 0:
+        time_str = f"{total_m}m"
+    else:
+        time_str = "—"
+
+    # ── Schedule stats ────────────────────────────────────
+    schedule       = st.session_state.get("schedule", {})
+    today_map      = {6:"sun",0:"mon",1:"tue",2:"wed",3:"thu",4:"fri",5:"sat"}
+    today_key_sb   = today_map[datetime.now().weekday()]
+    today_entries  = [e for e in schedule.get(today_key_sb, []) if e.get("task","").strip()]
+    today_done     = sum(1 for e in today_entries if e.get("done", False))
+    today_total    = len(today_entries)
+    sched_pct      = int(today_done / max(1, today_total) * 100) if today_total else 0
+    # SVG ring math: circumference = 2π×15 ≈ 94.25
+    ring_dash      = round(sched_pct * 0.9425, 1)
+
+    # ── Toggle labels ─────────────────────────────────────
+    dark_icon = "☀️" if is_dark else "🌙"
+    mode_lbl  = {"badini": "روناهی" if is_dark else "شەڤ",
+                 "english": "Light" if is_dark else "Dark",
+                 "arabic":  "نهار"  if is_dark else "ليل"}.get(lang, "Light" if is_dark else "Dark")
+    toggle_lbl = f"{dark_icon} {mode_lbl}"
+
+    # ── Page-specific card HTML ──────────────────────────
+    if active == "home":
+        page_card = f"""
+<div class="sb-sec-label">📊 {t('sidebar_title')}</div>
+<div class="sb-stats-row">
+  <div class="sb-stat">
+    <div class="sb-stat-val">{time_str}</div>
+    <div class="sb-stat-lbl">⏱️ {t('hours_unit')}</div>
+  </div>
+  <div class="sb-stat">
+    <div class="sb-stat-val">{sessions}</div>
+    <div class="sb-stat-lbl">✅ {t('stat_sessions')}</div>
+  </div>
+  <div class="sb-stat">
+    <div class="sb-stat-val">{streak}</div>
+    <div class="sb-stat-lbl">🔥 {t('streak_days')}</div>
   </div>
 </div>
-""", unsafe_allow_html=True)
-        st.divider()
+<div class="sb-goal-wrap">
+  <div class="sb-goal-hdr">
+    <span class="sb-goal-lbl">🎯 {t('daily_goal')}</span>
+    <span class="sb-goal-pct" style="color:{ACT_C}!important">{daily_pct}%</span>
+  </div>
+  <div class="sb-track">
+    <div class="sb-fill" style="width:{daily_pct}%;background:linear-gradient(90deg,#388e3c,#81c784)"></div>
+  </div>
+  <div class="sb-goal-sub">{daily_min}m / {goal_min}m</div>
+</div>"""
 
+    elif active == "schedule":
+        task_label = t("week_tasks")
+        page_card = f"""
+<div class="sb-sec-label">📅 {t('nav_schedule')}</div>
+<div class="sb-sched-card" style="background:{SCHED_BG};border-color:{SCHED_BDR}">
+  <div class="sb-sched-row">
+    <div class="sb-sched-left">
+      <div class="sb-sched-count" style="color:{SCHED_C}!important">{today_done}<span class="sb-sched-of">/{today_total}</span></div>
+      <div class="sb-sched-lbl">{task_label} {t('today_badge')}</div>
+    </div>
+    <svg class="sb-ring-svg" viewBox="0 0 36 36" width="52" height="52">
+      <circle cx="18" cy="18" r="15" fill="none" stroke="{RING_EMPTY}" stroke-width="3.5"/>
+      <circle cx="18" cy="18" r="15" fill="none" stroke="{RING_FILL}" stroke-width="3.5"
+        stroke-dasharray="{ring_dash} 94.25" stroke-dashoffset="23.5"
+        stroke-linecap="round"/>
+      <text x="18" y="21.5" text-anchor="middle"
+        font-size="8.5" font-weight="800" fill="{RING_FILL}">{sched_pct}%</text>
+    </svg>
+  </div>
+  <div class="sb-track" style="margin-top:10px">
+    <div class="sb-fill" style="width:{sched_pct}%;background:linear-gradient(90deg,#1565c0,#64b5f6)"></div>
+  </div>
+</div>"""
+
+    else:  # about
+        pages_lbl = t("stat_pages")
+        langs_lbl = t("stat_languages")
+        page_card = f"""
+<div class="sb-sec-label">✨ {t('nav_about')}</div>
+<div class="sb-about-card" style="background:{ABOUT_BG};border-color:{ABOUT_BDR}">
+  <div class="sb-about-icon">📚</div>
+  <div>
+    <div class="sb-about-name" style="color:{TXT}!important">Rekxare Dami</div>
+    <div class="sb-about-meta" style="color:{MUTED}!important">v1.0 · 3 {pages_lbl} · 3 {langs_lbl}</div>
+  </div>
+</div>
+<div class="sb-made" style="color:{MUTED}!important">{t('made_with')}</div>"""
+
+    # ── Streak badge visibility ───────────────────────────
+    streak_vis = "flex" if streak > 0 else "none"
+
+    with st.sidebar:
+        # ── Master CSS + Profile HTML ─────────────────────
+        st.markdown(f"""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Sidebar reset ── */
+section[data-testid="stSidebar"] {{
+    font-family:'Inter',system-ui,sans-serif!important;
+}}
+section[data-testid="stSidebar"] > div:first-child {{
+    padding:0!important;
+}}
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{
+    gap:0!important;padding:0!important;
+}}
+
+/* ── Keyframes ── */
+@keyframes sbDown {{
+    from {{ transform:translateY(-10px);opacity:0; }}
+    to   {{ transform:translateY(0);    opacity:1; }}
+}}
+@keyframes sbUp {{
+    from {{ transform:translateY(8px);opacity:0; }}
+    to   {{ transform:translateY(0);   opacity:1; }}
+}}
+@keyframes avatarPulse {{
+    0%,100% {{ box-shadow:0 4px 14px rgba(76,175,80,.35); }}
+    50%      {{ box-shadow:0 4px 22px rgba(76,175,80,.65); }}
+}}
+@keyframes floatIcon {{
+    0%,100% {{ transform:translateY(0); }}
+    50%      {{ transform:translateY(-5px); }}
+}}
+
+/* ── Profile header ── */
+.sb-profile {{
+    padding:18px 14px 14px;
+    display:flex;align-items:center;gap:11px;
+    background:{PROF_BG};
+    border-bottom:1px solid {DIVIDER};
+    animation:sbDown .38s cubic-bezier(0.16,1,0.3,1) both;
+}}
+.sb-avatar {{
+    width:46px;height:46px;border-radius:14px;flex-shrink:0;
+    background:linear-gradient(135deg,#2e7d32,#66bb6a);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;font-weight:900;color:#fff!important;
+    animation:avatarPulse 3s ease-in-out infinite;
+    letter-spacing:0;
+}}
+.sb-prof-info {{ min-width:0;flex:1; }}
+.sb-prof-name {{
+    font-size:14px;font-weight:800;
+    color:{TXT}!important;line-height:1.25;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}}
+.sb-prof-email {{
+    font-size:10.5px;color:{MUTED}!important;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    margin-top:2px;
+}}
+.sb-streak-badge {{
+    flex-shrink:0;margin-left:2px;
+    display:{streak_vis};align-items:center;gap:3px;
+    background:rgba(255,152,0,0.14);
+    border:1px solid rgba(255,152,0,0.28);
+    border-radius:10px;padding:4px 7px;
+    font-size:11.5px;font-weight:800;
+    color:#ffb74d!important;white-space:nowrap;
+    animation:sbDown .38s .06s cubic-bezier(0.16,1,0.3,1) both;
+}}
+
+/* ── Section label ── */
+.sb-sec-label {{
+    font-size:10px;font-weight:800;letter-spacing:1.3px;
+    text-transform:uppercase;color:{MUTED}!important;
+    padding:14px 14px 6px;
+    animation:sbUp .38s cubic-bezier(0.16,1,0.3,1) both;
+}}
+
+/* ── Stats row (Home) ── */
+.sb-stats-row {{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:7px;padding:0 10px 10px;
+    animation:sbUp .38s .05s cubic-bezier(0.16,1,0.3,1) both;
+}}
+.sb-stat {{
+    background:{STAT_BG};border:1px solid {STAT_BDR};
+    border-radius:12px;padding:10px 6px;text-align:center;
+    transition:transform .15s ease;
+}}
+.sb-stat:hover {{ transform:translateY(-2px); }}
+.sb-stat-val {{
+    font-size:15px;font-weight:900;line-height:1.1;
+    color:{ACT_C}!important;
+}}
+.sb-stat-lbl {{
+    font-size:9px;font-weight:700;color:{MUTED}!important;
+    text-transform:uppercase;letter-spacing:.4px;margin-top:3px;
+}}
+
+/* ── Daily goal bar (Home) ── */
+.sb-goal-wrap {{
+    padding:0 10px 12px;
+    animation:sbUp .38s .09s cubic-bezier(0.16,1,0.3,1) both;
+}}
+.sb-goal-hdr {{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;
+}}
+.sb-goal-lbl {{ font-size:11px;font-weight:700;color:{TXT}!important; }}
+.sb-goal-pct {{ font-size:12px;font-weight:800; }}
+.sb-track {{
+    height:6px;background:{GOAL_TRACK};
+    border-radius:6px;overflow:hidden;
+}}
+.sb-fill {{
+    height:100%;border-radius:6px;
+    transition:width .7s cubic-bezier(0.34,1.56,0.64,1);
+}}
+.sb-goal-sub {{
+    font-size:10px;font-weight:600;color:{MUTED}!important;
+    margin-top:4px;text-align:right;
+}}
+
+/* ── Schedule card ── */
+.sb-sched-card {{
+    margin:0 10px 12px;border:1px solid;
+    border-radius:14px;padding:12px 14px;
+    animation:sbUp .38s .05s cubic-bezier(0.16,1,0.3,1) both;
+}}
+.sb-sched-row {{ display:flex;align-items:center;justify-content:space-between; }}
+.sb-sched-count {{
+    font-size:26px;font-weight:900;line-height:1;
+}}
+.sb-sched-of {{
+    font-size:16px;font-weight:600;color:{MUTED}!important;
+}}
+.sb-sched-lbl {{
+    font-size:10px;font-weight:700;color:{MUTED}!important;
+    text-transform:uppercase;letter-spacing:.5px;margin-top:3px;
+}}
+.sb-ring-svg {{ flex-shrink:0; }}
+
+/* ── About card ── */
+.sb-about-card {{
+    margin:0 10px 8px;border:1px solid;
+    border-radius:14px;padding:12px 14px;
+    display:flex;align-items:center;gap:12px;
+    animation:sbUp .38s .05s cubic-bezier(0.16,1,0.3,1) both;
+}}
+.sb-about-icon {{
+    font-size:28px;
+    animation:floatIcon 3s ease-in-out infinite;
+}}
+.sb-about-name {{ font-size:14px;font-weight:800; }}
+.sb-about-meta {{ font-size:10px;font-weight:600;margin-top:2px; }}
+.sb-made {{
+    font-size:10.5px;font-weight:600;text-align:center;
+    padding:0 14px 12px;
+    animation:sbUp .38s .08s cubic-bezier(0.16,1,0.3,1) both;
+}}
+
+/* ── Divider ── */
+.sb-hr {{
+    height:1px;background:{DIVIDER};
+    margin:2px 10px 6px;
+}}
+
+/* ── Navigation: override Streamlit page_link ── */
+section[data-testid="stSidebar"] [data-testid="stPageLink"] {{
+    margin:0 6px!important;
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a {{
+    display:flex!important;align-items:center!important;
+    gap:9px!important;
+    padding:9px 12px!important;
+    border-radius:11px!important;
+    font-size:13.5px!important;font-weight:600!important;
+    color:{MUTED}!important;
+    text-decoration:none!important;
+    border:1px solid transparent!important;
+    transition:background .17s ease,color .17s ease,
+               padding-left .17s ease,border-color .17s ease!important;
+    margin-bottom:2px!important;
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a:hover {{
+    background:{NAV_HOV}!important;
+    color:{TXT}!important;
+    padding-left:16px!important;
+    border-color:{NAV_BDR_HOV}!important;
+}}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-current="page"] {{
+    background:{ACT_BG}!important;
+    color:{ACT_C}!important;font-weight:700!important;
+    border-color:rgba(76,175,80,0.28)!important;
+    box-shadow:0 2px 12px rgba(76,175,80,0.13)!important;
+    padding-left:14px!important;
+}}
+
+/* ── All sidebar Streamlit buttons ── */
+section[data-testid="stSidebar"] .stButton>button {{
+    font-family:'Inter',system-ui,sans-serif!important;
+    border-radius:10px!important;
+    font-size:12.5px!important;font-weight:700!important;
+    min-height:34px!important;
+    padding:4px 8px!important;
+    border:1.5px solid {BTN_BDR}!important;
+    background:{BTN_BG}!important;
+    color:{TXT}!important;
+    transition:all .16s ease!important;
+    width:100%!important;
+}}
+section[data-testid="stSidebar"] .stButton>button:hover {{
+    transform:translateY(-1px)!important;
+    box-shadow:0 3px 10px rgba(0,0,0,0.12)!important;
+    border-color:rgba(76,175,80,0.35)!important;
+    color:{ACT_C}!important;
+}}
+/* Primary (active lang) */
+section[data-testid="stSidebar"] .stButton>button[kind="primaryFormSubmit"],
+section[data-testid="stSidebar"] .stButton>button[kind="primary"] {{
+    background:{ACT_BG}!important;
+    border-color:rgba(76,175,80,0.38)!important;
+    color:{ACT_C}!important;
+    box-shadow:0 0 0 2px rgba(76,175,80,0.12)!important;
+}}
+/* Sign-out button */
+section[data-testid="stSidebar"] [data-testid="sb_logout_btn"]>button {{
+    background:{SIGN_BG}!important;
+    border-color:{SIGN_BDR}!important;
+    color:{SIGN_C}!important;
+}}
+section[data-testid="stSidebar"] [data-testid="sb_logout_btn"]>button:hover {{
+    background:rgba(239,83,80,0.18)!important;
+    color:{SIGN_C}!important;
+}}
+
+/* ── Caption text ── */
+section[data-testid="stSidebar"] .stCaption p {{
+    font-size:9.5px!important;font-weight:800!important;
+    letter-spacing:1.1px!important;text-transform:uppercase!important;
+    color:{MUTED}!important;padding:10px 4px 2px!important;margin:0!important;
+}}
+
+/* ── Dividers ── */
+section[data-testid="stSidebar"] [data-testid="stDivider"] {{
+    margin:4px 0!important;border-color:{DIVIDER}!important;
+}}
+
+/* ── Columns: tighten gap ── */
+section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {{
+    gap:5px!important;padding:0 10px!important;
+}}
+
+/* ── Scroll padding ── */
+section[data-testid="stSidebar"] > div:first-child > div:first-child {{
+    padding-bottom:24px!important;
+}}
+</style>
+
+<!-- ── Profile header ── -->
+<div class="sb-profile">
+  <div class="sb-avatar">{initials}</div>
+  <div class="sb-prof-info">
+    <div class="sb-prof-name">{user_name}</div>
+    <div class="sb-prof-email">{user_email or "—"}</div>
+  </div>
+  <div class="sb-streak-badge">🔥&nbsp;{streak}</div>
+</div>
+
+<!-- ── Page-specific content ── -->
+{page_card}
+
+<div class="sb-hr"></div>
+""", unsafe_allow_html=True)
+
+        # ── Navigation ────────────────────────────────────
+        st.caption("📍 MENU")
         st.page_link("Home.py",              label=f"⏱️  {t('nav_timer')}")
         st.page_link("pages/01_Schedule.py", label=f"📅  {t('nav_schedule')}")
         st.page_link("pages/02_About.py",    label=f"✨  {t('nav_about')}")
-        st.divider()
 
-        st.caption("⚙️ Settings")
-        c1, c2 = st.columns(2)
+        st.markdown('<div class="sb-hr" style="margin-top:6px"></div>', unsafe_allow_html=True)
+
+        # ── Settings ──────────────────────────────────────
+        st.caption(f"⚙️ {t('settings')}")
+
+        # Language pills — active one gets "primary" type
+        c1, c2, c3 = st.columns(3)
         with c1:
-            if st.button(f"{dark_icon} {mode_label}", key="sb_dark_btn", use_container_width=True):
-                st.session_state.dark_mode = not is_dark
-                save_preferences()
-                st.rerun()
+            if st.button("بادینی", type="primary" if lang == "badini" else "secondary",
+                         key="sb_ba", use_container_width=True):
+                st.session_state.lang = "badini"
+                save_preferences(); st.rerun()
         with c2:
-            if st.button(f"🌐 {lang_abbr}", key="sb_lang_btn", use_container_width=True):
-                order = ["badini", "english", "arabic"]
-                st.session_state.lang = order[(order.index(lang) + 1) % 3]
-                save_preferences()
-                st.rerun()
+            if st.button("English", type="primary" if lang == "english" else "secondary",
+                         key="sb_en", use_container_width=True):
+                st.session_state.lang = "english"
+                save_preferences(); st.rerun()
+        with c3:
+            if st.button("عربية", type="primary" if lang == "arabic" else "secondary",
+                         key="sb_ar", use_container_width=True):
+                st.session_state.lang = "arabic"
+                save_preferences(); st.rerun()
 
-        st.divider()
-        _, c2 = st.columns(2)
-        with c2:
-            st.button("🔓 Sign out", key="sb_logout_btn",
-                      on_click=st.logout, use_container_width=True)
+        # Dark / Light toggle
+        if st.button(toggle_lbl, key="sb_dark_btn", use_container_width=True):
+            st.session_state.dark_mode = not is_dark
+            save_preferences(); st.rerun()
+
+        st.markdown('<div class="sb-hr" style="margin-top:8px"></div>', unsafe_allow_html=True)
+
+        # ── Sign out ──────────────────────────────────────
+        st.button("🔓 " + t("logout"), key="sb_logout_btn",
+                  use_container_width=True, on_click=st.logout)
 
 
-render_sidebar()
+render_sidebar(_active)
 
 
 # ══════════════════════════════════════════════════════════
@@ -261,9 +701,9 @@ def render_nav(active: str):
     lang      = st.session_state.get("lang", "badini")
     dark_icon = "☀️" if is_dark else "🌙"
     lang_abbr = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(lang, "EN")
-    user_name = "Student"
+    user_name = t("student")
     if st.user.is_logged_in:
-        user_name = (st.user.name or st.user.email or "Student")[:20]
+        user_name = (st.user.name or st.user.email or t("student"))[:20]
 
     try:
         with open("logo.png", "rb") as f:
@@ -289,8 +729,6 @@ def render_nav(active: str):
         BTN_BG   = "rgba(255,255,255,0.06)"
         BTN_BDR  = "rgba(255,255,255,0.10)"
         BTN_HOV  = "rgba(76,175,80,0.20)"
-        SB_BG    = "#0e0c24"
-        SB_BDR   = "rgba(255,255,255,0.07)"
     else:
         NAV_BG   = "rgba(255,255,255,0.97)"
         NAV_BDR  = "rgba(0,0,0,0.08)"
@@ -308,8 +746,6 @@ def render_nav(active: str):
         BTN_BG   = "rgba(0,0,0,0.05)"
         BTN_BDR  = "rgba(0,0,0,0.09)"
         BTN_HOV  = "rgba(76,175,80,0.12)"
-        SB_BG    = "#f4f6f8"
-        SB_BDR   = "rgba(0,0,0,0.07)"
 
     ha = " nav-active" if active == "home"     else ""
     sa = " nav-active" if active == "schedule" else ""
@@ -320,7 +756,6 @@ def render_nav(active: str):
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* ── 1. Strip Streamlit header ── */
 header[data-testid="stHeader"] {{
     height:0!important;min-height:0!important;
     overflow:visible!important;background:transparent!important;
@@ -329,59 +764,19 @@ header[data-testid="stHeader"] {{
 [data-testid="stToolbar"],[data-testid="stDecoration"],
 [data-testid="stStatusWidget"],#MainMenu,footer{{display:none!important;}}
 
-/* ── 2. All native sidebar toggle buttons — moved off-screen.
-   MUST NOT be display:none — the iframe JS needs them in the DOM.
-   pointer-events:auto keeps them JS-clickable even off-screen. ── */
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="collapsedControl"],
 [data-testid="stSidebarCollapse"],
 [data-testid="stSidebarCollapseButton"] {{
-    position:fixed!important;
-    top:-9999px!important;left:-9999px!important;
+    position:fixed!important;top:-9999px!important;left:-9999px!important;
     width:1px!important;height:1px!important;
-    opacity:0!important;pointer-events:auto!important;
-    overflow:hidden!important;
+    opacity:0!important;pointer-events:auto!important;overflow:hidden!important;
 }}
 
-/* ── 3. Sidebar panel ── */
-section[data-testid="stSidebar"] {{
-    background:{SB_BG}!important;
-    border-right:1px solid {SB_BDR}!important;
-    box-shadow:4px 0 24px rgba(0,0,0,.18)!important;
-    transition:transform .28s cubic-bezier(0.4,0,0.2,1)!important;
-    z-index:1100000!important;
-}}
-section[data-testid="stSidebar"] [data-testid="stPageLink"] a {{
-    font-size:14px!important;font-weight:500!important;
-    padding:8px 12px!important;border-radius:8px!important;
-    display:block!important;text-decoration:none!important;
-    transition:background .15s,color .15s!important;margin-bottom:2px!important;
-}}
-section[data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-current="page"] {{
-    background:{ACT_BG}!important;color:{ACT_C}!important;font-weight:700!important;
-}}
-
-/* ── 4. CSS-class sidebar override  (backup for JS approach)
-   When JS sets body.rd-sb-open the sidebar shows regardless of
-   what Streamlit's own React state says. ── */
-body.rd-sb-open section[data-testid="stSidebar"] {{
-    transform:translateX(0)!important;
-    visibility:visible!important;
-    display:flex!important;
-    min-width:244px!important;width:244px!important;
-}}
-/* Default hidden state when body class is absent */
-body:not(.rd-sb-open) section[data-testid="stSidebar"] {{
-    transform:translateX(-110%)!important;
-}}
-
-/* ── 5. Hamburger button ── */
 #rd-ham {{
     position:fixed!important;top:8px!important;left:10px!important;
-    z-index:2200000!important;
-    width:36px!important;height:36px!important;
-    background:{HAM_BG}!important;
-    border:1.5px solid {HAM_BDR}!important;
+    z-index:2200000!important;width:36px!important;height:36px!important;
+    background:{HAM_BG}!important;border:1.5px solid {HAM_BDR}!important;
     border-radius:10px!important;cursor:pointer!important;
     display:flex!important;align-items:center!important;justify-content:center!important;
     box-shadow:0 2px 12px rgba(0,0,0,.22)!important;
@@ -390,15 +785,12 @@ body:not(.rd-sb-open) section[data-testid="stSidebar"] {{
     padding:0!important;margin:0!important;
 }}
 #rd-ham:hover {{
-    background:rgba(76,175,80,.28)!important;
-    border-color:rgba(76,175,80,.65)!important;
-    box-shadow:0 0 16px rgba(76,175,80,.38)!important;
-    transform:scale(1.07)!important;
+    background:rgba(76,175,80,.28)!important;border-color:rgba(76,175,80,.65)!important;
+    box-shadow:0 0 16px rgba(76,175,80,.38)!important;transform:scale(1.07)!important;
 }}
 #rd-ham:active{{transform:scale(0.91)!important;}}
 #rd-ham svg{{pointer-events:none;}}
 
-/* ── 6. Nav bar ── */
 .rd-nav {{
     position:fixed;top:0;left:0;right:0;height:52px;
     display:flex;align-items:center;justify-content:space-between;
@@ -428,8 +820,7 @@ body:not(.rd-sb-open) section[data-testid="stSidebar"] {{
     filter:drop-shadow(0 0 10px rgba(76,175,80,.80));
 }}
 .rd-name {{
-    font-size:14px;font-weight:800;letter-spacing:-0.3px;color:{TXT};
-    transition:color .22s;
+    font-size:14px;font-weight:800;letter-spacing:-0.3px;color:{TXT};transition:color .22s;
 }}
 .rd-brand:hover .rd-name{{color:{ACT_C};}}
 .rd-dot {{
@@ -440,7 +831,7 @@ body:not(.rd-sb-open) section[data-testid="stSidebar"] {{
 @keyframes dotBreath {{
     0%,100%{{transform:scale(1);   box-shadow:0 0 4px 1px rgba(76,175,80,.50);opacity:.9;}}
     40%     {{transform:scale(1.8); box-shadow:0 0 12px 5px rgba(76,175,80,.80),0 0 20px 7px rgba(76,175,80,.25);opacity:1;}}
-    70%     {{transform:scale(0.55);box-shadow:0 0 2px 0px rgba(76,175,80,.25);opacity:.65;}}
+    70%     {{transform:scale(0.55);box-shadow:0 0 2px 0 rgba(76,175,80,.25);opacity:.65;}}
 }}
 .rd-links {{
     display:flex;align-items:center;gap:2px;
@@ -508,8 +899,6 @@ section[data-testid="stMain"] .block-container{{padding-top:68px!important;}}
 }}
 </style>
 
-<!-- Hamburger — NO inline onclick (Streamlit CSP blocks inline handlers).
-     The click is wired via addEventListener inside the iframe component below. -->
 <button id="rd-ham" aria-label="Toggle sidebar" title="Open menu">
   <svg width="18" height="18" viewBox="0 0 18 18" fill="{HAM_C}" xmlns="http://www.w3.org/2000/svg">
     <rect y="3"  width="18" height="2" rx="1"/>
@@ -542,80 +931,33 @@ render_nav(_active)
 
 
 # ══════════════════════════════════════════════════════════
-#  SIDEBAR TOGGLE — iframe component (bypasses page CSP)
-#
-#  WHY THIS WORKS
-#  ─────────────────────────────────────────────────────────
-#  Streamlit's Content Security Policy blocks ALL inline
-#  JavaScript on the main page (onclick=, onload=, and
-#  even <script> tags injected via st.markdown).
-#
-#  st.components.v1.html() runs inside a sandboxed iframe
-#  served from the SAME origin as the main Streamlit page.
-#  Same-origin iframes can access window.parent.document
-#  freely, so we can:
-#    • find #rd-ham in the parent DOM
-#    • attach a real click listener (addEventListener)
-#    • toggle body.rd-sb-open on the parent document
-#    • directly set inline styles on the sidebar element
-#
-#  Two-track toggle:
-#   Track A — CSS body class:
-#     body.rd-sb-open overrides Streamlit's sidebar CSS
-#     with !important, making the sidebar visible even if
-#     React's isCollapsed state says closed.
-#   Track B — inline style with setProperty(...,'important'):
-#     Inline !important beats stylesheet rules, so even if
-#     Streamlit applies a CSS class to hide the sidebar,
-#     our inline override wins.
-#
-#  State persistence:
-#   localStorage key 'rdSB' (1 = open, 0 = closed) survives
-#   Streamlit reruns and dark-mode changes.  A setInterval
-#   re-applies the open state after any rerun that rebuilds
-#   the sidebar DOM element.
+#  SIDEBAR TOGGLE — iframe JS (bypasses main-page CSP)
 # ══════════════════════════════════════════════════════════
 components.html("""
 <script>
 (function() {
-  var LS_KEY = 'rdSB';
-  var p = window.parent.document;
+  var LS  = 'rdSB';
+  var p   = window.parent.document;
 
-  /* ── helpers ── */
-  function getSidebar() {
-    return p.querySelector('section[data-testid="stSidebar"]');
-  }
+  function getSB()    { return p.querySelector('section[data-testid="stSidebar"]'); }
+  function wantOpen() { try { return window.parent.localStorage.getItem(LS)==='1'; } catch(e){return false;} }
+  function setWant(v) { try { window.parent.localStorage.setItem(LS, v?'1':'0'); } catch(e){} }
 
-  function wantOpen() {
-    try { return window.parent.localStorage.getItem(LS_KEY) === '1'; } catch(e) { return false; }
-  }
-
-  function setWant(v) {
-    try { window.parent.localStorage.setItem(LS_KEY, v ? '1' : '0'); } catch(e) {}
-  }
-
-  /* ── open sidebar (Track A + B) ── */
-  function openSidebar() {
+  function openSB() {
     setWant(true);
-    // Track A — CSS body class
     p.body.classList.add('rd-sb-open');
-    // Track B — inline !important overrides Streamlit's CSS class
-    var sb = getSidebar();
+    var sb = getSB();
     if (sb) {
-      sb.style.setProperty('transform',  'translateX(0)',  'important');
-      sb.style.setProperty('visibility', 'visible',        'important');
-      sb.style.setProperty('display',    'flex',           'important');
-      sb.style.setProperty('min-width',  '244px',          'important');
+      sb.style.setProperty('transform',  'translateX(0)', 'important');
+      sb.style.setProperty('visibility', 'visible',       'important');
+      sb.style.setProperty('display',    'flex',          'important');
+      sb.style.setProperty('min-width',  '244px',         'important');
     }
   }
-
-  /* ── close sidebar ── */
-  function closeSidebar() {
+  function closeSB() {
     setWant(false);
-    // Track A — remove CSS class so Streamlit's own CSS hides it
     p.body.classList.remove('rd-sb-open');
-    // Track B — remove our inline overrides so Streamlit's rules apply
-    var sb = getSidebar();
+    var sb = getSB();
     if (sb) {
       sb.style.removeProperty('transform');
       sb.style.removeProperty('visibility');
@@ -623,49 +965,27 @@ components.html("""
       sb.style.removeProperty('min-width');
     }
   }
-
-  /* ── is sidebar currently open? ── */
   function isOpen() {
-    var sb = getSidebar();
-    if (!sb) return false;
-    var rect = sb.getBoundingClientRect();
-    return rect.left > -50 && rect.width > 50;
+    var sb = getSB(); if (!sb) return false;
+    var r = sb.getBoundingClientRect();
+    return r.left > -50 && r.width > 50;
   }
 
-  /* ── toggle ── */
-  function toggle() {
-    if (isOpen()) { closeSidebar(); } else { openSidebar(); }
-  }
-
-  /* ── wire hamburger ── */
   function wireHam() {
-    var ham = p.getElementById('rd-ham');
-    if (!ham) { setTimeout(wireHam, 120); return; }
-    if (ham.__rdWired) return;
-    ham.__rdWired = true;
-    ham.addEventListener('click', toggle);
+    var h = p.getElementById('rd-ham');
+    if (!h) { setTimeout(wireHam, 120); return; }
+    if (h.__rdWired) return;
+    h.__rdWired = true;
+    h.addEventListener('click', function(){ isOpen() ? closeSB() : openSB(); });
   }
 
-  /* ── restore state on reruns (sidebar DOM rebuilds) ── */
-  setInterval(function() {
+  /* Re-apply open state after Streamlit reruns rebuild the DOM */
+  setInterval(function(){
     if (!wantOpen()) return;
-    if (!isOpen()) {
-      // Streamlit rebuilt/collapsed the sidebar after a rerun — reopen it
-      p.body.classList.add('rd-sb-open');
-      var sb = getSidebar();
-      if (sb) {
-        sb.style.setProperty('transform',  'translateX(0)', 'important');
-        sb.style.setProperty('visibility', 'visible',       'important');
-        sb.style.setProperty('display',    'flex',          'important');
-        sb.style.setProperty('min-width',  '244px',         'important');
-      }
-    }
+    if (!isOpen()) { openSB(); }
   }, 300);
 
-  /* ── restore on iframe reload (dark-mode / lang change) ── */
-  if (wantOpen()) { openSidebar(); }
-
-  /* ── start wiring ── */
+  if (wantOpen()) openSB();
   wireHam();
   setTimeout(wireHam, 300);
   setTimeout(wireHam, 800);
@@ -675,6 +995,6 @@ components.html("""
 
 
 # ══════════════════════════════════════════════════════════
-#  RUN THE CURRENT PAGE
+#  RUN PAGE
 # ══════════════════════════════════════════════════════════
 pg.run()
