@@ -57,7 +57,7 @@ def load_preferences():
 # ══════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="Rekxare Dami",
-    page_icon="📚",
+    page_icon="logo.png",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
@@ -127,7 +127,7 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
 .lf{{font-size:12px;color:rgba(255,255,255,.30);text-align:center;margin-top:24px;}}
 </style>
 <div class="lw">
-  <div class="ll">logo.png</div>
+  <div class="ll"><img src="https://raw.githubusercontent.com/HayhatDev/rekxare-dami/refs/heads/main/logo.png" alt="📚"></div>
   <div class="lt">Rekxare Dami</div>
   <div class="ls">{t('login_sub')}</div>
   <div class="lb">✨ {t('login_badge')}</div>
