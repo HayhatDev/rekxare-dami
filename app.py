@@ -389,6 +389,12 @@ def render_sidebar():
             text-align: center;
             flex-shrink: 0;
         }}
+        .sb-settings .stDownloadButton button {{
+            font-size: 10px !important;
+            padding: 4px 6px !important;
+            min-height: 28px !important;
+            white-space: nowrap !important;
+        }}
 
         .sb-stats-grid {{
             display: grid;
@@ -687,7 +693,8 @@ def render_sidebar():
 
             st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-            # ─── Export data – with emojis ───
+            
+            # ─── Export data 
             with st.expander(t("export_data"), expanded=False):
                 def json_serial(obj):
                     if isinstance(obj, datetime):
@@ -741,26 +748,26 @@ def render_sidebar():
                     csv_lines.append("No history,,")
                 csv_data = "\n".join(csv_lines)
 
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.download_button(
-                        label="📄 JSON",
-                        data=json_str,
-                        file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
-                        mime="application/json",
-                        key="export_json_btn",
-                        use_container_width=True
-                    )
-                with col2:
-                    st.download_button(
-                        label="📊 CSV",
-                        data=csv_data,
-                        file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
-                        mime="text/csv",
-                        key="export_csv_btn",
-                        use_container_width=True
-                    )
-
+                # ── Stacked buttons (full width, no columns) ──
+                st.download_button(
+                    label="📄 JSON",
+                    data=json_str,
+                    file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
+                    mime="application/json",
+                    key="export_json_btn",
+                    use_container_width=True
+                )
+                # Add a tiny gap
+                st.markdown('<div style="height:4px;"></div>', unsafe_allow_html=True)
+                st.download_button(
+                    label="📊 CSV",
+                    data=csv_data,
+                    file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
+                    mime="text/csv",
+                    key="export_csv_btn",
+                    use_container_width=True
+                )
+                
         st.markdown('</div>', unsafe_allow_html=True)
 
         # ─── 6. Logout ───
