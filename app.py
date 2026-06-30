@@ -86,6 +86,14 @@ if st.user.is_logged_in:
 #  LOGIN GATE
 # ══════════════════════════════════════════════════════════
 if not st.user.is_logged_in:
+    # Load logo as base64 for login page
+    try:
+        with open("logo.png", "rb") as f:
+            logo_b64 = base64.b64encode(f.read()).decode()
+        logo_img = f'<img src="data:image/png;base64,{logo_b64}" style="width:80px; height:80px; border-radius:16px; filter:drop-shadow(0 4px 20px rgba(76,175,80,0.4));">'
+    except FileNotFoundError:
+        logo_img = '<span style="font-size:72px;">📚</span>'
+
     st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -105,7 +113,7 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
     padding-right:20px!important;max-width:480px!important;
 }}
 .lw{{width:100%;display:flex;flex-direction:column;align-items:center;}}
-.ll{{font-size:72px;line-height:1;margin-bottom:12px;animation:lfloat 3s ease-in-out infinite,lglow 3s ease-in-out infinite;}}
+.ll{{line-height:1;margin-bottom:16px;animation:lfloat 3s ease-in-out infinite,lglow 3s ease-in-out infinite;}}
 @keyframes lfloat{{0%,100%{{transform:translateY(0);}}50%{{transform:translateY(-10px);}}}}
 @keyframes lglow{{
   0%,100%{{filter:drop-shadow(0 4px 16px rgba(76,175,80,.4));}}
@@ -127,16 +135,28 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
 .dv{{display:flex;align-items:center;gap:12px;margin:24px 0 20px;color:rgba(255,255,255,.35);font-size:12px;font-weight:600;}}
 .dv::before,.dv::after{{content:"";flex:1;height:1px;background:rgba(255,255,255,.15);}}
 .lf{{font-size:12px;color:rgba(255,255,255,.30);text-align:center;margin-top:24px;}}
+/* ── Improved spacing for language buttons ── */
+.lang-row .stButton button {{
+    font-size:14px !important;
+    min-height:48px !important;
+    padding:8px 12px !important;
+}}
+.lang-row {{
+    gap: 12px !important;
+    margin-bottom: 24px !important;
+}}
 </style>
 <div class="lw">
-  <div class="ll">📚</div>
+  <div class="ll">{logo_img}</div>
   <div class="lt">Rekxare Dami</div>
   <div class="ls">{t('login_sub')}</div>
   <div class="lb">✨ {t('login_badge')}</div>
   <div class="lc">
 """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns(3)
+    # Language buttons with better spacing
+    st.markdown('<div class="lang-row">', unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3, gap="small")
     with c1:
         if st.button("بادينى", key="lang_badini_login", use_container_width=True):
             st.session_state.lang = "badini"; st.rerun()
@@ -146,6 +166,7 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
     with c3:
         if st.button("العربية", key="lang_ar_login", use_container_width=True):
             st.session_state.lang = "arabic"; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown(f'<div class="dv">{t("login_divider")}</div>', unsafe_allow_html=True)
     c1, c2, c3 = st.columns([1, 2, 1])
@@ -154,7 +175,7 @@ header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
     st.markdown(f'<div class="lf">{t("login_footer")}</div>', unsafe_allow_html=True)
     st.markdown('</div></div>', unsafe_allow_html=True)
     st.stop()
-
+    
 # ══════════════════════════════════════════════════════════
 #  QUERY PARAM HANDLERS
 # ══════════════════════════════════════════════════════════
