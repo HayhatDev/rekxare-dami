@@ -118,6 +118,7 @@
     "slogan": "خواندن ب زمانێ ته",
     "nav_timer": "دەمژمێر",
     "nav_schedule": "خشتە",
+    "light_mode": "ڕووناهى",
     "nav_about": "دەربارە",
     "student": "قوتابی"
   },
@@ -240,6 +241,7 @@
     "slogan": "Study in your language.",
     "nav_timer": "Timer",
     "nav_schedule": "Schedule",
+    "light_mode": "Light",
     "nav_about": "About",
     "student": "Student"
   },
@@ -362,6 +364,7 @@
     "slogan": "ادرس بلغتك",
     "nav_timer": "المؤقت",
     "nav_schedule": "الجدول",
+    "light_mode": "فاتح",
     "nav_about": "عن التطبيق",
     "student": "طالب"
   }
