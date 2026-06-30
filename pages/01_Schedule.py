@@ -751,16 +751,7 @@ components.html("""
 # ══════════════════════════════════════════════════════════
 #  PAGE HEADER + DARK TOGGLE
 # ══════════════════════════════════════════════════════════
-_, dm_col = st.columns([8, 1])
-with dm_col:
-    dark_toggle = st.checkbox(
-        "🌙", value=is_dark, key="dm_toggle_sched",
-        help="Toggle dark mode"
-    )
-    if dark_toggle != is_dark:
-        st.session_state.dark_mode = dark_toggle
-        save_schedule()
-        st.rerun()
+
 
 # Week-level stats for subtitle
 total_tasks_week = sum(
