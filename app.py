@@ -350,8 +350,9 @@ def render_sidebar():
             text-overflow: ellipsis;
             white-space: nowrap;
         }}
+        /* ── Smaller email ── */
         .sb-user-email {{
-            font-size: 10px;
+            font-size: 8px;           /* <-- changed from 10px to 8px */
             color: {SB_MUTED};
             font-weight: 500;
             overflow: hidden;
@@ -463,6 +464,12 @@ def render_sidebar():
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.07) !important;
         }}
+        /* ── Smaller Export download buttons ── */
+        .sb-settings .stDownloadButton button {{
+            font-size: 11px !important;   /* smaller text */
+            padding: 4px 8px !important;  /* less padding */
+            min-height: 30px !important;  /* shorter height */
+        }}
         .sb-settings .stSlider {{
             margin-bottom: 8px;
         }}
@@ -540,7 +547,7 @@ def render_sidebar():
                 <div class="sb-avatar">{user_name[0].upper() if user_name else '?'}</div>
                 <div class="sb-user-info" style="flex:1; min-width:0;">
                     <div class="sb-user-name">{user_name}</div>
-                    <div class="sb-user-email">{user_email}</div>
+                    <div class="sb-user-email">{user_email}</div>  <!-- now 8px -->
                 </div>
             </div>
         </div>
@@ -548,7 +555,7 @@ def render_sidebar():
 
         # ─── 3. Navigation ───
         st.markdown('<div class="sb-card">', unsafe_allow_html=True)
-        st.markdown(f'<div class="sb-card-title">🧭 {t("nav_timer")} / {t("nav_schedule")} / {t("nav_about")}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="sb-card-title">{t("nav_timer")} / {t("nav_schedule")} / {t("nav_about")}</div>', unsafe_allow_html=True)
         with st.container():
             col1, col2 = st.columns([1, 5])
             with col1:
@@ -569,6 +576,9 @@ def render_sidebar():
                 st.page_link("pages/02_About.py", label=t("nav_about"), icon=None)
         st.markdown('</div>', unsafe_allow_html=True)
 
+        # ─── Divider: between Navigation and Stats ───
+        st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+
         # ─── 4. Stats (safe) ───
         total_seconds = st.session_state.get("total_study_seconds", 0)
         total_hours = total_seconds // 3600
@@ -578,9 +588,10 @@ def render_sidebar():
         daily_seconds = st.session_state.get("daily_seconds", 0)
         today_mins  = daily_seconds // 60
 
+        # Translation already has emoji → no extra emoji here
         st.markdown(f"""
         <div class="sb-card">
-            <div class="sb-card-title">📊 {t('sidebar_title')}</div>
+            <div class="sb-card-title">{t('sidebar_title')}</div>   <!-- no extra emoji -->
             <div class="sb-stats-grid">
                 <div class="sb-stat-item">
                     <div class="sb-stat-number">{total_hours}h {total_mins}m</div>
@@ -602,10 +613,13 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
+        # ─── Divider: between Stats and Settings ───
+        st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+
         # ─── 5. Settings (all inside an expander) ───
         st.markdown(f"""
         <div class="sb-card sb-settings">
-            <div class="sb-card-title">⚙️ {t('settings')}</div>
+            <div class="sb-card-title">{t('settings')}</div>   <!-- no extra emoji -->
         """, unsafe_allow_html=True)
 
         with st.expander("⚙️ " + t("settings"), expanded=False):
@@ -683,8 +697,8 @@ def render_sidebar():
 
             st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-            # Export data
-            with st.expander("📥 " + t("export_data"), expanded=False):
+            # Export data – translation already has emoji, so no extra prefix
+            with st.expander(t("export_data"), expanded=False):   # no extra emoji
                 def json_serial(obj):
                     if isinstance(obj, datetime):
                         return obj.isoformat()
@@ -740,7 +754,7 @@ def render_sidebar():
                 col1, col2 = st.columns(2)
                 with col1:
                     st.download_button(
-                        label="📄 JSON",
+                        label="JSON",
                         data=json_str,
                         file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
                         mime="application/json",
@@ -749,7 +763,7 @@ def render_sidebar():
                     )
                 with col2:
                     st.download_button(
-                        label="📊 CSV",
+                        label="CSV",
                         data=csv_data,
                         file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
                         mime="text/csv",
