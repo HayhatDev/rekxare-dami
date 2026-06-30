@@ -124,10 +124,42 @@ section[data-testid="stMain"],
     padding-right:  max(1rem, env(safe-area-inset-right))  !important;
     padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
 }}
-/* Force sidebar buttons to use our styles, not page-specific ones */
+/* ── Ensure sidebar buttons look correct on this page ── */
 [data-testid="stSidebar"] .stButton button,
 [data-testid="stSidebar"] .stDownloadButton button {{
-    all: revert !important;
+    background: #edf0f7 !important;
+    color: #1a1a2e !important;
+    border: 1.5px solid #b0b8c8 !important;
+    border-radius: 10px !important;
+    padding: 6px 8px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    min-height: 32px !important;
+    white-space: nowrap !important;
+    transition: all 0.18s ease !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+}}
+[data-testid="stSidebar"] .stButton button:hover,
+[data-testid="stSidebar"] .stDownloadButton button:hover {{
+    background: rgba(46,125,50,0.12) !important;
+    border-color: #2e7d32 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.07) !important;
+}}
+[data-testid="stSidebar"] .stButton button:active,
+[data-testid="stSidebar"] .stDownloadButton button:active {{
+    transform: scale(0.97);
+}}
+
+/* ── Logout button on sidebar ── */
+[data-testid="stSidebar"] .sb-logout .stButton button {{
+    background: transparent !important;
+    color: #ef5350 !important;
+    border: 1.5px solid rgba(239,83,80,0.30) !important;
+}}
+[data-testid="stSidebar"] .sb-logout .stButton button:hover {{
+    background: rgba(239,83,80,0.10) !important;
+    border-color: #ef5350 !important;
 }}
 /* ── Hero ── */
 .hero-card {{
