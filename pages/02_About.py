@@ -124,7 +124,11 @@ section[data-testid="stMain"],
     padding-right:  max(1rem, env(safe-area-inset-right))  !important;
     padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
 }}
-
+/* Force sidebar buttons to use our styles, not page-specific ones */
+[data-testid="stSidebar"] .stButton button,
+[data-testid="stSidebar"] .stDownloadButton button {{
+    all: revert !important;
+}}
 /* ── Hero ── */
 .hero-card {{
     background: {HERO_GRAD};
