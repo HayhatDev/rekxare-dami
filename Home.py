@@ -8,6 +8,8 @@ import streamlit.components.v1 as components
 import hashlib
 import pandas as pd
 import base64
+from utils import get_schedule_file, get_data_file
+
 
 # ── Translations
 with open("translations.json", "r", encoding="utf-8") as f:
