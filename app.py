@@ -104,9 +104,20 @@ section[data-testid="stMain"],.main,.main .block-container{{
     font-family:'Inter',system-ui,sans-serif!important;
 }}
 header[data-testid="stHeader"]{{height:0!important;overflow:hidden!important;}}
+/* ── Hide sidebar and all related elements ── */
 [data-testid="stSidebar"],[data-testid="stSidebarCollapsedControl"],
 [data-testid="stStatusWidget"],[data-testid="stToolbar"],
 [data-testid="stDecoration"],#MainMenu,footer{{display:none!important;}}
+/* ── Force sidebar hidden even if JS tries to show it ── */
+body:not(.st-logged-in) section[data-testid="stSidebar"] {{
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    transform: translateX(-999px) !important;
+    pointer-events: none !important;
+}}
 .main .block-container{{
     padding-top:max(20px,calc(50vh - 280px))!important;
     padding-bottom:40px!important;padding-left:20px!important;
