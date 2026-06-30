@@ -209,27 +209,298 @@ def render_sidebar():
     user_name  = (st.user.name or st.user.email or "Student")[:24] if st.user.is_logged_in else "Student"
     user_email = st.user.email if st.user.is_logged_in else ""
 
+    # Theme colours for sidebar
+    if is_dark:
+        SB_BG       = "#0e0c24"
+        SB_CARD_BG  = "rgba(255,255,255,0.05)"
+        SB_CARD_BDR = "rgba(255,255,255,0.08)"
+        SB_TEXT     = "#e2e2e2"
+        SB_MUTED    = "#8a8fa8"
+        SB_ACT_BG   = "rgba(76,175,80,0.18)"
+        SB_ACT_C    = "#81c784"
+        SB_HOV_BG   = "rgba(255,255,255,0.06)"
+        SB_DIVIDER  = "rgba(255,255,255,0.08)"
+        SB_SHADOW   = "0 8px 32px rgba(0,0,0,0.5)"
+        SB_AVATAR_GRAD = "linear-gradient(135deg, #388e3c, #66bb6a)"
+    else:
+        SB_BG       = "#f4f6f8"
+        SB_CARD_BG  = "#ffffff"
+        SB_CARD_BDR = "#dde3ed"
+        SB_TEXT     = "#1a1a2e"
+        SB_MUTED    = "#6b7280"
+        SB_ACT_BG   = "rgba(46,125,50,0.10)"
+        SB_ACT_C    = "#2e7d32"
+        SB_HOV_BG   = "rgba(0,0,0,0.04)"
+        SB_DIVIDER  = "#e2e8f0"
+        SB_SHADOW   = "0 8px 32px rgba(0,0,0,0.10)"
+        SB_AVATAR_GRAD = "linear-gradient(135deg, #2e7d32, #4caf50)"
+
     with st.sidebar:
         st.markdown(f"""
-<div style="padding:14px 4px 2px;display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-  <div style="width:38px;height:38px;border-radius:50%;
-              background:linear-gradient(135deg,#388e3c,#66bb6a);
-              display:flex;align-items:center;justify-content:center;
-              font-size:18px;flex-shrink:0;">👤</div>
-  <div>
-    <div style="font-weight:700;font-size:14px;line-height:1.3;">{user_name}</div>
-    <div style="font-size:11px;opacity:0.55;word-break:break-all;">{user_email}</div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-        st.divider()
+        <style>
+        section[data-testid="stSidebar"] {{
+            background: {SB_BG} !important;
+            padding: 20px 16px !important;
+            box-shadow: {SB_SHADOW} !important;
+            border-right: 1px solid {SB_CARD_BDR} !important;
+            font-family: 'Inter', system-ui, sans-serif !important;
+        }}
+        /* ── Scrollbar ── */
+        section[data-testid="stSidebar"] ::-webkit-scrollbar {{
+            width: 4px;
+        }}
+        section[data-testid="stSidebar"] ::-webkit-scrollbar-track {{
+            background: transparent;
+        }}
+        section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb {{
+            background: {SB_MUTED}44;
+            border-radius: 4px;
+        }}
 
-        st.page_link("Home.py",              label=f"⏱️  {t('nav_timer')}")
-        st.page_link("pages/01_Schedule.py", label=f"📅  {t('nav_schedule')}")
-        st.page_link("pages/02_About.py",    label=f"✨  {t('nav_about')}")
-        st.divider()
+        /* ── User profile card ── */
+        .sb-user-card {{
+            background: {SB_CARD_BG};
+            border: 1px solid {SB_CARD_BDR};
+            border-radius: 16px;
+            padding: 18px 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }}
+        .sb-user-card:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+        }}
+        .sb-avatar {{
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: {SB_AVATAR_GRAD};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(76,175,80,0.25);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }}
+        .sb-user-card:hover .sb-avatar {{
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(76,175,80,0.35);
+        }}
+        .sb-user-info {{
+            flex: 1;
+            min-width: 0;
+        }}
+        .sb-user-name {{
+            font-size: 14px;
+            font-weight: 700;
+            color: {SB_TEXT};
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }}
+        .sb-user-email {{
+            font-size: 11px;
+            color: {SB_MUTED};
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-top: 2px;
+        }}
 
-        st.caption("⚙️ Settings")
+        /* ── Navigation links ── */
+        .sb-nav-section {{
+            margin-bottom: 24px;
+        }}
+        .sb-nav-link {{
+            display: flex !important;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px !important;
+            border-radius: 12px !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            color: {SB_TEXT} !important;
+            text-decoration: none !important;
+            transition: all 0.18s ease !important;
+            background: transparent !important;
+            border: none !important;
+            margin-bottom: 4px;
+            position: relative;
+        }}
+        .sb-nav-link:hover {{
+            background: {SB_HOV_BG} !important;
+            transform: translateX(4px);
+        }}
+        .sb-nav-link[aria-current="page"] {{
+            background: {SB_ACT_BG} !important;
+            color: {SB_ACT_C} !important;
+            font-weight: 700 !important;
+            box-shadow: 0 0 12px rgba(76,175,80,0.10);
+        }}
+        .sb-nav-link[aria-current="page"]::before {{
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            height: 60%;
+            width: 3px;
+            background: {SB_ACT_C};
+            border-radius: 0 3px 3px 0;
+        }}
+        .sb-nav-icon {{
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }}
+
+        /* ── Settings card ── */
+        .sb-settings-card {{
+            background: {SB_CARD_BG};
+            border: 1px solid {SB_CARD_BDR};
+            border-radius: 16px;
+            padding: 16px 14px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }}
+        .sb-settings-title {{
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: {SB_MUTED};
+            margin-bottom: 12px;
+        }}
+        .sb-settings-row .stButton button {{
+            width: 100% !important;
+            background: {SB_HOV_BG} !important;
+            color: {SB_TEXT} !important;
+            border: 1px solid {SB_CARD_BDR} !important;
+            border-radius: 10px !important;
+            padding: 8px 6px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            transition: all 0.18s ease !important;
+            min-height: 40px !important;
+        }}
+        .sb-settings-row .stButton button:hover {{
+            background: {SB_ACT_BG} !important;
+            border-color: {SB_ACT_C}44 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }}
+        .sb-settings-row .stButton button:active {{
+            transform: scale(0.96);
+        }}
+
+        /* ── Logout button ── */
+        .sb-logout-btn .stButton button {{
+            background: transparent !important;
+            color: #ef5350 !important;
+            border: 1px solid rgba(239,83,80,0.25) !important;
+            border-radius: 10px !important;
+            padding: 8px 12px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            transition: all 0.18s ease !important;
+            min-height: 40px !important;
+        }}
+        .sb-logout-btn .stButton button:hover {{
+            background: rgba(239,83,80,0.08) !important;
+            border-color: #ef5350 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239,83,80,0.15);
+        }}
+        .sb-logout-btn .stButton button:active {{
+            transform: scale(0.96);
+        }}
+
+        .sb-divider {{
+            border: none;
+            height: 1px;
+            background: {SB_DIVIDER};
+            margin: 14px 0;
+        }}
+
+        .sb-footer {{
+            font-size: 10px;
+            color: {SB_MUTED};
+            text-align: center;
+            opacity: 0.5;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid {SB_DIVIDER};
+        }}
+
+        /* ── Animations ── */
+        @keyframes sbFadeIn {{
+            from {{ opacity: 0; transform: translateY(8px); }}
+            to   {{ opacity: 1; transform: translateY(0); }}
+        }}
+        .sb-user-card {{ animation: sbFadeIn 0.4s ease; }}
+        .sb-nav-link   {{ animation: sbFadeIn 0.4s ease backwards; }}
+        .sb-nav-link:nth-child(1) {{ animation-delay: 0.05s; }}
+        .sb-nav-link:nth-child(2) {{ animation-delay: 0.10s; }}
+        .sb-nav-link:nth-child(3) {{ animation-delay: 0.15s; }}
+        .sb-settings-card {{ animation: sbFadeIn 0.4s ease 0.2s backwards; }}
+        .sb-logout-btn    {{ animation: sbFadeIn 0.4s ease 0.25s backwards; }}
+        </style>
+        """, unsafe_allow_html=True)
+
+        # ── User profile ──
+        st.markdown(f"""
+        <div class="sb-user-card">
+            <div class="sb-avatar">{user_name[0].upper() if user_name else '?'}</div>
+            <div class="sb-user-info">
+                <div class="sb-user-name">{user_name}</div>
+                <div class="sb-user-email">{user_email}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── Navigation links ──
+        st.markdown('<div class="sb-nav-section">', unsafe_allow_html=True)
+        # We use columns to place icons, but we can also use st.page_link with icon parameter.
+        # To keep it simple, we'll use st.page_link as before but wrap with custom styling.
+        # However, st.page_link doesn't accept custom classes; we'll rely on the CSS targeting the <a> inside.
+        # We'll place each in a container for proper spacing.
+        with st.container():
+            col1, col2 = st.columns([1, 6])
+            with col1:
+                st.markdown('<span class="sb-nav-icon">⏱️</span>', unsafe_allow_html=True)
+            with col2:
+                st.page_link("Home.py", label=t("nav_timer"), icon=None)
+        with st.container():
+            col1, col2 = st.columns([1, 6])
+            with col1:
+                st.markdown('<span class="sb-nav-icon">📅</span>', unsafe_allow_html=True)
+            with col2:
+                st.page_link("pages/01_Schedule.py", label=t("nav_schedule"), icon=None)
+        with st.container():
+            col1, col2 = st.columns([1, 6])
+            with col1:
+                st.markdown('<span class="sb-nav-icon">✨</span>', unsafe_allow_html=True)
+            with col2:
+                st.page_link("pages/02_About.py", label=t("nav_about"), icon=None)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+
+        # ── Settings card ──
+        st.markdown(f"""
+        <div class="sb-settings-card">
+            <div class="sb-settings-title">⚙️ {t('settings')}</div>
+            <div class="sb-settings-row">
+        """, unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
             if st.button(f"{dark_icon} {mode_label}", key="sb_dark_btn", use_container_width=True):
@@ -242,12 +513,19 @@ def render_sidebar():
                 st.session_state.lang = order[(order.index(lang) + 1) % 3]
                 save_preferences()
                 st.rerun()
+        st.markdown('</div></div>', unsafe_allow_html=True)  # end settings card
 
-        st.divider()
-        _, c2 = st.columns(2)
-        with c2:
-            st.button("🔓 Sign out", key="sb_logout_btn",
-                      on_click=st.logout, use_container_width=True)
+        # ── Logout ──
+        st.markdown('<div class="sb-logout-btn">', unsafe_allow_html=True)
+        if st.button("🚪 " + t("logout"), key="sb_logout_btn", use_container_width=True):
+            for key in ["user_email", "data_key", "logged_in"]:
+                st.session_state.pop(key, None)
+            st.logout()
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # ── Footer ──
+        st.markdown('<div class="sb-footer">Rekxare Dami v1.0</div>', unsafe_allow_html=True)
 
 
 render_sidebar()
