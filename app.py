@@ -218,35 +218,37 @@ def render_sidebar():
     except FileNotFoundError:
         logo_html = '<span style="font-size:24px;">📚</span>'
 
-    # Theme tokens
+    # ── Theme tokens ──
     if is_dark:
-        SB_BG       = "#0e0c24"
-        SB_CARD_BG  = "rgba(255,255,255,0.05)"
-        SB_CARD_BDR = "rgba(255,255,255,0.08)"
-        SB_TEXT     = "#e2e2e2"
-        SB_MUTED    = "#8a8fa8"
-        SB_ACT_BG   = "rgba(76,175,80,0.18)"
-        SB_ACT_C    = "#81c784"
-        SB_HOV_BG   = "rgba(255,255,255,0.06)"
-        SB_DIVIDER  = "rgba(255,255,255,0.08)"
-        SB_SHADOW   = "0 8px 32px rgba(0,0,0,0.5)"
-        SB_AVATAR_GRAD = "linear-gradient(135deg, #388e3c, #66bb6a)"
-        SB_BTN_BG   = "rgba(255,255,255,0.06)"
+        SB_BG           = "#0e0c24"
+        SB_CARD_BG      = "rgba(255,255,255,0.05)"
+        SB_CARD_BDR     = "rgba(255,255,255,0.08)"
+        SB_TEXT         = "#e2e2e2"
+        SB_MUTED        = "#8a8fa8"
+        SB_ACT_BG       = "rgba(76,175,80,0.18)"
+        SB_ACT_C        = "#81c784"
+        SB_HOV_BG       = "rgba(255,255,255,0.06)"
+        SB_DIVIDER      = "rgba(255,255,255,0.08)"
+        SB_SHADOW       = "0 8px 32px rgba(0,0,0,0.5)"
+        SB_AVATAR_GRAD  = "linear-gradient(135deg, #388e3c, #66bb6a)"
+        SB_BTN_BG       = "rgba(255,255,255,0.06)"
         SB_BTN_HOVER_BG = "rgba(76,175,80,0.20)"
+        SB_BTN_BORDER   = "rgba(255,255,255,0.15)"   # subtle light border on dark
     else:
-        SB_BG       = "#f4f6f8"
-        SB_CARD_BG  = "#ffffff"
-        SB_CARD_BDR = "#dde3ed"
-        SB_TEXT     = "#1a1a2e"
-        SB_MUTED    = "#6b7280"
-        SB_ACT_BG   = "rgba(46,125,50,0.10)"
-        SB_ACT_C    = "#2e7d32"
-        SB_HOV_BG   = "rgba(0,0,0,0.04)"
-        SB_DIVIDER  = "#e2e8f0"
-        SB_SHADOW   = "0 8px 32px rgba(0,0,0,0.10)"
-        SB_AVATAR_GRAD = "linear-gradient(135deg, #2e7d32, #4caf50)"
-        SB_BTN_BG   = "#edf0f7"
+        SB_BG           = "#f4f6f8"
+        SB_CARD_BG      = "#ffffff"
+        SB_CARD_BDR     = "#dde3ed"
+        SB_TEXT         = "#1a1a2e"
+        SB_MUTED        = "#6b7280"
+        SB_ACT_BG       = "rgba(46,125,50,0.10)"
+        SB_ACT_C        = "#2e7d32"
+        SB_HOV_BG       = "rgba(0,0,0,0.04)"
+        SB_DIVIDER      = "#e2e8f0"
+        SB_SHADOW       = "0 8px 32px rgba(0,0,0,0.10)"
+        SB_AVATAR_GRAD  = "linear-gradient(135deg, #2e7d32, #4caf50)"
+        SB_BTN_BG       = "#edf0f7"
         SB_BTN_HOVER_BG = "rgba(46,125,50,0.12)"
+        SB_BTN_BORDER   = "#b0b8c8"                 # visible gray for light mode
 
     with st.sidebar:
         st.markdown(f"""
@@ -389,12 +391,6 @@ def render_sidebar():
             text-align: center;
             flex-shrink: 0;
         }}
-        .sb-settings .stDownloadButton button {{
-            font-size: 10px !important;
-            padding: 4px 6px !important;
-            min-height: 28px !important;
-            white-space: nowrap !important;
-        }}
 
         .sb-stats-grid {{
             display: grid;
@@ -441,13 +437,13 @@ def render_sidebar():
         .sb-settings .stExpander summary:hover {{
             color: {SB_ACT_C} !important;
         }}
-        /* All buttons inside settings: no wrapping, compact */
+
         .sb-settings .stButton button,
         .sb-settings .stDownloadButton button {{
             width: 100% !important;
             background: {SB_BTN_BG} !important;
             color: {SB_TEXT} !important;
-            border: 1px solid {SB_CARD_BDR} !important;
+            border: 1.5px solid {SB_BTN_BORDER} !important;
             border-radius: 10px !important;
             padding: 6px 8px !important;
             font-size: 12px !important;
@@ -455,12 +451,12 @@ def render_sidebar():
             transition: all 0.18s ease !important;
             min-height: 32px !important;
             box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
-            white-space: nowrap !important;   /* prevent wrapping */
+            white-space: nowrap !important;
         }}
         .sb-settings .stButton button:hover,
         .sb-settings .stDownloadButton button:hover {{
             background: {SB_BTN_HOVER_BG} !important;
-            border-color: {SB_ACT_C}55 !important;
+            border-color: {SB_ACT_C} !important;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.07) !important;
         }}
@@ -477,7 +473,7 @@ def render_sidebar():
         .sb-logout .stButton button {{
             background: transparent !important;
             color: #ef5350 !important;
-            border: 1px solid rgba(239,83,80,0.25) !important;
+            border: 1.5px solid rgba(239,83,80,0.30) !important;
             border-radius: 10px !important;
             padding: 8px 10px !important;
             font-size: 12px !important;
@@ -487,10 +483,10 @@ def render_sidebar():
             white-space: nowrap !important;
         }}
         .sb-logout .stButton button:hover {{
-            background: rgba(239,83,80,0.08) !important;
+            background: rgba(239,83,80,0.10) !important;
             border-color: #ef5350 !important;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239,83,80,0.12);
+            box-shadow: 0 4px 12px rgba(239,83,80,0.15);
         }}
 
         .sb-divider {{
@@ -693,8 +689,7 @@ def render_sidebar():
 
             st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-            
-            # ─── Export data 
+            # ─── Export data (stacked vertically) ───
             with st.expander(t("export_data"), expanded=False):
                 def json_serial(obj):
                     if isinstance(obj, datetime):
@@ -748,7 +743,7 @@ def render_sidebar():
                     csv_lines.append("No history,,")
                 csv_data = "\n".join(csv_lines)
 
-                # ── Stacked buttons (full width, no columns) ──
+                # ── Stacked download buttons ──
                 st.download_button(
                     label="📄 JSON",
                     data=json_str,
@@ -757,7 +752,6 @@ def render_sidebar():
                     key="export_json_btn",
                     use_container_width=True
                 )
-                # Add a tiny gap
                 st.markdown('<div style="height:4px;"></div>', unsafe_allow_html=True)
                 st.download_button(
                     label="📊 CSV",
@@ -767,8 +761,8 @@ def render_sidebar():
                     key="export_csv_btn",
                     use_container_width=True
                 )
-                
-        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('</div>', unsafe_allow_html=True)  # end settings card
 
         # ─── 6. Logout ───
         st.markdown('<div class="sb-card sb-logout">', unsafe_allow_html=True)
