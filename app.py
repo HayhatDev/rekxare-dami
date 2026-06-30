@@ -210,7 +210,6 @@ def render_sidebar():
     user_name  = (st.user.name or st.user.email or "Student")[:24] if st.user.is_logged_in else "Student"
     user_email = st.user.email if st.user.is_logged_in else ""
 
-    # Load logo (optional)
     try:
         with open("logo.png", "rb") as f:
             logo_b64 = base64.b64encode(f.read()).decode()
@@ -218,7 +217,7 @@ def render_sidebar():
     except FileNotFoundError:
         logo_html = '<span style="font-size:28px;">📚</span>'
 
-    # Theme tokens
+    # Theme tokens (unchanged)
     if is_dark:
         SB_BG       = "#0e0c24"
         SB_CARD_BG  = "rgba(255,255,255,0.05)"
@@ -253,10 +252,8 @@ def render_sidebar():
         SB_BTN_HOVER_BG = "rgba(46,125,50,0.12)"
 
     with st.sidebar:
-        # ─── Sidebar CSS ───
         st.markdown(f"""
         <style>
-        /* ── Sidebar width ── */
         section[data-testid="stSidebar"] {{
             width: 300px !important;
             min-width: 300px !important;
@@ -266,11 +263,9 @@ def render_sidebar():
             border-right: 1px solid {SB_CARD_BDR} !important;
             font-family: 'Inter', system-ui, sans-serif !important;
         }}
-        /* Hide default toggle button (we have our own) */
         [data-testid="stSidebarCollapsedControl"] {{
             display: none !important;
         }}
-        /* Scrollbar */
         section[data-testid="stSidebar"] ::-webkit-scrollbar {{
             width: 4px;
         }}
@@ -281,8 +276,6 @@ def render_sidebar():
             background: {SB_MUTED}44;
             border-radius: 4px;
         }}
-
-        /* ── Common card ── */
         .sb-card {{
             background: {SB_CARD_BG};
             border: 1px solid {SB_CARD_BDR};
@@ -296,8 +289,6 @@ def render_sidebar():
             transform: translateY(-3px);
             box-shadow: 0 8px 24px rgba(0,0,0,0.08);
         }}
-
-        /* ── Card titles ── */
         .sb-card-title {{
             font-size: 11px;
             font-weight: 800;
@@ -309,8 +300,6 @@ def render_sidebar():
             align-items: center;
             gap: 6px;
         }}
-
-        /* ── Brand ── */
         .sb-brand {{
             display: flex;
             align-items: center;
@@ -329,8 +318,6 @@ def render_sidebar():
             font-weight: 500;
             margin-top: 2px;
         }}
-
-        /* ── User ── */
         .sb-user {{
             display: flex;
             align-items: center;
@@ -377,8 +364,6 @@ def render_sidebar():
             white-space: nowrap;
             margin-top: 2px;
         }}
-
-        /* ── Navigation links (using st.page_link) ── */
         .sb-nav-item {{
             display: flex;
             align-items: center;
@@ -404,7 +389,6 @@ def render_sidebar():
             text-align: center;
             flex-shrink: 0;
         }}
-        /* Override Streamlit's default page link styling */
         .sb-nav-item a {{
             text-decoration: none !important;
             color: inherit !important;
@@ -414,8 +398,6 @@ def render_sidebar():
             gap: 12px;
             width: 100%;
         }}
-
-        /* ── Stats grid ── */
         .sb-stats-grid {{
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -446,8 +428,6 @@ def render_sidebar():
             letter-spacing: 0.5px;
             margin-top: 3px;
         }}
-
-        /* ── Settings card ── */
         .sb-settings {{
             padding: 16px 16px 12px;
         }}
@@ -476,7 +456,6 @@ def render_sidebar():
         .sb-settings .stDownloadButton button:active {{
             transform: scale(0.97);
         }}
-        /* Slider inside settings */
         .sb-settings .stSlider {{
             margin-bottom: 12px;
         }}
@@ -494,8 +473,6 @@ def render_sidebar():
         .sb-settings .stExpander summary:hover {{
             color: {SB_ACT_C} !important;
         }}
-
-        /* ── Logout ── */
         .sb-logout .stButton button {{
             background: transparent !important;
             color: #ef5350 !important;
@@ -516,16 +493,12 @@ def render_sidebar():
         .sb-logout .stButton button:active {{
             transform: scale(0.97);
         }}
-
-        /* ── Divider ── */
         .sb-divider {{
             border: none;
             height: 1px;
             background: {SB_DIVIDER};
             margin: 12px 0;
         }}
-
-        /* ── Footer ── */
         .sb-footer {{
             font-size: 10px;
             color: {SB_MUTED};
@@ -535,8 +508,6 @@ def render_sidebar():
             padding-top: 10px;
             border-top: 1px solid {SB_DIVIDER};
         }}
-
-        /* ── Animations ── */
         @keyframes sbFadeInUp {{
             from {{ opacity: 0; transform: translateY(12px); }}
             to   {{ opacity: 1; transform: translateY(0); }}
@@ -549,8 +520,6 @@ def render_sidebar():
         .sb-card:nth-child(3) {{ animation-delay: 0.15s; }}
         .sb-card:nth-child(4) {{ animation-delay: 0.20s; }}
         .sb-card:nth-child(5) {{ animation-delay: 0.25s; }}
-
-        /* ── Tooltip / additional polish ── */
         .sb-helper {{
             font-size: 11px;
             color: {SB_MUTED};
@@ -592,9 +561,6 @@ def render_sidebar():
         # ─── 3. Navigation ───
         st.markdown('<div class="sb-card">', unsafe_allow_html=True)
         st.markdown(f'<div class="sb-card-title">🧭 {t("nav_timer")} / {t("nav_schedule")} / {t("nav_about")}</div>', unsafe_allow_html=True)
-        # Use custom divs to style page links
-        # st.page_link doesn't allow custom classes, but we can wrap it in a div with class sb-nav-item
-        # We'll use columns to place icon and link
         with st.container():
             col1, col2 = st.columns([1, 6])
             with col1:
@@ -615,12 +581,14 @@ def render_sidebar():
                 st.page_link("pages/02_About.py", label=t("nav_about"), icon=None)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ─── 4. Stats ───
-        total_hours = st.session_state.total_study_seconds // 3600
-        total_mins  = (st.session_state.total_study_seconds % 3600) // 60
-        sessions    = st.session_state.completed_sessions
-        streak      = st.session_state.streak
-        today_mins  = st.session_state.daily_seconds // 60
+        # ─── 4. Stats (safe) ───
+        total_seconds = st.session_state.get("total_study_seconds", 0)
+        total_hours = total_seconds // 3600
+        total_mins  = (total_seconds % 3600) // 60
+        sessions    = st.session_state.get("completed_sessions", 0)
+        streak      = st.session_state.get("streak", 0)
+        daily_seconds = st.session_state.get("daily_seconds", 0)
+        today_mins  = daily_seconds // 60
 
         st.markdown(f"""
         <div class="sb-card">
@@ -646,25 +614,27 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
-        # ─── 5. Settings (all in one card) ───
+        # ─── 5. Settings (all in one card, safe) ───
         st.markdown(f"""
         <div class="sb-card sb-settings">
             <div class="sb-card-title">⚙️ {t('settings')}</div>
         """, unsafe_allow_html=True)
 
-        # Daily goal slider
+        daily_goal_seconds = st.session_state.get("daily_goal_seconds", 7200)
         goal_mins = st.slider(
             f'🎯 {t("today_goal")} ({t("minutes_unit")})',
-            30, 480, st.session_state.daily_goal_seconds // 60, step=15,
+            30, 480, daily_goal_seconds // 60, step=15,
             key="sb_goal_slider"
         )
-        if goal_mins * 60 != st.session_state.daily_goal_seconds:
+        if goal_mins * 60 != daily_goal_seconds:
             st.session_state.daily_goal_seconds = goal_mins * 60
-            save_data()   # from utils
+            try:
+                save_data()
+            except NameError:
+                pass
 
         st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-        # Audio test
         if st.button("🔊 " + t("test_audio"), use_container_width=True, key="sb_audio_test"):
             components.html("""
             <script>
@@ -691,7 +661,6 @@ def render_sidebar():
 
         st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-        # Clear stats
         if not st.session_state.get("confirm_clear", False):
             if st.button(t("clear_stats"), use_container_width=True, key="sb_clear_stats"):
                 st.session_state.confirm_clear = True
@@ -710,7 +679,10 @@ def render_sidebar():
                                  ("xp_points", 0), ("xp_level", 1)]:
                         st.session_state[k] = v
                     st.session_state.confirm_clear = False
-                    save_data()
+                    try:
+                        save_data()
+                    except NameError:
+                        pass
                     st.rerun()
             with cc2:
                 if st.button("✗", use_container_width=True, key="sb_confirm_no"):
@@ -719,8 +691,7 @@ def render_sidebar():
 
         st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-        # Export data
-        with st.expander("📥 " + t("export_data"), expanded=False):
+        with st.expander(" " + t("export_data"), expanded=False):
             def json_serial(obj):
                 if isinstance(obj, datetime):
                     return obj.isoformat()
@@ -733,19 +704,19 @@ def render_sidebar():
                     "user": st.session_state.get("user_email", "unknown")
                 },
                 "study_summary": {
-                    "total_time_minutes": st.session_state.total_study_seconds // 60,
-                    "completed_sessions": st.session_state.completed_sessions,
-                    "current_streak_days": st.session_state.streak,
-                    "daily_goal_minutes": st.session_state.daily_goal_seconds // 60,
-                    "today_study_minutes": st.session_state.daily_seconds // 60,
-                    "last_subject": st.session_state.last_subject
+                    "total_time_minutes": st.session_state.get("total_study_seconds", 0) // 60,
+                    "completed_sessions": st.session_state.get("completed_sessions", 0),
+                    "current_streak_days": st.session_state.get("streak", 0),
+                    "daily_goal_minutes": st.session_state.get("daily_goal_seconds", 7200) // 60,
+                    "today_study_minutes": st.session_state.get("daily_seconds", 0) // 60,
+                    "last_subject": st.session_state.get("last_subject", "—")
                 },
                 "preferences": {
-                    "dark_mode": st.session_state.dark_mode,
-                    "language": st.session_state.lang,
+                    "dark_mode": st.session_state.get("dark_mode", True),
+                    "language": st.session_state.get("lang", "badini"),
                     "student_name": st.session_state.get("student_name", "")
                 },
-                "study_history": st.session_state.study_history,
+                "study_history": st.session_state.get("study_history", []),
                 "weekly_schedule": {}
             }
             try:
@@ -760,8 +731,9 @@ def render_sidebar():
             json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=json_serial)
 
             csv_lines = ["timestamp,subject,minutes"]
-            if st.session_state.study_history:
-                for entry in st.session_state.study_history:
+            history = st.session_state.get("study_history", [])
+            if history:
+                for entry in history:
                     parts = entry.split(" - ")
                     time_part = parts[0] if len(parts) > 0 else ""
                     rest = parts[1] if len(parts) > 1 else ""
@@ -792,7 +764,7 @@ def render_sidebar():
                     use_container_width=True
                 )
 
-        st.markdown('</div>', unsafe_allow_html=True)  # end settings card
+        st.markdown('</div>', unsafe_allow_html=True)
 
         # ─── 6. Logout ───
         st.markdown('<div class="sb-card sb-logout">', unsafe_allow_html=True)
