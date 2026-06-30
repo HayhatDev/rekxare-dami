@@ -694,14 +694,78 @@ def render_sidebar():
         st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
         # Export Data
-        with st.expander("📥 " + t("export_data"), expanded=False):
-            # We'll reuse the same export logic from Home.py.
-            # For simplicity, we can just copy the export code here.
-            # But to avoid duplication, we can define a function in utils.
-            # We'll just paste the export code here again (it's a few lines).
-            # We'll note the user to copy the export code from Home.py into this block.
-            # I'll include it below.
-            pass  # Placeholder – we'll add the full export code in the final answer.
+        with st.expander("" + t("export_data"), expanded=False):
+            def json_serial(obj):
+                if isinstance(obj, datetime):
+                    return obj.isoformat()
+                raise TypeError(f"Type {type(obj)} not serializable")
+        
+            export_data = {
+                "export_info": {
+                    "generated": datetime.now().isoformat(),
+                    "app_version": "Rekxare Dami 1.0",
+                    "user": st.session_state.get("user_email", "unknown")
+                },
+                "study_summary": {
+                    "total_time_minutes": st.session_state.total_study_seconds // 60,
+                    "completed_sessions": st.session_state.completed_sessions,
+                    "current_streak_days": st.session_state.streak,
+                    "daily_goal_minutes": st.session_state.daily_goal_seconds // 60,
+                    "today_study_minutes": st.session_state.daily_seconds // 60,
+                    "last_subject": st.session_state.last_subject
+                },
+                "preferences": {
+                    "dark_mode": st.session_state.dark_mode,
+                    "language": st.session_state.lang,
+                    "student_name": st.session_state.get("student_name", "")
+                },
+                "study_history": st.session_state.study_history,
+                "weekly_schedule": {}
+            }
+            try:
+                schedule_file = get_schedule_file()
+                if os.path.exists(schedule_file):
+                    with open(schedule_file, "r", encoding="utf-8") as f:
+                        schedule_data = json.load(f)
+                        export_data["weekly_schedule"] = schedule_data.get("schedule", {})
+            except Exception as e:
+                export_data["schedule_error"] = str(e)
+        
+            json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=json_serial)
+        
+            csv_lines = ["timestamp,subject,minutes"]
+            if st.session_state.study_history:
+                for entry in st.session_state.study_history:
+                    parts = entry.split(" - ")
+                    time_part = parts[0] if len(parts) > 0 else ""
+                    rest = parts[1] if len(parts) > 1 else ""
+                    subject_part = rest.split(" (")[0] if "(" in rest else rest
+                    minutes_part = rest.split("(")[1].split(" ")[0] if "(" in rest else "0"
+                    csv_lines.append(f"{time_part},{subject_part},{minutes_part}")
+            else:
+                csv_lines.append("No history,,")
+            csv_data = "\n".join(csv_lines)
+        
+            col1, col2 = st.columns(2)
+            with col1:
+                st.download_button(
+                    label="📄 JSON",
+                    data=json_str,
+                    file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
+                    mime="application/json",
+                    key="export_json_btn",
+                    use_container_width=True
+                )
+            with col2:
+                st.download_button(
+                    label="📊 CSV",
+                    data=csv_data,
+                    file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
+                    mime="text/csv",
+                    key="export_csv_btn",
+                    use_container_width=True
+                )
+            pass  
 
         st.markdown('</div>', unsafe_allow_html=True)  # end settings card
 
