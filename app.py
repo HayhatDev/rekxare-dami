@@ -210,7 +210,7 @@ def render_sidebar():
     user_name  = (st.user.name or st.user.email or "Student")[:24] if st.user.is_logged_in else "Student"
     user_email = st.user.email if st.user.is_logged_in else ""
 
-    # Load logo
+    # Load logo (optional)
     try:
         with open("logo.png", "rb") as f:
             logo_b64 = base64.b64encode(f.read()).decode()
@@ -233,6 +233,8 @@ def render_sidebar():
         SB_AVATAR_GRAD = "linear-gradient(135deg, #388e3c, #66bb6a)"
         SB_INPUT_BG = "#252542"
         SB_SLIDER_TRACK = "rgba(255,255,255,0.12)"
+        SB_BTN_BG   = "rgba(255,255,255,0.06)"
+        SB_BTN_HOVER_BG = "rgba(76,175,80,0.20)"
     else:
         SB_BG       = "#f4f6f8"
         SB_CARD_BG  = "#ffffff"
@@ -247,23 +249,28 @@ def render_sidebar():
         SB_AVATAR_GRAD = "linear-gradient(135deg, #2e7d32, #4caf50)"
         SB_INPUT_BG = "#ffffff"
         SB_SLIDER_TRACK = "#dde4f0"
+        SB_BTN_BG   = "#edf0f7"
+        SB_BTN_HOVER_BG = "rgba(46,125,50,0.12)"
 
     with st.sidebar:
-        # ─── CSS ───
+        # ─── Sidebar CSS ───
         st.markdown(f"""
         <style>
+        /* ── Sidebar width ── */
         section[data-testid="stSidebar"] {{
-            width: 280px !important;
-            min-width: 280px !important;
+            width: 300px !important;
+            min-width: 300px !important;
             background: {SB_BG} !important;
-            padding: 20px 16px !important;
+            padding: 20px 18px !important;
             box-shadow: {SB_SHADOW} !important;
             border-right: 1px solid {SB_CARD_BDR} !important;
             font-family: 'Inter', system-ui, sans-serif !important;
         }}
+        /* Hide default toggle button (we have our own) */
         [data-testid="stSidebarCollapsedControl"] {{
             display: none !important;
         }}
+        /* Scrollbar */
         section[data-testid="stSidebar"] ::-webkit-scrollbar {{
             width: 4px;
         }}
@@ -275,76 +282,85 @@ def render_sidebar():
             border-radius: 4px;
         }}
 
+        /* ── Common card ── */
         .sb-card {{
             background: {SB_CARD_BG};
             border: 1px solid {SB_CARD_BDR};
             border-radius: 16px;
-            padding: 16px 14px;
+            padding: 16px 16px;
             margin-bottom: 14px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
         }}
         .sb-card:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
         }}
+
+        /* ── Card titles ── */
         .sb-card-title {{
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 800;
             letter-spacing: 1.2px;
             text-transform: uppercase;
             color: {SB_MUTED};
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }}
 
+        /* ── Brand ── */
         .sb-brand {{
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 4px;
         }}
         .sb-brand-name {{
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 900;
             letter-spacing: -0.5px;
             color: {SB_TEXT};
         }}
         .sb-brand-sub {{
-            font-size: 11px;
+            font-size: 12px;
             color: {SB_MUTED};
             font-weight: 500;
+            margin-top: 2px;
         }}
 
+        /* ── User ── */
         .sb-user {{
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }}
         .sb-avatar {{
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             background: {SB_AVATAR_GRAD};
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             color: #fff;
             flex-shrink: 0;
             box-shadow: 0 2px 10px rgba(76,175,80,0.25);
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }}
         .sb-user:hover .sb-avatar {{
             transform: scale(1.05);
-            box-shadow: 0 4px 16px rgba(76,175,80,0.35);
+            box-shadow: 0 4px 20px rgba(76,175,80,0.35);
         }}
         .sb-user-info {{
             flex: 1;
             min-width: 0;
         }}
         .sb-user-name {{
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             color: {SB_TEXT};
             line-height: 1.2;
@@ -353,7 +369,7 @@ def render_sidebar():
             white-space: nowrap;
         }}
         .sb-user-email {{
-            font-size: 11px;
+            font-size: 12px;
             color: {SB_MUTED};
             font-weight: 500;
             overflow: hidden;
@@ -362,41 +378,25 @@ def render_sidebar():
             margin-top: 2px;
         }}
 
-        .sb-nav-link {{
-            display: flex !important;
+        /* ── Navigation links (using st.page_link) ── */
+        .sb-nav-item {{
+            display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 14px !important;
-            border-radius: 12px !important;
-            font-size: 14px !important;
-            font-weight: 600 !important;
-            color: {SB_TEXT} !important;
-            text-decoration: none !important;
-            transition: all 0.18s ease !important;
-            background: transparent !important;
-            border: none !important;
-            margin-bottom: 4px;
-            position: relative;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            margin-bottom: 2px;
+            cursor: pointer;
         }}
-        .sb-nav-link:hover {{
-            background: {SB_HOV_BG} !important;
+        .sb-nav-item:hover {{
+            background: {SB_HOV_BG};
             transform: translateX(4px);
         }}
-        .sb-nav-link[aria-current="page"] {{
-            background: {SB_ACT_BG} !important;
-            color: {SB_ACT_C} !important;
-            font-weight: 700 !important;
-            box-shadow: 0 0 12px rgba(76,175,80,0.10);
-        }}
-        .sb-nav-link[aria-current="page"]::before {{
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 20%;
-            height: 60%;
-            width: 3px;
-            background: {SB_ACT_C};
-            border-radius: 0 3px 3px 0;
+        .sb-nav-item.active {{
+            background: {SB_ACT_BG};
+            color: {SB_ACT_C};
+            font-weight: 700;
         }}
         .sb-nav-icon {{
             font-size: 18px;
@@ -404,55 +404,120 @@ def render_sidebar():
             text-align: center;
             flex-shrink: 0;
         }}
+        /* Override Streamlit's default page link styling */
+        .sb-nav-item a {{
+            text-decoration: none !important;
+            color: inherit !important;
+            font-weight: inherit !important;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }}
 
+        /* ── Stats grid ── */
         .sb-stats-grid {{
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            gap: 10px;
         }}
         .sb-stat-item {{
             background: {SB_HOV_BG};
             border-radius: 12px;
-            padding: 10px 6px;
+            padding: 12px 8px;
             text-align: center;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }}
+        .sb-stat-item:hover {{
+            background: {SB_ACT_BG};
+            transform: scale(1.02);
         }}
         .sb-stat-number {{
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
             color: {SB_TEXT};
             line-height: 1.2;
         }}
         .sb-stat-label {{
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             color: {SB_MUTED};
             letter-spacing: 0.5px;
-            margin-top: 2px;
+            margin-top: 3px;
         }}
 
-        .sb-settings .stButton button {{
+        /* ── Settings card ── */
+        .sb-settings {{
+            padding: 16px 16px 12px;
+        }}
+        .sb-settings .stButton button,
+        .sb-settings .stDownloadButton button {{
             width: 100% !important;
-            background: {SB_HOV_BG} !important;
+            background: {SB_BTN_BG} !important;
             color: {SB_TEXT} !important;
             border: 1px solid {SB_CARD_BDR} !important;
-            border-radius: 10px !important;
-            padding: 8px 6px !important;
-            font-size: 12px !important;
+            border-radius: 12px !important;
+            padding: 10px 12px !important;
+            font-size: 13px !important;
             font-weight: 600 !important;
-            transition: all 0.18s ease !important;
-            min-height: 40px !important;
+            transition: all 0.2s ease !important;
+            min-height: 44px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
         }}
-        .sb-settings .stButton button:hover {{
-            background: {SB_ACT_BG} !important;
-            border-color: {SB_ACT_C}44 !important;
+        .sb-settings .stButton button:hover,
+        .sb-settings .stDownloadButton button:hover {{
+            background: {SB_BTN_HOVER_BG} !important;
+            border-color: {SB_ACT_C}55 !important;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08) !important;
         }}
-        .sb-settings .stButton button:active {{
-            transform: scale(0.96);
+        .sb-settings .stButton button:active,
+        .sb-settings .stDownloadButton button:active {{
+            transform: scale(0.97);
+        }}
+        /* Slider inside settings */
+        .sb-settings .stSlider {{
+            margin-bottom: 12px;
+        }}
+        .sb-settings .stExpander {{
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }}
+        .sb-settings .stExpander summary {{
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            color: {SB_TEXT} !important;
+            padding: 6px 0 !important;
+        }}
+        .sb-settings .stExpander summary:hover {{
+            color: {SB_ACT_C} !important;
         }}
 
+        /* ── Logout ── */
+        .sb-logout .stButton button {{
+            background: transparent !important;
+            color: #ef5350 !important;
+            border: 1px solid rgba(239,83,80,0.25) !important;
+            border-radius: 12px !important;
+            padding: 10px 12px !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            transition: all 0.2s ease !important;
+            min-height: 44px !important;
+        }}
+        .sb-logout .stButton button:hover {{
+            background: rgba(239,83,80,0.08) !important;
+            border-color: #ef5350 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(239,83,80,0.15);
+        }}
+        .sb-logout .stButton button:active {{
+            transform: scale(0.97);
+        }}
+
+        /* ── Divider ── */
         .sb-divider {{
             border: none;
             height: 1px;
@@ -460,55 +525,42 @@ def render_sidebar():
             margin: 12px 0;
         }}
 
-        .sb-logout .stButton button {{
-            background: transparent !important;
-            color: #ef5350 !important;
-            border: 1px solid rgba(239,83,80,0.25) !important;
-            border-radius: 10px !important;
-            padding: 8px 12px !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            transition: all 0.18s ease !important;
-            min-height: 40px !important;
-        }}
-        .sb-logout .stButton button:hover {{
-            background: rgba(239,83,80,0.08) !important;
-            border-color: #ef5350 !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(239,83,80,0.15);
-        }}
-        .sb-logout .stButton button:active {{
-            transform: scale(0.96);
-        }}
-
+        /* ── Footer ── */
         .sb-footer {{
             font-size: 10px;
             color: {SB_MUTED};
             text-align: center;
-            opacity: 0.5;
-            margin-top: 16px;
-            padding-top: 12px;
+            opacity: 0.4;
+            margin-top: 12px;
+            padding-top: 10px;
             border-top: 1px solid {SB_DIVIDER};
         }}
 
-        @keyframes sbFadeIn {{
-            from {{ opacity: 0; transform: translateY(8px); }}
+        /* ── Animations ── */
+        @keyframes sbFadeInUp {{
+            from {{ opacity: 0; transform: translateY(12px); }}
             to   {{ opacity: 1; transform: translateY(0); }}
         }}
-        .sb-card {{ animation: sbFadeIn 0.4s ease backwards; }}
+        .sb-card {{
+            animation: sbFadeInUp 0.5s ease backwards;
+        }}
         .sb-card:nth-child(1) {{ animation-delay: 0.05s; }}
         .sb-card:nth-child(2) {{ animation-delay: 0.10s; }}
         .sb-card:nth-child(3) {{ animation-delay: 0.15s; }}
         .sb-card:nth-child(4) {{ animation-delay: 0.20s; }}
         .sb-card:nth-child(5) {{ animation-delay: 0.25s; }}
 
-        [data-testid="stSlider"] > div > div {{
-            background: {SB_SLIDER_TRACK} !important;
+        /* ── Tooltip / additional polish ── */
+        .sb-helper {{
+            font-size: 11px;
+            color: {SB_MUTED};
+            opacity: 0.6;
+            margin-top: 4px;
         }}
         </style>
         """, unsafe_allow_html=True)
 
-        # ─── Brand ───
+        # ─── 1. Brand ───
         st.markdown(f"""
         <div class="sb-card">
             <div class="sb-brand">
@@ -518,13 +570,13 @@ def render_sidebar():
                     <div class="sb-brand-sub">{t('app_title')}</div>
                 </div>
             </div>
-            <div style="font-size:10px; color:{SB_MUTED}; font-weight:500; opacity:0.7; margin-top:4px;">
+            <div style="font-size:11px; color:{SB_MUTED}; font-weight:500; opacity:0.7; margin-top:2px;">
                 {t('slogan')}
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # ─── User ───
+        # ─── 2. User ───
         st.markdown(f"""
         <div class="sb-card">
             <div class="sb-user">
@@ -537,9 +589,12 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
-        # ─── Navigation ───
+        # ─── 3. Navigation ───
         st.markdown('<div class="sb-card">', unsafe_allow_html=True)
         st.markdown(f'<div class="sb-card-title">🧭 {t("nav_timer")} / {t("nav_schedule")} / {t("nav_about")}</div>', unsafe_allow_html=True)
+        # Use custom divs to style page links
+        # st.page_link doesn't allow custom classes, but we can wrap it in a div with class sb-nav-item
+        # We'll use columns to place icon and link
         with st.container():
             col1, col2 = st.columns([1, 6])
             with col1:
@@ -560,7 +615,7 @@ def render_sidebar():
                 st.page_link("pages/02_About.py", label=t("nav_about"), icon=None)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ─── Stats ───
+        # ─── 4. Stats ───
         total_hours = st.session_state.total_study_seconds // 3600
         total_mins  = (st.session_state.total_study_seconds % 3600) // 60
         sessions    = st.session_state.completed_sessions
@@ -591,13 +646,13 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
-        # ─── Settings ───
+        # ─── 5. Settings (all in one card) ───
         st.markdown(f"""
         <div class="sb-card sb-settings">
             <div class="sb-card-title">⚙️ {t('settings')}</div>
         """, unsafe_allow_html=True)
 
-        # Daily Goal Slider
+        # Daily goal slider
         goal_mins = st.slider(
             f'🎯 {t("today_goal")} ({t("minutes_unit")})',
             30, 480, st.session_state.daily_goal_seconds // 60, step=15,
@@ -607,7 +662,9 @@ def render_sidebar():
             st.session_state.daily_goal_seconds = goal_mins * 60
             save_data()   # from utils
 
-        # Audio Test
+        st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+
+        # Audio test
         if st.button("🔊 " + t("test_audio"), use_container_width=True, key="sb_audio_test"):
             components.html("""
             <script>
@@ -634,7 +691,7 @@ def render_sidebar():
 
         st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-        # Clear Stats
+        # Clear stats
         if not st.session_state.get("confirm_clear", False):
             if st.button(t("clear_stats"), use_container_width=True, key="sb_clear_stats"):
                 st.session_state.confirm_clear = True
@@ -662,7 +719,7 @@ def render_sidebar():
 
         st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-        # Export Data
+        # Export data
         with st.expander("📥 " + t("export_data"), expanded=False):
             def json_serial(obj):
                 if isinstance(obj, datetime):
@@ -737,7 +794,7 @@ def render_sidebar():
 
         st.markdown('</div>', unsafe_allow_html=True)  # end settings card
 
-        # ─── Logout ───
+        # ─── 6. Logout ───
         st.markdown('<div class="sb-card sb-logout">', unsafe_allow_html=True)
         if st.button("🚪 " + t("logout"), key="sb_logout_btn", use_container_width=True):
             for key in ["user_email", "data_key", "logged_in"]:
@@ -746,7 +803,7 @@ def render_sidebar():
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ─── Footer ───
+        # ─── 7. Footer ───
         st.markdown('<div class="sb-footer">Rekxare Dami v1.0</div>', unsafe_allow_html=True)
 
 render_sidebar()
