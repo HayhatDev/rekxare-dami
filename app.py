@@ -213,11 +213,11 @@ def render_sidebar():
     try:
         with open("logo.png", "rb") as f:
             logo_b64 = base64.b64encode(f.read()).decode()
-        logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:32px; width:32px; border-radius:8px;">'
+        logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:28px; width:28px; border-radius:8px;">'
     except FileNotFoundError:
-        logo_html = '<span style="font-size:28px;">📚</span>'
+        logo_html = '<span style="font-size:24px;">📚</span>'
 
-    # Theme tokens (unchanged)
+    # Theme tokens
     if is_dark:
         SB_BG       = "#0e0c24"
         SB_CARD_BG  = "rgba(255,255,255,0.05)"
@@ -230,8 +230,6 @@ def render_sidebar():
         SB_DIVIDER  = "rgba(255,255,255,0.08)"
         SB_SHADOW   = "0 8px 32px rgba(0,0,0,0.5)"
         SB_AVATAR_GRAD = "linear-gradient(135deg, #388e3c, #66bb6a)"
-        SB_INPUT_BG = "#252542"
-        SB_SLIDER_TRACK = "rgba(255,255,255,0.12)"
         SB_BTN_BG   = "rgba(255,255,255,0.06)"
         SB_BTN_HOVER_BG = "rgba(76,175,80,0.20)"
     else:
@@ -246,19 +244,18 @@ def render_sidebar():
         SB_DIVIDER  = "#e2e8f0"
         SB_SHADOW   = "0 8px 32px rgba(0,0,0,0.10)"
         SB_AVATAR_GRAD = "linear-gradient(135deg, #2e7d32, #4caf50)"
-        SB_INPUT_BG = "#ffffff"
-        SB_SLIDER_TRACK = "#dde4f0"
         SB_BTN_BG   = "#edf0f7"
         SB_BTN_HOVER_BG = "rgba(46,125,50,0.12)"
 
     with st.sidebar:
         st.markdown(f"""
         <style>
+        /* ── Sidebar width ── */
         section[data-testid="stSidebar"] {{
             width: 300px !important;
             min-width: 300px !important;
             background: {SB_BG} !important;
-            padding: 20px 18px !important;
+            padding: 16px 14px !important;
             box-shadow: {SB_SHADOW} !important;
             border-right: 1px solid {SB_CARD_BDR} !important;
             font-family: 'Inter', system-ui, sans-serif !important;
@@ -266,199 +263,169 @@ def render_sidebar():
         [data-testid="stSidebarCollapsedControl"] {{
             display: none !important;
         }}
+        /* Scrollbar */
         section[data-testid="stSidebar"] ::-webkit-scrollbar {{
-            width: 4px;
-        }}
-        section[data-testid="stSidebar"] ::-webkit-scrollbar-track {{
-            background: transparent;
+            width: 3px;
         }}
         section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb {{
             background: {SB_MUTED}44;
-            border-radius: 4px;
+            border-radius: 3px;
         }}
+
+        /* ── Cards ── */
         .sb-card {{
             background: {SB_CARD_BG};
             border: 1px solid {SB_CARD_BDR};
-            border-radius: 16px;
-            padding: 16px 16px;
-            margin-bottom: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }}
         .sb-card:hover {{
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.07);
         }}
         .sb-card-title {{
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
-            letter-spacing: 1.2px;
+            letter-spacing: 1px;
             text-transform: uppercase;
             color: {SB_MUTED};
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 6px;
         }}
+
+        /* ── Brand ── */
         .sb-brand {{
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 4px;
+            gap: 10px;
         }}
         .sb-brand-name {{
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 900;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.3px;
             color: {SB_TEXT};
         }}
         .sb-brand-sub {{
-            font-size: 12px;
+            font-size: 10px;
             color: {SB_MUTED};
             font-weight: 500;
-            margin-top: 2px;
+            margin-top: 1px;
         }}
+
+        /* ── User ── */
         .sb-user {{
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }}
         .sb-avatar {{
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: {SB_AVATAR_GRAD};
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 700;
             color: #fff;
             flex-shrink: 0;
-            box-shadow: 0 2px 10px rgba(76,175,80,0.25);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 8px rgba(76,175,80,0.25);
+            transition: transform 0.25s ease;
         }}
         .sb-user:hover .sb-avatar {{
-            transform: scale(1.05);
-            box-shadow: 0 4px 20px rgba(76,175,80,0.35);
-        }}
-        .sb-user-info {{
-            flex: 1;
-            min-width: 0;
+            transform: scale(1.04);
         }}
         .sb-user-name {{
-            font-size: 15px;
+            font-size: 13px;
             font-weight: 700;
             color: {SB_TEXT};
-            line-height: 1.2;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }}
         .sb-user-email {{
-            font-size: 12px;
+            font-size: 10px;
             color: {SB_MUTED};
             font-weight: 500;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            margin-top: 2px;
+            margin-top: 1px;
         }}
+
+        /* ── Navigation ── */
         .sb-nav-item {{
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 8px 12px;
-            border-radius: 10px;
-            transition: all 0.2s ease;
+            gap: 10px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: all 0.15s ease;
             margin-bottom: 2px;
-            cursor: pointer;
         }}
         .sb-nav-item:hover {{
             background: {SB_HOV_BG};
-            transform: translateX(4px);
-        }}
-        .sb-nav-item.active {{
-            background: {SB_ACT_BG};
-            color: {SB_ACT_C};
-            font-weight: 700;
-        }}
-        .sb-nav-icon {{
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-            flex-shrink: 0;
+            transform: translateX(3px);
         }}
         .sb-nav-item a {{
             text-decoration: none !important;
-            color: inherit !important;
-            font-weight: inherit !important;
+            color: {SB_TEXT} !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             width: 100%;
         }}
+        .sb-nav-item a[aria-current="page"] {{
+            color: {SB_ACT_C} !important;
+            font-weight: 700 !important;
+        }}
+        .sb-nav-icon {{
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }}
+
+        /* ── Stats ── */
         .sb-stats-grid {{
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 6px;
         }}
         .sb-stat-item {{
             background: {SB_HOV_BG};
-            border-radius: 12px;
-            padding: 12px 8px;
+            border-radius: 10px;
+            padding: 8px 4px;
             text-align: center;
-            transition: background 0.2s ease, transform 0.2s ease;
+            transition: background 0.2s;
         }}
         .sb-stat-item:hover {{
             background: {SB_ACT_BG};
-            transform: scale(1.02);
         }}
         .sb-stat-number {{
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 800;
             color: {SB_TEXT};
             line-height: 1.2;
         }}
         .sb-stat-label {{
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
             text-transform: uppercase;
             color: {SB_MUTED};
-            letter-spacing: 0.5px;
-            margin-top: 3px;
+            letter-spacing: 0.4px;
+            margin-top: 2px;
         }}
-        .sb-settings {{
-            padding: 16px 16px 12px;
-        }}
-        .sb-settings .stButton button,
-        .sb-settings .stDownloadButton button {{
-            width: 100% !important;
-            background: {SB_BTN_BG} !important;
-            color: {SB_TEXT} !important;
-            border: 1px solid {SB_CARD_BDR} !important;
-            border-radius: 12px !important;
-            padding: 10px 12px !important;
-            font-size: 13px !important;
-            font-weight: 600 !important;
-            transition: all 0.2s ease !important;
-            min-height: 44px !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
-        }}
-        .sb-settings .stButton button:hover,
-        .sb-settings .stDownloadButton button:hover {{
-            background: {SB_BTN_HOVER_BG} !important;
-            border-color: {SB_ACT_C}55 !important;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.08) !important;
-        }}
-        .sb-settings .stButton button:active,
-        .sb-settings .stDownloadButton button:active {{
-            transform: scale(0.97);
-        }}
-        .sb-settings .stSlider {{
-            margin-bottom: 12px;
-        }}
+
+        /* ── Settings Expander (inside card) ── */
         .sb-settings .stExpander {{
             border: none !important;
             background: transparent !important;
@@ -466,66 +433,86 @@ def render_sidebar():
         }}
         .sb-settings .stExpander summary {{
             font-weight: 600 !important;
-            font-size: 13px !important;
+            font-size: 12px !important;
             color: {SB_TEXT} !important;
-            padding: 6px 0 !important;
+            padding: 4px 0 !important;
         }}
         .sb-settings .stExpander summary:hover {{
             color: {SB_ACT_C} !important;
         }}
+        /* Buttons inside settings */
+        .sb-settings .stButton button,
+        .sb-settings .stDownloadButton button {{
+            width: 100% !important;
+            background: {SB_BTN_BG} !important;
+            color: {SB_TEXT} !important;
+            border: 1px solid {SB_CARD_BDR} !important;
+            border-radius: 10px !important;
+            padding: 8px 10px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            transition: all 0.18s ease !important;
+            min-height: 38px !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+        }}
+        .sb-settings .stButton button:hover,
+        .sb-settings .stDownloadButton button:hover {{
+            background: {SB_BTN_HOVER_BG} !important;
+            border-color: {SB_ACT_C}55 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.07) !important;
+        }}
+        .sb-settings .stSlider {{
+            margin-bottom: 8px;
+        }}
+
+        /* ── Logout ── */
         .sb-logout .stButton button {{
             background: transparent !important;
             color: #ef5350 !important;
             border: 1px solid rgba(239,83,80,0.25) !important;
-            border-radius: 12px !important;
-            padding: 10px 12px !important;
-            font-size: 13px !important;
+            border-radius: 10px !important;
+            padding: 8px 10px !important;
+            font-size: 12px !important;
             font-weight: 600 !important;
-            transition: all 0.2s ease !important;
-            min-height: 44px !important;
+            transition: all 0.18s ease !important;
+            min-height: 38px !important;
         }}
         .sb-logout .stButton button:hover {{
             background: rgba(239,83,80,0.08) !important;
             border-color: #ef5350 !important;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(239,83,80,0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239,83,80,0.12);
         }}
-        .sb-logout .stButton button:active {{
-            transform: scale(0.97);
-        }}
+
         .sb-divider {{
             border: none;
             height: 1px;
             background: {SB_DIVIDER};
-            margin: 12px 0;
+            margin: 8px 0;
         }}
         .sb-footer {{
-            font-size: 10px;
+            font-size: 9px;
             color: {SB_MUTED};
             text-align: center;
             opacity: 0.4;
-            margin-top: 12px;
-            padding-top: 10px;
+            margin-top: 8px;
+            padding-top: 8px;
             border-top: 1px solid {SB_DIVIDER};
         }}
+
         @keyframes sbFadeInUp {{
-            from {{ opacity: 0; transform: translateY(12px); }}
+            from {{ opacity: 0; transform: translateY(8px); }}
             to   {{ opacity: 1; transform: translateY(0); }}
         }}
         .sb-card {{
-            animation: sbFadeInUp 0.5s ease backwards;
+            animation: sbFadeInUp 0.4s ease backwards;
         }}
         .sb-card:nth-child(1) {{ animation-delay: 0.05s; }}
         .sb-card:nth-child(2) {{ animation-delay: 0.10s; }}
         .sb-card:nth-child(3) {{ animation-delay: 0.15s; }}
         .sb-card:nth-child(4) {{ animation-delay: 0.20s; }}
         .sb-card:nth-child(5) {{ animation-delay: 0.25s; }}
-        .sb-helper {{
-            font-size: 11px;
-            color: {SB_MUTED};
-            opacity: 0.6;
-            margin-top: 4px;
-        }}
         </style>
         """, unsafe_allow_html=True)
 
@@ -539,7 +526,7 @@ def render_sidebar():
                     <div class="sb-brand-sub">{t('app_title')}</div>
                 </div>
             </div>
-            <div style="font-size:11px; color:{SB_MUTED}; font-weight:500; opacity:0.7; margin-top:2px;">
+            <div style="font-size:10px; color:{SB_MUTED}; font-weight:500; opacity:0.6; margin-top:2px;">
                 {t('slogan')}
             </div>
         </div>
@@ -550,7 +537,7 @@ def render_sidebar():
         <div class="sb-card">
             <div class="sb-user">
                 <div class="sb-avatar">{user_name[0].upper() if user_name else '?'}</div>
-                <div class="sb-user-info">
+                <div class="sb-user-info" style="flex:1; min-width:0;">
                     <div class="sb-user-name">{user_name}</div>
                     <div class="sb-user-email">{user_email}</div>
                 </div>
@@ -562,19 +549,19 @@ def render_sidebar():
         st.markdown('<div class="sb-card">', unsafe_allow_html=True)
         st.markdown(f'<div class="sb-card-title">🧭 {t("nav_timer")} / {t("nav_schedule")} / {t("nav_about")}</div>', unsafe_allow_html=True)
         with st.container():
-            col1, col2 = st.columns([1, 6])
+            col1, col2 = st.columns([1, 5])
             with col1:
                 st.markdown('<span class="sb-nav-icon">⏱️</span>', unsafe_allow_html=True)
             with col2:
                 st.page_link("Home.py", label=t("nav_timer"), icon=None)
         with st.container():
-            col1, col2 = st.columns([1, 6])
+            col1, col2 = st.columns([1, 5])
             with col1:
                 st.markdown('<span class="sb-nav-icon">📅</span>', unsafe_allow_html=True)
             with col2:
                 st.page_link("pages/01_Schedule.py", label=t("nav_schedule"), icon=None)
         with st.container():
-            col1, col2 = st.columns([1, 6])
+            col1, col2 = st.columns([1, 5])
             with col1:
                 st.markdown('<span class="sb-nav-icon">✨</span>', unsafe_allow_html=True)
             with col2:
@@ -614,157 +601,162 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
-        # ─── 5. Settings (all in one card, safe) ───
+        # ─── 5. Settings (all inside an expander) ───
         st.markdown(f"""
         <div class="sb-card sb-settings">
             <div class="sb-card-title">⚙️ {t('settings')}</div>
         """, unsafe_allow_html=True)
 
-        daily_goal_seconds = st.session_state.get("daily_goal_seconds", 7200)
-        goal_mins = st.slider(
-            f'🎯 {t("today_goal")} ({t("minutes_unit")})',
-            30, 480, daily_goal_seconds // 60, step=15,
-            key="sb_goal_slider"
-        )
-        if goal_mins * 60 != daily_goal_seconds:
-            st.session_state.daily_goal_seconds = goal_mins * 60
-            try:
-                save_data()
-            except NameError:
-                pass
-
-        st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
-
-        if st.button("🔊 " + t("test_audio"), use_container_width=True, key="sb_audio_test"):
-            components.html("""
-            <script>
-                try {
-                    var ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    var osc = ctx.createOscillator();
-                    var gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.value = 880;
-                    osc.start();
-                    gain.gain.setValueAtTime(0.25, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
-                    osc.stop(ctx.currentTime + 0.8);
-                } catch(e) {
-                    console.log("Audio error:", e);
-                }
-            </script>
-            """, height=0)
-            st.success("🔊 " + t("audio_test_success"))
-            time.sleep(0.5)
-            st.rerun()
-
-        st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
-
-        if not st.session_state.get("confirm_clear", False):
-            if st.button(t("clear_stats"), use_container_width=True, key="sb_clear_stats"):
-                st.session_state.confirm_clear = True
-                st.rerun()
-        else:
-            st.markdown(
-                f'<div style="background:rgba(239,83,80,0.08); border:1px solid rgba(239,83,80,0.25); border-radius:10px; padding:10px 12px; text-align:center; font-size:13px; font-weight:700; color:#ef5350; margin-bottom:8px;">⚠️ {t("clear_stats")}?</div>',
-                unsafe_allow_html=True
+        with st.expander("⚙️ " + t("settings"), expanded=False):
+            # Daily goal slider
+            daily_goal_seconds = st.session_state.get("daily_goal_seconds", 7200)
+            goal_mins = st.slider(
+                f'🎯 {t("today_goal")} ({t("minutes_unit")})',
+                30, 480, daily_goal_seconds // 60, step=15,
+                key="sb_goal_slider"
             )
-            cc1, cc2 = st.columns(2)
-            with cc1:
-                if st.button("✓", use_container_width=True, key="sb_confirm_yes"):
-                    for k, v in [("total_study_seconds", 0), ("completed_sessions", 0),
-                                 ("last_subject", "—"), ("study_history", []),
-                                 ("streak", 0), ("daily_seconds", 0), ("last_study_date", ""),
-                                 ("xp_points", 0), ("xp_level", 1)]:
-                        st.session_state[k] = v
-                    st.session_state.confirm_clear = False
-                    try:
-                        save_data()
-                    except NameError:
-                        pass
+            if goal_mins * 60 != daily_goal_seconds:
+                st.session_state.daily_goal_seconds = goal_mins * 60
+                try:
+                    save_data()
+                except NameError:
+                    pass
+
+            st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+
+            # Audio test
+            if st.button("🔊 " + t("test_audio"), use_container_width=True, key="sb_audio_test"):
+                components.html("""
+                <script>
+                    try {
+                        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        var osc = ctx.createOscillator();
+                        var gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.type = 'sine';
+                        osc.frequency.value = 880;
+                        osc.start();
+                        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
+                        osc.stop(ctx.currentTime + 0.8);
+                    } catch(e) {
+                        console.log("Audio error:", e);
+                    }
+                </script>
+                """, height=0)
+                st.success("🔊 " + t("audio_test_success"))
+                time.sleep(0.5)
+                st.rerun()
+
+            st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+
+            # Clear stats
+            if not st.session_state.get("confirm_clear", False):
+                if st.button(t("clear_stats"), use_container_width=True, key="sb_clear_stats"):
+                    st.session_state.confirm_clear = True
                     st.rerun()
-            with cc2:
-                if st.button("✗", use_container_width=True, key="sb_confirm_no"):
-                    st.session_state.confirm_clear = False
-                    st.rerun()
-
-        st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
-
-        with st.expander(" " + t("export_data"), expanded=False):
-            def json_serial(obj):
-                if isinstance(obj, datetime):
-                    return obj.isoformat()
-                raise TypeError(f"Type {type(obj)} not serializable")
-
-            export_data = {
-                "export_info": {
-                    "generated": datetime.now().isoformat(),
-                    "app_version": "Rekxare Dami 1.0",
-                    "user": st.session_state.get("user_email", "unknown")
-                },
-                "study_summary": {
-                    "total_time_minutes": st.session_state.get("total_study_seconds", 0) // 60,
-                    "completed_sessions": st.session_state.get("completed_sessions", 0),
-                    "current_streak_days": st.session_state.get("streak", 0),
-                    "daily_goal_minutes": st.session_state.get("daily_goal_seconds", 7200) // 60,
-                    "today_study_minutes": st.session_state.get("daily_seconds", 0) // 60,
-                    "last_subject": st.session_state.get("last_subject", "—")
-                },
-                "preferences": {
-                    "dark_mode": st.session_state.get("dark_mode", True),
-                    "language": st.session_state.get("lang", "badini"),
-                    "student_name": st.session_state.get("student_name", "")
-                },
-                "study_history": st.session_state.get("study_history", []),
-                "weekly_schedule": {}
-            }
-            try:
-                schedule_file = get_schedule_file()
-                if os.path.exists(schedule_file):
-                    with open(schedule_file, "r", encoding="utf-8") as f:
-                        schedule_data = json.load(f)
-                        export_data["weekly_schedule"] = schedule_data.get("schedule", {})
-            except Exception as e:
-                export_data["schedule_error"] = str(e)
-
-            json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=json_serial)
-
-            csv_lines = ["timestamp,subject,minutes"]
-            history = st.session_state.get("study_history", [])
-            if history:
-                for entry in history:
-                    parts = entry.split(" - ")
-                    time_part = parts[0] if len(parts) > 0 else ""
-                    rest = parts[1] if len(parts) > 1 else ""
-                    subject_part = rest.split(" (")[0] if "(" in rest else rest
-                    minutes_part = rest.split("(")[1].split(" ")[0] if "(" in rest else "0"
-                    csv_lines.append(f"{time_part},{subject_part},{minutes_part}")
             else:
-                csv_lines.append("No history,,")
-            csv_data = "\n".join(csv_lines)
-
-            col1, col2 = st.columns(2)
-            with col1:
-                st.download_button(
-                    label="📄 JSON",
-                    data=json_str,
-                    file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
-                    mime="application/json",
-                    key="export_json_btn",
-                    use_container_width=True
+                st.markdown(
+                    f'<div style="background:rgba(239,83,80,0.08); border:1px solid rgba(239,83,80,0.25); border-radius:10px; padding:8px 10px; text-align:center; font-size:12px; font-weight:700; color:#ef5350; margin-bottom:8px;">⚠️ {t("clear_stats")}?</div>',
+                    unsafe_allow_html=True
                 )
-            with col2:
-                st.download_button(
-                    label="📊 CSV",
-                    data=csv_data,
-                    file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
-                    mime="text/csv",
-                    key="export_csv_btn",
-                    use_container_width=True
-                )
+                cc1, cc2 = st.columns(2)
+                with cc1:
+                    if st.button("✓", use_container_width=True, key="sb_confirm_yes"):
+                        for k, v in [("total_study_seconds", 0), ("completed_sessions", 0),
+                                     ("last_subject", "—"), ("study_history", []),
+                                     ("streak", 0), ("daily_seconds", 0), ("last_study_date", ""),
+                                     ("xp_points", 0), ("xp_level", 1)]:
+                            st.session_state[k] = v
+                        st.session_state.confirm_clear = False
+                        try:
+                            save_data()
+                        except NameError:
+                            pass
+                        st.rerun()
+                with cc2:
+                    if st.button("✗", use_container_width=True, key="sb_confirm_no"):
+                        st.session_state.confirm_clear = False
+                        st.rerun()
 
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+
+            # Export data
+            with st.expander("📥 " + t("export_data"), expanded=False):
+                def json_serial(obj):
+                    if isinstance(obj, datetime):
+                        return obj.isoformat()
+                    raise TypeError(f"Type {type(obj)} not serializable")
+
+                export_data = {
+                    "export_info": {
+                        "generated": datetime.now().isoformat(),
+                        "app_version": "Rekxare Dami 1.0",
+                        "user": st.session_state.get("user_email", "unknown")
+                    },
+                    "study_summary": {
+                        "total_time_minutes": st.session_state.get("total_study_seconds", 0) // 60,
+                        "completed_sessions": st.session_state.get("completed_sessions", 0),
+                        "current_streak_days": st.session_state.get("streak", 0),
+                        "daily_goal_minutes": st.session_state.get("daily_goal_seconds", 7200) // 60,
+                        "today_study_minutes": st.session_state.get("daily_seconds", 0) // 60,
+                        "last_subject": st.session_state.get("last_subject", "—")
+                    },
+                    "preferences": {
+                        "dark_mode": st.session_state.get("dark_mode", True),
+                        "language": st.session_state.get("lang", "badini"),
+                        "student_name": st.session_state.get("student_name", "")
+                    },
+                    "study_history": st.session_state.get("study_history", []),
+                    "weekly_schedule": {}
+                }
+                try:
+                    schedule_file = get_schedule_file()
+                    if os.path.exists(schedule_file):
+                        with open(schedule_file, "r", encoding="utf-8") as f:
+                            schedule_data = json.load(f)
+                            export_data["weekly_schedule"] = schedule_data.get("schedule", {})
+                except Exception as e:
+                    export_data["schedule_error"] = str(e)
+
+                json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=json_serial)
+
+                csv_lines = ["timestamp,subject,minutes"]
+                history = st.session_state.get("study_history", [])
+                if history:
+                    for entry in history:
+                        parts = entry.split(" - ")
+                        time_part = parts[0] if len(parts) > 0 else ""
+                        rest = parts[1] if len(parts) > 1 else ""
+                        subject_part = rest.split(" (")[0] if "(" in rest else rest
+                        minutes_part = rest.split("(")[1].split(" ")[0] if "(" in rest else "0"
+                        csv_lines.append(f"{time_part},{subject_part},{minutes_part}")
+                else:
+                    csv_lines.append("No history,,")
+                csv_data = "\n".join(csv_lines)
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.download_button(
+                        label="📄 JSON",
+                        data=json_str,
+                        file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
+                        mime="application/json",
+                        key="export_json_btn",
+                        use_container_width=True
+                    )
+                with col2:
+                    st.download_button(
+                        label="📊 CSV",
+                        data=csv_data,
+                        file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
+                        mime="text/csv",
+                        key="export_csv_btn",
+                        use_container_width=True
+                    )
+
+        st.markdown('</div>', unsafe_allow_html=True)  # end settings card
 
         # ─── 6. Logout ───
         st.markdown('<div class="sb-card sb-logout">', unsafe_allow_html=True)
