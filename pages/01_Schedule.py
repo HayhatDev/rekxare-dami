@@ -162,8 +162,6 @@ def load_schedule():
             print(f"Error loading schedule: {e}")
             return None
 
-        if "dark_mode" in data:
-            st.session_state.dark_mode = data["dark_mode"]
         return data.get("schedule", None)
     return None
 
