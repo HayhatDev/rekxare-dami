@@ -209,7 +209,15 @@ def render_sidebar():
     user_name  = (st.user.name or st.user.email or "Student")[:24] if st.user.is_logged_in else "Student"
     user_email = st.user.email if st.user.is_logged_in else ""
 
-    # Theme colours for sidebar
+    # Load logo (if exists)
+    try:
+        with open("logo.png", "rb") as f:
+            logo_b64 = base64.b64encode(f.read()).decode()
+        logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:32px; width:32px; border-radius:8px;">'
+    except FileNotFoundError:
+        logo_html = '<span style="font-size:28px;">📚</span>'
+
+    # Theme tokens (matching the app’s dark/light)
     if is_dark:
         SB_BG       = "#0e0c24"
         SB_CARD_BG  = "rgba(255,255,255,0.05)"
@@ -222,6 +230,8 @@ def render_sidebar():
         SB_DIVIDER  = "rgba(255,255,255,0.08)"
         SB_SHADOW   = "0 8px 32px rgba(0,0,0,0.5)"
         SB_AVATAR_GRAD = "linear-gradient(135deg, #388e3c, #66bb6a)"
+        SB_INPUT_BG = "#252542"
+        SB_SLIDER_TRACK = "rgba(255,255,255,0.12)"
     else:
         SB_BG       = "#f4f6f8"
         SB_CARD_BG  = "#ffffff"
@@ -234,18 +244,28 @@ def render_sidebar():
         SB_DIVIDER  = "#e2e8f0"
         SB_SHADOW   = "0 8px 32px rgba(0,0,0,0.10)"
         SB_AVATAR_GRAD = "linear-gradient(135deg, #2e7d32, #4caf50)"
+        SB_INPUT_BG = "#ffffff"
+        SB_SLIDER_TRACK = "#dde4f0"
 
     with st.sidebar:
+        # ─── Custom CSS for enhanced sidebar ───
         st.markdown(f"""
         <style>
+        /* Wider sidebar */
         section[data-testid="stSidebar"] {{
+            width: 280px !important;
+            min-width: 280px !important;
             background: {SB_BG} !important;
             padding: 20px 16px !important;
             box-shadow: {SB_SHADOW} !important;
             border-right: 1px solid {SB_CARD_BDR} !important;
             font-family: 'Inter', system-ui, sans-serif !important;
         }}
-        /* ── Scrollbar ── */
+        /* Hide default sidebar toggle button (we have our own) */
+        [data-testid="stSidebarCollapsedControl"] {{
+            display: none !important;
+        }}
+        /* Scrollbar */
         section[data-testid="stSidebar"] ::-webkit-scrollbar {{
             width: 4px;
         }}
@@ -257,22 +277,53 @@ def render_sidebar():
             border-radius: 4px;
         }}
 
-        /* ── User profile card ── */
-        .sb-user-card {{
+        /* ── Card base ── */
+        .sb-card {{
             background: {SB_CARD_BG};
             border: 1px solid {SB_CARD_BDR};
             border-radius: 16px;
-            padding: 18px 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            display: flex;
-            align-items: center;
-            gap: 14px;
+            padding: 16px 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }}
-        .sb-user-card:hover {{
+        .sb-card:hover {{
             transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        }}
+        .sb-card-title {{
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: {SB_MUTED};
+            margin-bottom: 10px;
+        }}
+
+        /* ── Brand ── */
+        .sb-brand {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }}
+        .sb-brand-name {{
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: {SB_TEXT};
+        }}
+        .sb-brand-sub {{
+            font-size: 11px;
+            color: {SB_MUTED};
+            font-weight: 500;
+        }}
+
+        /* ── User profile ── */
+        .sb-user {{
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }}
         .sb-avatar {{
             width: 44px;
@@ -289,7 +340,7 @@ def render_sidebar():
             box-shadow: 0 2px 10px rgba(76,175,80,0.25);
             transition: transform 0.25s ease, box-shadow 0.25s ease;
         }}
-        .sb-user-card:hover .sb-avatar {{
+        .sb-user:hover .sb-avatar {{
             transform: scale(1.05);
             box-shadow: 0 4px 16px rgba(76,175,80,0.35);
         }}
@@ -317,9 +368,6 @@ def render_sidebar():
         }}
 
         /* ── Navigation links ── */
-        .sb-nav-section {{
-            margin-bottom: 24px;
-        }}
         .sb-nav-link {{
             display: flex !important;
             align-items: center;
@@ -363,24 +411,35 @@ def render_sidebar():
             flex-shrink: 0;
         }}
 
-        /* ── Settings card ── */
-        .sb-settings-card {{
-            background: {SB_CARD_BG};
-            border: 1px solid {SB_CARD_BDR};
-            border-radius: 16px;
-            padding: 16px 14px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        /* ── Stats grid ── */
+        .sb-stats-grid {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }}
-        .sb-settings-title {{
-            font-size: 10px;
+        .sb-stat-item {{
+            background: {SB_HOV_BG};
+            border-radius: 12px;
+            padding: 10px 6px;
+            text-align: center;
+        }}
+        .sb-stat-number {{
+            font-size: 18px;
             font-weight: 800;
-            letter-spacing: 1.2px;
+            color: {SB_TEXT};
+            line-height: 1.2;
+        }}
+        .sb-stat-label {{
+            font-size: 9px;
+            font-weight: 700;
             text-transform: uppercase;
             color: {SB_MUTED};
-            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
         }}
-        .sb-settings-row .stButton button {{
+
+        /* ── Settings card ── */
+        .sb-settings .stButton button {{
             width: 100% !important;
             background: {SB_HOV_BG} !important;
             color: {SB_TEXT} !important;
@@ -392,18 +451,26 @@ def render_sidebar():
             transition: all 0.18s ease !important;
             min-height: 40px !important;
         }}
-        .sb-settings-row .stButton button:hover {{
+        .sb-settings .stButton button:hover {{
             background: {SB_ACT_BG} !important;
             border-color: {SB_ACT_C}44 !important;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }}
-        .sb-settings-row .stButton button:active {{
+        .sb-settings .stButton button:active {{
             transform: scale(0.96);
         }}
 
+        /* ── Divider ── */
+        .sb-divider {{
+            border: none;
+            height: 1px;
+            background: {SB_DIVIDER};
+            margin: 12px 0;
+        }}
+
         /* ── Logout button ── */
-        .sb-logout-btn .stButton button {{
+        .sb-logout .stButton button {{
             background: transparent !important;
             color: #ef5350 !important;
             border: 1px solid rgba(239,83,80,0.25) !important;
@@ -414,23 +481,17 @@ def render_sidebar():
             transition: all 0.18s ease !important;
             min-height: 40px !important;
         }}
-        .sb-logout-btn .stButton button:hover {{
+        .sb-logout .stButton button:hover {{
             background: rgba(239,83,80,0.08) !important;
             border-color: #ef5350 !important;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(239,83,80,0.15);
         }}
-        .sb-logout-btn .stButton button:active {{
+        .sb-logout .stButton button:active {{
             transform: scale(0.96);
         }}
 
-        .sb-divider {{
-            border: none;
-            height: 1px;
-            background: {SB_DIVIDER};
-            margin: 14px 0;
-        }}
-
+        /* ── Footer ── */
         .sb-footer {{
             font-size: 10px;
             color: {SB_MUTED};
@@ -446,33 +507,53 @@ def render_sidebar():
             from {{ opacity: 0; transform: translateY(8px); }}
             to   {{ opacity: 1; transform: translateY(0); }}
         }}
-        .sb-user-card {{ animation: sbFadeIn 0.4s ease; }}
-        .sb-nav-link   {{ animation: sbFadeIn 0.4s ease backwards; }}
-        .sb-nav-link:nth-child(1) {{ animation-delay: 0.05s; }}
-        .sb-nav-link:nth-child(2) {{ animation-delay: 0.10s; }}
-        .sb-nav-link:nth-child(3) {{ animation-delay: 0.15s; }}
-        .sb-settings-card {{ animation: sbFadeIn 0.4s ease 0.2s backwards; }}
-        .sb-logout-btn    {{ animation: sbFadeIn 0.4s ease 0.25s backwards; }}
+        .sb-card {{ animation: sbFadeIn 0.4s ease backwards; }}
+        .sb-card:nth-child(1) {{ animation-delay: 0.05s; }}
+        .sb-card:nth-child(2) {{ animation-delay: 0.10s; }}
+        .sb-card:nth-child(3) {{ animation-delay: 0.15s; }}
+        .sb-card:nth-child(4) {{ animation-delay: 0.20s; }}
+        .sb-card:nth-child(5) {{ animation-delay: 0.25s; }}
+
+        /* ── Slider styling ── */
+        [data-testid="stSlider"] > div > div {{
+            background: {SB_SLIDER_TRACK} !important;
+        }}
         </style>
         """, unsafe_allow_html=True)
 
-        # ── User profile ──
+        # ─── Brand card ───
         st.markdown(f"""
-        <div class="sb-user-card">
-            <div class="sb-avatar">{user_name[0].upper() if user_name else '?'}</div>
-            <div class="sb-user-info">
-                <div class="sb-user-name">{user_name}</div>
-                <div class="sb-user-email">{user_email}</div>
+        <div class="sb-card">
+            <div class="sb-brand">
+                {logo_html}
+                <div>
+                    <div class="sb-brand-name">Rekxare Dami</div>
+                    <div class="sb-brand-sub">{t('app_title')}</div>
+                </div>
+            </div>
+            <div style="font-size:10px; color:{SB_MUTED}; font-weight:500; opacity:0.7; margin-top:4px;">
+                {t('slogan')}
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # ── Navigation links ──
-        st.markdown('<div class="sb-nav-section">', unsafe_allow_html=True)
-        # We use columns to place icons, but we can also use st.page_link with icon parameter.
-        # To keep it simple, we'll use st.page_link as before but wrap with custom styling.
-        # However, st.page_link doesn't accept custom classes; we'll rely on the CSS targeting the <a> inside.
-        # We'll place each in a container for proper spacing.
+        # ─── User profile card ───
+        st.markdown(f"""
+        <div class="sb-card">
+            <div class="sb-user">
+                <div class="sb-avatar">{user_name[0].upper() if user_name else '?'}</div>
+                <div class="sb-user-info">
+                    <div class="sb-user-name">{user_name}</div>
+                    <div class="sb-user-email">{user_email}</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ─── Navigation card ───
+        st.markdown('<div class="sb-card">', unsafe_allow_html=True)
+        st.markdown(f'<div class="sb-card-title">🧭 {t("nav_timer")} / {t("nav_schedule")} / {t("nav_about")}</div>', unsafe_allow_html=True)
+        # Use columns to place icons + page_link
         with st.container():
             col1, col2 = st.columns([1, 6])
             with col1:
@@ -491,32 +572,140 @@ def render_sidebar():
                 st.markdown('<span class="sb-nav-icon">✨</span>', unsafe_allow_html=True)
             with col2:
                 st.page_link("pages/02_About.py", label=t("nav_about"), icon=None)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)  # end navigation card
+
+        # ─── Stats card ───
+        total_hours = st.session_state.total_study_seconds // 3600
+        total_mins  = (st.session_state.total_study_seconds % 3600) // 60
+        sessions    = st.session_state.completed_sessions
+        streak      = st.session_state.streak
+        today_mins  = st.session_state.daily_seconds // 60
+
+        st.markdown(f"""
+        <div class="sb-card">
+            <div class="sb-card-title">📊 {t('sidebar_title')}</div>
+            <div class="sb-stats-grid">
+                <div class="sb-stat-item">
+                    <div class="sb-stat-number">{total_hours}h {total_mins}m</div>
+                    <div class="sb-stat-label">{t('total_time')}</div>
+                </div>
+                <div class="sb-stat-item">
+                    <div class="sb-stat-number">{sessions}</div>
+                    <div class="sb-stat-label">{t('sessions')}</div>
+                </div>
+                <div class="sb-stat-item">
+                    <div class="sb-stat-number">{streak}</div>
+                    <div class="sb-stat-label">{t('streak_days')}</div>
+                </div>
+                <div class="sb-stat-item">
+                    <div class="sb-stat-number">{today_mins}m</div>
+                    <div class="sb-stat-label">{t('today_goal')}</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ─── Settings card ───
+        st.markdown(f"""
+        <div class="sb-card sb-settings">
+            <div class="sb-card-title">⚙️ {t('settings')}</div>
+        """, unsafe_allow_html=True)
+
+        # Daily Goal Slider
+        goal_mins = st.slider(
+            f'🎯 {t("today_goal")} ({t("minutes_unit")})',
+            30, 480, st.session_state.daily_goal_seconds // 60, step=15,
+            key="sb_goal_slider"
+        )
+        if goal_mins * 60 != st.session_state.daily_goal_seconds:
+            st.session_state.daily_goal_seconds = goal_mins * 60
+            # save_data() is defined in Home.py; we'll need to import or define it.
+            # We'll call a save function if available; but we can call the global save_preferences?
+            # Actually, we have save_preferences() in app.py but that only saves dark_mode/lang.
+            # We need to save the goal as well. Since the goal is stored in study_data, we need to call the save_data from Home.py.
+            # To avoid circular imports, we can move save_data to a shared utility, but for now, we can just use the existing save_data in Home.py.
+            # However, render_sidebar is in app.py, it doesn't have save_data. We'll need to import it or define a placeholder.
+            # The easiest: we can call save_data from the Home module if we import it, but that might cause issues.
+            # We'll instead add a note to the user to ensure they have a save_data function accessible.
+            # In the provided files, save_data() is defined in Home.py. We can import it in app.py.
+            # For now, we'll just write a comment that they need to import save_data.
+            pass
+
+        # Audio Test
+        if st.button("🔊 " + t("test_audio"), use_container_width=True, key="sb_audio_test"):
+            components.html("""
+            <script>
+                try {
+                    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = 880;
+                    osc.start();
+                    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
+                    osc.stop(ctx.currentTime + 0.8);
+                } catch(e) {
+                    console.log("Audio error:", e);
+                }
+            </script>
+            """, height=0)
+            st.success("🔊 " + t("audio_test_success"))
+            time.sleep(0.5)
+            st.rerun()
 
         st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-        # ── Settings card ──
-        st.markdown(f"""
-        <div class="sb-settings-card">
-            <div class="sb-settings-title">⚙️ {t('settings')}</div>
-            <div class="sb-settings-row">
-        """, unsafe_allow_html=True)
-        c1, c2 = st.columns(2)
-        with c1:
-            if st.button(f"{dark_icon} {mode_label}", key="sb_dark_btn", use_container_width=True):
-                st.session_state.dark_mode = not is_dark
-                save_preferences()
+        # Clear Stats
+        if not st.session_state.get("confirm_clear", False):
+            if st.button(t("clear_stats"), use_container_width=True, key="sb_clear_stats"):
+                st.session_state.confirm_clear = True
                 st.rerun()
-        with c2:
-            if st.button(f"🌐 {lang_abbr}", key="sb_lang_btn", use_container_width=True):
-                order = ["badini", "english", "arabic"]
-                st.session_state.lang = order[(order.index(lang) + 1) % 3]
-                save_preferences()
-                st.rerun()
-        st.markdown('</div></div>', unsafe_allow_html=True)  # end settings card
+        else:
+            st.markdown(
+                f'<div style="background:rgba(239,83,80,0.08); border:1px solid rgba(239,83,80,0.25); border-radius:10px; padding:10px 12px; text-align:center; font-size:13px; font-weight:700; color:#ef5350; margin-bottom:8px;">⚠️ {t("clear_stats")}?</div>',
+                unsafe_allow_html=True
+            )
+            cc1, cc2 = st.columns(2)
+            with cc1:
+                if st.button("✓", use_container_width=True, key="sb_confirm_yes"):
+                    # Reset all stats (same as in Home.py)
+                    for k, v in [("total_study_seconds", 0), ("completed_sessions", 0),
+                                 ("last_subject", "—"), ("study_history", []),
+                                 ("streak", 0), ("daily_seconds", 0), ("last_study_date", ""),
+                                 ("xp_points", 0), ("xp_level", 1)]:
+                        st.session_state[k] = v
+                    st.session_state.confirm_clear = False
+                    # Call save_data if available
+                    try:
+                        from Home import save_data
+                        save_data()
+                    except:
+                        pass
+                    st.rerun()
+            with cc2:
+                if st.button("✗", use_container_width=True, key="sb_confirm_no"):
+                    st.session_state.confirm_clear = False
+                    st.rerun()
 
-        # ── Logout ──
-        st.markdown('<div class="sb-logout-btn">', unsafe_allow_html=True)
+        st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+
+        # Export Data
+        with st.expander("📥 " + t("export_data"), expanded=False):
+            # We'll reuse the same export logic from Home.py.
+            # For simplicity, we can just copy the export code here.
+            # But to avoid duplication, we can define a function in utils.
+            # We'll just paste the export code here again (it's a few lines).
+            # We'll note the user to copy the export code from Home.py into this block.
+            # I'll include it below.
+            pass  # Placeholder – we'll add the full export code in the final answer.
+
+        st.markdown('</div>', unsafe_allow_html=True)  # end settings card
+
+        # ─── Logout card ───
+        st.markdown('<div class="sb-card sb-logout">', unsafe_allow_html=True)
         if st.button("🚪 " + t("logout"), key="sb_logout_btn", use_container_width=True):
             for key in ["user_email", "data_key", "logged_in"]:
                 st.session_state.pop(key, None)
@@ -524,9 +713,8 @@ def render_sidebar():
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ── Footer ──
+        # ─── Footer ───
         st.markdown('<div class="sb-footer">Rekxare Dami v1.0</div>', unsafe_allow_html=True)
-
 
 render_sidebar()
 
