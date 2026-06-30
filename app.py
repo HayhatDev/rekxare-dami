@@ -264,7 +264,6 @@ def render_sidebar():
         [data-testid="stSidebarCollapsedControl"] {{
             display: none !important;
         }}
-        /* Scrollbar */
         section[data-testid="stSidebar"] ::-webkit-scrollbar {{
             width: 3px;
         }}
@@ -273,7 +272,6 @@ def render_sidebar():
             border-radius: 3px;
         }}
 
-        /* ── Cards ── */
         .sb-card {{
             background: {SB_CARD_BG};
             border: 1px solid {SB_CARD_BDR};
@@ -299,7 +297,6 @@ def render_sidebar():
             gap: 6px;
         }}
 
-        /* ── Brand ── */
         .sb-brand {{
             display: flex;
             align-items: center;
@@ -318,7 +315,6 @@ def render_sidebar():
             margin-top: 1px;
         }}
 
-        /* ── User ── */
         .sb-user {{
             display: flex;
             align-items: center;
@@ -350,9 +346,8 @@ def render_sidebar():
             text-overflow: ellipsis;
             white-space: nowrap;
         }}
-        /* ── Smaller email ── */
         .sb-user-email {{
-            font-size: 8px;           /* <-- changed from 10px to 8px */
+            font-size: 8px;
             color: {SB_MUTED};
             font-weight: 500;
             overflow: hidden;
@@ -361,7 +356,6 @@ def render_sidebar():
             margin-top: 1px;
         }}
 
-        /* ── Navigation ── */
         .sb-nav-item {{
             display: flex;
             align-items: center;
@@ -396,7 +390,6 @@ def render_sidebar():
             flex-shrink: 0;
         }}
 
-        /* ── Stats ── */
         .sb-stats-grid {{
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -427,7 +420,7 @@ def render_sidebar():
             margin-top: 2px;
         }}
 
-        /* ── Settings Expander (inside card) ── */
+        /* ── Settings ── */
         .sb-settings .stExpander {{
             border: none !important;
             background: transparent !important;
@@ -442,7 +435,7 @@ def render_sidebar():
         .sb-settings .stExpander summary:hover {{
             color: {SB_ACT_C} !important;
         }}
-        /* Buttons inside settings */
+        /* All buttons inside settings: no wrapping, compact */
         .sb-settings .stButton button,
         .sb-settings .stDownloadButton button {{
             width: 100% !important;
@@ -450,12 +443,13 @@ def render_sidebar():
             color: {SB_TEXT} !important;
             border: 1px solid {SB_CARD_BDR} !important;
             border-radius: 10px !important;
-            padding: 8px 10px !important;
+            padding: 6px 8px !important;
             font-size: 12px !important;
             font-weight: 600 !important;
             transition: all 0.18s ease !important;
-            min-height: 38px !important;
+            min-height: 32px !important;
             box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+            white-space: nowrap !important;   /* prevent wrapping */
         }}
         .sb-settings .stButton button:hover,
         .sb-settings .stDownloadButton button:hover {{
@@ -464,17 +458,16 @@ def render_sidebar():
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.07) !important;
         }}
-        /* ── Smaller Export download buttons ── */
+        /* Extra compact for download buttons (JSON/CSV) */
         .sb-settings .stDownloadButton button {{
-            font-size: 11px !important;   /* smaller text */
-            padding: 4px 8px !important;  /* less padding */
-            min-height: 30px !important;  /* shorter height */
+            font-size: 10px !important;
+            padding: 4px 6px !important;
+            min-height: 28px !important;
         }}
         .sb-settings .stSlider {{
             margin-bottom: 8px;
         }}
 
-        /* ── Logout ── */
         .sb-logout .stButton button {{
             background: transparent !important;
             color: #ef5350 !important;
@@ -485,6 +478,7 @@ def render_sidebar():
             font-weight: 600 !important;
             transition: all 0.18s ease !important;
             min-height: 38px !important;
+            white-space: nowrap !important;
         }}
         .sb-logout .stButton button:hover {{
             background: rgba(239,83,80,0.08) !important;
@@ -547,7 +541,7 @@ def render_sidebar():
                 <div class="sb-avatar">{user_name[0].upper() if user_name else '?'}</div>
                 <div class="sb-user-info" style="flex:1; min-width:0;">
                     <div class="sb-user-name">{user_name}</div>
-                    <div class="sb-user-email">{user_email}</div>  <!-- now 8px -->
+                    <div class="sb-user-email">{user_email}</div>
                 </div>
             </div>
         </div>
@@ -576,10 +570,10 @@ def render_sidebar():
                 st.page_link("pages/02_About.py", label=t("nav_about"), icon=None)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ─── Divider: between Navigation and Stats ───
+        # ─── Divider ───
         st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-        # ─── 4. Stats (safe) ───
+        # ─── 4. Stats ───
         total_seconds = st.session_state.get("total_study_seconds", 0)
         total_hours = total_seconds // 3600
         total_mins  = (total_seconds % 3600) // 60
@@ -588,10 +582,9 @@ def render_sidebar():
         daily_seconds = st.session_state.get("daily_seconds", 0)
         today_mins  = daily_seconds // 60
 
-        # Translation already has emoji → no extra emoji here
         st.markdown(f"""
         <div class="sb-card">
-            <div class="sb-card-title">{t('sidebar_title')}</div>   <!-- no extra emoji -->
+            <div class="sb-card-title">{t('sidebar_title')}</div>
             <div class="sb-stats-grid">
                 <div class="sb-stat-item">
                     <div class="sb-stat-number">{total_hours}h {total_mins}m</div>
@@ -613,17 +606,16 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
-        # ─── Divider: between Stats and Settings ───
+        # ─── Divider ───
         st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-        # ─── 5. Settings (all inside an expander) ───
+        # ─── 5. Settings ───
         st.markdown(f"""
         <div class="sb-card sb-settings">
-            <div class="sb-card-title">{t('settings')}</div>   <!-- no extra emoji -->
+            <div class="sb-card-title">{t('settings')}</div>
         """, unsafe_allow_html=True)
 
         with st.expander("⚙️ " + t("settings"), expanded=False):
-            # Daily goal slider
             daily_goal_seconds = st.session_state.get("daily_goal_seconds", 7200)
             goal_mins = st.slider(
                 f'🎯 {t("today_goal")} ({t("minutes_unit")})',
@@ -639,7 +631,6 @@ def render_sidebar():
 
             st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-            # Audio test
             if st.button("🔊 " + t("test_audio"), use_container_width=True, key="sb_audio_test"):
                 components.html("""
                 <script>
@@ -666,7 +657,6 @@ def render_sidebar():
 
             st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-            # Clear stats
             if not st.session_state.get("confirm_clear", False):
                 if st.button(t("clear_stats"), use_container_width=True, key="sb_clear_stats"):
                     st.session_state.confirm_clear = True
@@ -697,8 +687,8 @@ def render_sidebar():
 
             st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-            # Export data – translation already has emoji, so no extra prefix
-            with st.expander(t("export_data"), expanded=False):   # no extra emoji
+            # ─── Export data – with emojis ───
+            with st.expander(t("export_data"), expanded=False):
                 def json_serial(obj):
                     if isinstance(obj, datetime):
                         return obj.isoformat()
@@ -754,7 +744,7 @@ def render_sidebar():
                 col1, col2 = st.columns(2)
                 with col1:
                     st.download_button(
-                        label="JSON",
+                        label="📄 JSON",
                         data=json_str,
                         file_name=f"rekxare_export_{st.session_state.get('user_email', 'user').split('@')[0]}.json",
                         mime="application/json",
@@ -763,7 +753,7 @@ def render_sidebar():
                     )
                 with col2:
                     st.download_button(
-                        label="CSV",
+                        label="📊 CSV",
                         data=csv_data,
                         file_name=f"study_history_{st.session_state.get('user_email', 'user').split('@')[0]}.csv",
                         mime="text/csv",
@@ -771,7 +761,7 @@ def render_sidebar():
                         use_container_width=True
                     )
 
-        st.markdown('</div>', unsafe_allow_html=True)  # end settings card
+        st.markdown('</div>', unsafe_allow_html=True)
 
         # ─── 6. Logout ───
         st.markdown('<div class="sb-card sb-logout">', unsafe_allow_html=True)
