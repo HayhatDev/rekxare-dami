@@ -54,7 +54,9 @@ if st.user.is_logged_in:
         st.session_state.user_email = st.user.email
         st.session_state.data_key   = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
         st.session_state.logged_in  = True
-    load_preferences()
+    if "prefs_loaded" not in st.session_state:
+        load_preferences()
+        st.session_state.prefs_loaded = True
 
 # ══════════════════════════════════════════════════════════
 #  LOGIN GATE
