@@ -5,6 +5,7 @@ from datetime import datetime, date, timedelta
 import streamlit.components.v1 as components
 import pandas as pd
 import base64
+import json
 from utils import save_data, load_data, save_preferences, load_preferences, get_schedule_data
 
 
@@ -31,14 +32,13 @@ def t(key, **kwargs):
 
 
 
-# ── Ensure user session is wired up (app.py handles this too, but
-#    adding it here as a safety net for direct Streamlit reruns)
 if st.user.is_logged_in and "user_email" not in st.session_state:
     st.session_state.user_email = st.user.email
-    st.session_state.data_key   = hashlib.md5(st.user.email.encode()).hexdigest()[:8]
+    st.session_state.data_key   = st.user.email.split("@")[0]
     st.session_state.logged_in  = True
     load_data()
     st.rerun()
+
 
 if st.user.is_logged_in:
     st.session_state.data_key = st.user.email.split("@")[0]
@@ -75,15 +75,8 @@ def get_greeting():
 def load_today_schedule():
     today_map = {6: "sun", 0: "mon", 1: "tue", 2: "wed", 3: "thu", 4: "fri", 5: "sat"}
     today_key = today_map[datetime.now().weekday()]
-    filename = get_schedule_file()
-    if os.path.exists(filename):
-        try:
-            with open(filename, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            return today_key, data.get("schedule", {}).get(today_key, [])
-        except Exception:
-            return today_key, []
-    return today_key, []
+    schedule = get_schedule_data()
+    return today_key, schedule.get(today_key, [])
 
 def total_day_minutes(day_entries):
     total = 0
