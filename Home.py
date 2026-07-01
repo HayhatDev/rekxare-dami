@@ -111,12 +111,15 @@ SUBJECT_COLOR_LIST = [
 
 
 def subject_color(label: str) -> str:
+    _subjects = t("subjects")
+    if not isinstance(_subjects, list):
+        _subjects = TRANSLATIONS.get(st.session_state.lang, TRANSLATIONS["badini"]).get("subjects", [])
+    
     try:
-        idx = subjects_list.index(label)
-        return SUBJECT_COLOR_LIST[idx]
+        idx = _subjects.index(label)
+        return SUBJECT_COLOR_LIST[idx % len(SUBJECT_COLOR_LIST)]
     except (ValueError, IndexError):
         return "#4CAF50"
-
 
 def get_greeting():
     h = datetime.now().hour
