@@ -2,6 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 from datetime import datetime, time as dtime, date, timedelta
 import requests
+import json
 import time
 import base64
 import time as _time
@@ -40,11 +41,6 @@ DAYS = [
     ("sat", "🎉 شەمبی",   "Saturday"),
 ]
 DAY_EMOJIS = {"sun":"☀️","mon":"📖","tue":"📖","wed":"📖","thu":"📖","fri":"🕌","sat":"🎉"}
-
-
-def get_schedule_file():
-    email = st.user.email if st.user.is_logged_in else st.session_state.get("user_email", "default")
-    return f"schedule_data_{hashlib.md5(email.encode()).hexdigest()[:8]}.json"
 
 
 # ══════════════════════════════════════════════════════════
@@ -119,32 +115,6 @@ def fmt_minutes(mins):
     if mins < 60: return f"{mins}m"
     h, m = divmod(mins, 60)
     return f"{h}h {m}m" if m else f"{h}h"
-
-
-def load_schedule():
-    filename = get_schedule_file()
-    if os.path.exists(filename):
-        try:
-            with open(filename, "r", encoding="utf-8") as f:
-                content = f.read().strip()
-                if not content:
-                    return None
-                data = json.loads(content)
-        except (json.JSONDecodeError, ValueError, OSError) as e:
-            print(f"Error loading schedule: {e}")
-            return None
-
-        return data.get("schedule", None)
-    return None
-
-
-def save_schedule():
-    filename = get_schedule_file()
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump({
-            "schedule":  st.session_state.schedule,
-            "dark_mode": st.session_state.dark_mode,
-        }, f, ensure_ascii=False, indent=2)
 
 
 def copy_week_to_next(today_key):
