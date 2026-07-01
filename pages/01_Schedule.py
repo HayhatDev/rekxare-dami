@@ -1,13 +1,11 @@
 import streamlit as st
 import streamlit.components.v1 as components
 from datetime import datetime, time as dtime, date, timedelta
-import json
-import os
 import requests
 import time
-import hashlib
 import base64
 import time as _time
+from utils import save_schedule, load_schedule, save_preferences, load_preferences
 
     
 
@@ -27,35 +25,6 @@ def t(key, **kwargs):
     if kwargs:
         text = text.format(**kwargs)
     return text
-
-
-# ── Preference helpers (needed so sidebar can call save_preferences)
-def get_preferences_file():
-    email = st.user.email if st.user.is_logged_in else st.session_state.get("user_email", "default")
-    return f"preferences_{hashlib.md5(email.encode()).hexdigest()[:8]}.json"
-
-
-def save_preferences():
-    filename = get_preferences_file()
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump({
-            "dark_mode": st.session_state.get("dark_mode", True),
-            "lang":      st.session_state.get("lang", "badini"),
-        }, f, ensure_ascii=False, indent=2)
-
-
-def load_preferences():
-    filename = get_preferences_file()
-    if os.path.exists(filename):
-        try:
-            with open(filename, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            st.session_state.dark_mode = data.get("dark_mode", True)
-            st.session_state.lang      = data.get("lang", "badini")
-            return True
-        except Exception:
-            pass
-    return False
 
 
 # ══════════════════════════════════════════════════════════
