@@ -2,13 +2,10 @@ import streamlit as st
 import time
 import random
 from datetime import datetime, date, timedelta
-import json
-import os
 import streamlit.components.v1 as components
-import hashlib
 import pandas as pd
 import base64
-from utils import save_data, get_schedule_file, get_data_file
+from utils import save_data, load_data, save_preferences, load_preferences, get_schedule_data
 
 
 # ── Translations
@@ -32,64 +29,6 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
-
-# ── File path helpers
-def get_preferences_file():
-    email = st.user.email if st.user.is_logged_in else st.session_state.get("user_email", "default")
-    return f"preferences_{hashlib.md5(email.encode()).hexdigest()[:8]}.json"
-
-
-# ── save_preferences kept here so the sidebar can call it when
-#    the user toggles dark mode / language from within the page
-def save_preferences():
-    filename = get_preferences_file()
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump({
-            "dark_mode": st.session_state.get("dark_mode", True),
-            "lang":      st.session_state.get("lang", "badini"),
-        }, f, ensure_ascii=False, indent=2)
-
-
-def get_schedule_data():
-    filename = get_schedule_file()
-    if os.path.exists(filename):
-        try:
-            with open(filename, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                return data.get("schedule", {})
-        except Exception as e:
-            print(f"Error loading schedule: {e}")
-    return {}
-
-
-def load_data():
-    DATA_FILE = get_data_file()
-    if os.path.exists(DATA_FILE):
-        try:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
-                content = f.read().strip()
-                if not content:
-                    return
-                data = json.loads(content)
-        except (json.JSONDecodeError, ValueError, OSError) as e:
-            print(f"Error loading data: {e}")
-            return
-
-        st.session_state.total_study_seconds = data.get("total_seconds", 0)
-        st.session_state.completed_sessions  = data.get("sessions", 0)
-        st.session_state.last_subject        = data.get("last_subject", "—")
-        st.session_state.study_history       = data.get("history", [])
-        st.session_state.dark_mode           = data.get("dark_mode", True)
-        st.session_state.streak              = data.get("streak", 0)
-        st.session_state.last_study_date     = data.get("last_study_date", "")
-        st.session_state.daily_seconds       = data.get("daily_seconds", 0)
-        st.session_state.daily_goal_seconds  = data.get("daily_goal_seconds", 7200)
-        st.session_state.lang                = data.get("lang", "badini")
-        st.session_state.student_name        = data.get("student_name", "")
-        st.session_state.user_email          = data.get("user_email", "")
-        if st.session_state.user_email:
-            st.session_state.logged_in = True
-            st.session_state.data_key  = st.session_state.user_email.split("@")[0]
 
 
 # ── Ensure user session is wired up (app.py handles this too, but
