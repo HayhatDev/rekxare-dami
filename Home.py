@@ -1078,7 +1078,7 @@ if schedule_data:
         for day in day_order:
             val = week_data.get(day, 0)
             pct = (val / max_val * 100) if max_val > 0 else 0
-            bar_color = "#4CAF50" if val > 0 else "rgba(255,255,255,0.06)"
+            bar_color = "#4CAF50" if val > 0 else ("#e0e0e0" if not is_dark else "rgba(255,255,255,0.08)")
             bars_html += f'''
             <div style="flex: 1; text-align: center; min-width: 0;">
                 <div style="font-size: 9px; color: {TEXT_MUTED}; font-weight: 700; margin-bottom: 3px; letter-spacing: 0.5px;">{day_labels[day]}</div>
@@ -1134,7 +1134,8 @@ if schedule_data:
         
         # ── Custom SVG Bar Chart using st.components.v1.html() ──
         day_order = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
-        day_labels = {"mon": "M", "tue": "T", "wed": "W", "thu": "T", "fri": "F", "sat": "S", "sun": "S"}
+        day_labels = {"mon": "Mo", "tue": "Tu", "wed": "We", "thu": "Th",
+              "fri": "Fr", "sat": "Sa", "sun": "Su"}
         max_val = max(week_data.values()) if week_data.values() else 1
         
         # Build bars HTML
