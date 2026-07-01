@@ -1089,14 +1089,18 @@ if schedule_data:
             </div>
             '''
         
-        st.markdown(f'''
-        <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px 12px; margin: 12px 0;">
-            <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 10px;">📊 Weekly Overview</div>
-            <div style="display: flex; gap: 4px; justify-content: space-between; align-items: flex-end;">
+        components.html(f"""
+        <div style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px;
+                    padding: 16px 12px 14px; font-family: Inter, system-ui, sans-serif;">
+            <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase;
+                        color: {TEXT_MUTED}; margin-bottom: 12px; padding-left: 4px;">
+                📊 {t('weekly_chart')}
+            </div>
+            <div style="display: flex; gap: 6px; justify-content: space-between; align-items: flex-end;">
                 {bars_html}
             </div>
         </div>
-        ''', unsafe_allow_html=True)
+        """, height=120)
 
 
 # ── Weekly Study Chart ──
