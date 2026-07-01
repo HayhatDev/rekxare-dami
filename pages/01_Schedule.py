@@ -911,7 +911,7 @@ Use 24-hour format. Distribute hours per user preferences. Include breaks."""
     try:
         with st.spinner("⏳ " + {
             "english": "Generating your schedule…",
-            "badini":  "خشتە دروست دکرێت…",
+            "badini":  "خشتە دروست دکت…",
             "arabic":  "جاري إنشاء الجدول…",
         }.get(st.session_state.lang, "Generating…")):
             response = requests.post(
@@ -933,6 +933,7 @@ Use 24-hour format. Distribute hours per user preferences. Include breaks."""
                     for item in new_schedule[day_k]
                 ]
         save_schedule()
+        st.session_state.ai_input = ""
         st.success({
             "badini":  "✅ خشتە ب سەرکەفتی دروست بوو!",
             "english": "✅ Schedule generated successfully!",
@@ -945,8 +946,6 @@ Use 24-hour format. Distribute hours per user preferences. Include breaks."""
     except Exception as e:
         st.error(f"🚨 Error: {str(e)}")
     st.session_state.ai_loading = False
-    st.session_state.ai_input   = ""
-    time.sleep(1.5)
     st.rerun()
 
 # ══════════════════════════════════════════════════════════
