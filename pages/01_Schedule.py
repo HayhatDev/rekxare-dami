@@ -9,18 +9,6 @@ import hashlib
 import base64
 import time as _time
 
-# After successful generation, store timestamp:
-st.session_state.ai_last_generated = _time.time()
-
-# Before showing the Generate button:
-cooldown = 30  # seconds
-last = st.session_state.get("ai_last_generated", 0)
-too_soon = (_time.time() - last) < cooldown
-if st.button(generate_lbl, disabled=st.session_state.ai_loading or too_soon):
-    ...
-    
-if too_soon:
-    st.caption(f"⏳ Please wait {int(cooldown - (_time.time() - last))}s before generating again.")
     
 
 # ── Translations
@@ -896,6 +884,19 @@ with st.expander(ai_lbl, expanded=False):
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
+# After successful generation, store timestamp:
+st.session_state.ai_last_generated = _time.time()
+
+# Before showing the Generate button:
+cooldown = 30  # seconds
+last = st.session_state.get("ai_last_generated", 0)
+too_soon = (_time.time() - last) < cooldown
+if st.button(generate_lbl, disabled=st.session_state.ai_loading or too_soon):
+    ...
+    
+if too_soon:
+    st.caption(f"⏳ Please wait {int(cooldown - (_time.time() - last))}s before generating again.")
+    
 # AI execution block
 if st.session_state.ai_loading and st.session_state.ai_input:
     api_key = st.secrets.get("GROQ_API_KEY", "")
