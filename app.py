@@ -650,15 +650,15 @@ def render_sidebar():
                 key="sb_goal_slider"
             )
             # ─── Dark mode toggle ───
-            dark_label = ("☀️ " + t("light_mode")) if is_dark else ("🌙 " + t("dark_mode"))
-            if st.button(dark_label, key="sb_dark_toggle", use_container_width=True):
+            dark_label = ("☀️ " + t("light_mode")) if is_dark else (" " + t("dark_mode"))
+            if st.button(dark_label, key="sidebar_darkmode_btn", use_container_width=True):
                 st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
                 save_preferences()
                 st.rerun()
         
             # ─── Language cycle ───
             lang_display = {"badini": "🌐 بادينى", "english": "🌐 English", "arabic": "🌐 العربية"}.get(lang, "🌐 Lang")
-            if st.button(lang_display, key="sb_lang_toggle", use_container_width=True):
+            if st.button(lang_display, key="sidebar_lang_btn", use_container_width=True):
                 order = ["badini", "english", "arabic"]
                 cur   = st.session_state.get("lang", "badini")
                 st.session_state.lang = order[(order.index(cur) + 1) % 3] if cur in order else "badini"
