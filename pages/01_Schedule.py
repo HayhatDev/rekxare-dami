@@ -901,7 +901,6 @@ if st.session_state.ai_loading and st.session_state.ai_input:
     if not api_key:
         st.error(t("ai_key_error"))
         st.session_state.ai_loading = False
-        st.stop()
 
     today_str_ai = datetime.now().strftime("%A")
     prompt = f"""You are a study schedule generator. The user has the following study goals for the upcoming week (starting today, {today_str_ai}):
