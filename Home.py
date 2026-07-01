@@ -1048,46 +1048,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Spacer ──
-st.markdown('<div style="height: 12px;"></div>', unsafe_allow_html=True)
-
-# ── Row 4: Mini Weekly Overview (if data exists) ──
-schedule_data = get_schedule_data()
-if schedule_data:
-    week_data = {}
-    for day, tasks in schedule_data.items():
-        week_data[day] = total_day_minutes(tasks)
-
-    if week_data and any(week_data.values()):
-        day_order = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
-        day_labels = {"mon": "M", "tue": "T", "wed": "W", "thu": "T", "fri": "F", "sat": "S", "sun": "S"}
-        max_val = max(week_data.values()) if week_data.values() else 1
-
-        bars_html = ""
-        for day in day_order:
-            val = week_data.get(day, 0)
-            pct = (val / max_val * 100) if max_val > 0 else 0
-            bar_color = "#4CAF50" if val > 0 else "rgba(255,255,255,0.08)"
-            bars_html += f"""
-            <div style="flex: 1; text-align: center; min-width: 0;">
-                <div style="font-size: 10px; color: {TEXT_MUTED}; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.3px;">{day_labels[day]}</div>
-                <div style="height: 6px; background: {PROG_TRACK}; border-radius: 99px; overflow: hidden; width: 80%; margin: 0 auto;">
-                    <div style="height: 6px; width: {pct}%; background: {bar_color}; border-radius: 99px; transition: width 0.5s ease;"></div>
-                </div>
-                <div style="font-size: 9px; color: {TEXT_MUTED}; font-weight: 600; margin-top: 4px;">{val}m</div>
-            </div>
-            """
-
-        st.markdown(f"""
-        <div class="stats-card" style="background: {CARD_BG}; border: 1px solid {CARD_BORDER}; border-radius: 16px; padding: 16px 12px 14px;">
-            <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: {TEXT_MUTED}; margin-bottom: 12px; padding-left: 4px;">
-                📊 Weekly Overview
-            </div>
-            <div style="display: flex; gap: 6px; justify-content: space-between; align-items: flex-end;">
-                {bars_html}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
 
 # ── Spacer ──
 st.markdown('<div style="height: 12px;"></div>', unsafe_allow_html=True)
