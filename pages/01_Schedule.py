@@ -175,17 +175,17 @@ def save_schedule():
         }, f, ensure_ascii=False, indent=2)
 
 
-def copy_week_to_next():
+def copy_week_to_next(today_key):
     new_schedule = {dk: [] for dk, _, _ in DAYS}
     for dk, _, _ in DAYS:
         for task_item in st.session_state.schedule.get(dk, []):
             new_task = task_item.copy()
             new_task["done"] = False
             new_schedule[dk].append(new_task)
-    st.session_state.schedule   = new_schedule
-    st.session_state.active_day = today_key   # noqa: F821 — defined below
+    st.session_state.schedule = new_schedule
+    st.session_state.active_day = today_key  
     save_schedule()
-
+    
 # ══════════════════════════════════════════════════════════
 #  SESSION STATE INIT
 # ══════════════════════════════════════════════════════════
