@@ -626,19 +626,54 @@ def render_sidebar():
         """, unsafe_allow_html=True)
 
         with st.expander("⚙️ " + t("settings"), expanded=False):
+            # ─── Dark mode toggle ───
+            dark_label = ("☀️ " + t("light_mode")) if is_dark else ("🌙 " + t("dark_mode"))
+            if st.button(dark_label, key="sb_dark_toggle", use_container_width=True):
+                st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
+                save_preferences()
+                st.rerun()
+        
+            # ─── Language cycle ───
+            lang_display = {"badini": "🌐 بادينى", "english": "🌐 English", "arabic": "🌐 العربية"}.get(lang, "🌐 Lang")
+            if st.button(lang_display, key="sb_lang_toggle", use_container_width=True):
+                order = ["badini", "english", "arabic"]
+                cur   = st.session_state.get("lang", "badini")
+                st.session_state.lang = order[(order.index(cur) + 1) % 3] if cur in order else "badini"
+                save_preferences()
+                st.rerun()
+        
+            st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
             daily_goal_seconds = st.session_state.get("daily_goal_seconds", 7200)
             goal_mins = st.slider(
                 f'🎯 {t("today_goal")} ({t("minutes_unit")})',
                 30, 480, daily_goal_seconds // 60, step=15,
                 key="sb_goal_slider"
             )
+            # ─── Dark mode toggle ───
+            dark_label = ("☀️ " + t("light_mode")) if is_dark else ("🌙 " + t("dark_mode"))
+            if st.button(dark_label, key="sb_dark_toggle", use_container_width=True):
+                st.session_state.dark_mode = not st.session_state.get("dark_mode", True)
+                save_preferences()
+                st.rerun()
+        
+            # ─── Language cycle ───
+            lang_display = {"badini": "🌐 بادينى", "english": "🌐 English", "arabic": "🌐 العربية"}.get(lang, "🌐 Lang")
+            if st.button(lang_display, key="sb_lang_toggle", use_container_width=True):
+                order = ["badini", "english", "arabic"]
+                cur   = st.session_state.get("lang", "badini")
+                st.session_state.lang = order[(order.index(cur) + 1) % 3] if cur in order else "badini"
+                save_preferences()
+                st.rerun()
+        
+            st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+        
             if goal_mins * 60 != daily_goal_seconds:
                 st.session_state.daily_goal_seconds = goal_mins * 60
                 try:
                     save_data()
                 except NameError:
                     pass
-
+            
             st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
             if st.button("🔊 " + t("test_audio"), use_container_width=True, key="sb_audio_test"):
