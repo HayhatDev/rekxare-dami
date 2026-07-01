@@ -4,3 +4,4 @@ authlib>=1.3.2
 streamlit[auth]
 httpx
 pandas
+supabase>=2.0.0
