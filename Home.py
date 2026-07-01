@@ -1167,8 +1167,15 @@ if schedule_data:
         if any(week_data.values()):
             best_day = max(week_data, key=week_data.get)
             best_minutes = week_data[best_day]
-            day_names = {"mon": "Monday", "tue": "Tuesday", "wed": "Wednesday", 
-                         "thu": "Thursday", "fri": "Friday", "sat": "Saturday", "sun": "Sunday"}
+            if st.session_state.lang == "arabic":
+                day_names = {"mon": "الاثنين", "tue": "الثلاثاء", "wed": "الأربعاء",
+                             "thu": "الخميس", "fri": "الجمعة", "sat": "السبت", "sun": "الأحد"}
+            elif st.session_state.lang == "badini":
+                day_names = {"mon": "دووشەمب", "tue": "سێشەمب", "wed": "چارشەمب",
+                             "thu": "پێنجشەمب", "fri": "خودبە", "sat": "شەمبی", "sun": "ئێکشەمب"}
+            else:
+                day_names = {"mon": "Monday", "tue": "Tuesday", "wed": "Wednesday",
+                             "thu": "Thursday", "fri": "Friday", "sat": "Saturday", "sun": "Sunday"}
             best_day_name = day_names.get(best_day, best_day)
             
             st.markdown(f'''
