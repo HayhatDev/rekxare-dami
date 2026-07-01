@@ -643,7 +643,13 @@ def render_sidebar():
                 st.rerun()
         
             st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
-        
+
+            daily_goal_seconds = st.session_state.get("daily_goal_seconds", 7200)
+            goal_mins = st.slider(
+                f'🎯 {t("today_goal")} ({t("minutes_unit")})',
+                30, 480, daily_goal_seconds // 60, step=15,
+                key="sb_goal_slider"
+            )
             if goal_mins * 60 != daily_goal_seconds:
                 st.session_state.daily_goal_seconds = goal_mins * 60
                 try:
