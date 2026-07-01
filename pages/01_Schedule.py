@@ -796,13 +796,10 @@ _weekly_title = {
     "arabic":  "📊 التقدم الأسبوعي",
 }.get(st.session_state.lang, "📊 WEEKLY OVERVIEW")
 
-st.markdown(f'<div class="week-card"><div class="week-card-label">{_weekly_title}</div>',
-            unsafe_allow_html=True)
-
-week_cols = st.columns(7)
-for col, (dk, _, eng) in zip(week_cols, DAYS):
+_week_cols_html = ""
+for dk, _, eng in DAYS:
     tasks      = st.session_state.schedule.get(dk, [])
-    named      = [tk for tk in tasks if tk.get("task","").strip()]
+    named      = [tk for tk in tasks if tk.get("task", "").strip()]
     total      = len(named)
     done       = sum(1 for tk in named if tk.get("done", False))
     pct        = done / total if total > 0 else 0.0
@@ -810,30 +807,39 @@ for col, (dk, _, eng) in zip(week_cols, DAYS):
     short      = eng[:3].upper()
     count      = f"{done}/{total}" if total else "—"
     time_lbl   = fmt_minutes(total_day_minutes(tasks))
+
     bar_color  = "#4CAF50" if pct == 1.0 and total > 0 else ("#2196F3" if pct > 0 else "#9E9E9E")
-    bar_color  = "#4CAF50" if is_today_d else bar_color
+    if is_today_d:
+        bar_color = "#4CAF50"
 
-    with col:
-        dot_html = (
-            "<div style='text-align:center;font-size:9px;color:#4CAF50;margin-bottom:1px;'>●</div>"
-            if is_today_d else "<div style='height:12px;'></div>"
-        )
-        day_clr = "#4CAF50" if is_today_d else TEXT_MUTED
-        weight  = "900" if is_today_d else "600"
-        fill_w  = f"{pct * 100:.0f}%"
-        st.markdown(f"""
+    dot_html   = "<div style='text-align:center;font-size:9px;color:#4CAF50;margin-bottom:1px;'>●</div>" if is_today_d else "<div style='height:12px;'></div>"
+    day_clr    = "#4CAF50" if is_today_d else TEXT_MUTED
+    weight     = "900" if is_today_d else "600"
+    fill_w     = f"{pct * 100:.0f}%"
+    time_row   = f"<div style='text-align:center;font-size:9px;color:{TEXT_MUTED};opacity:0.70;font-weight:600;margin-top:2px;'>{time_lbl}</div>" if time_lbl else ""
+
+    _week_cols_html += f"""
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;">
         {dot_html}
-        <div style='text-align:center;font-size:10px;font-weight:{weight};
-                    color:{day_clr};margin-bottom:4px;'>{short}</div>
-        <div class="mini-bar-track">
-            <div class="mini-bar-fill" style="width:{fill_w};background:{bar_color};"></div>
+        <div style="text-align:center;font-size:10px;font-weight:{weight};color:{day_clr};margin-bottom:4px;">{short}</div>
+        <div style="width:80%;height:6px;background:{PROG_TRACK};border-radius:99px;overflow:hidden;">
+            <div style="height:100%;width:{fill_w};background:{bar_color};border-radius:99px;transition:width 0.5s ease;"></div>
         </div>
-        <div style='text-align:center;font-size:10px;color:{TEXT_MUTED};
-                    margin-top:3px;line-height:1.4;font-weight:600;'>{count}</div>
-        {'<div style="text-align:center;font-size:9px;color:' + TEXT_MUTED + ';opacity:0.70;font-weight:600;">' + time_lbl + '</div>' if time_lbl else ''}
-        """, unsafe_allow_html=True)
+        <div style="text-align:center;font-size:10px;color:{TEXT_MUTED};margin-top:3px;font-weight:600;">{count}</div>
+        {time_row}
+    </div>
+    """
 
-st.markdown('</div>', unsafe_allow_html=True)
+components.html(f"""
+<div style="background:{CARD_BG};border:1px solid {CARD_BORDER};border-radius:16px;
+            padding:16px 14px 14px;font-family:Inter,system-ui,sans-serif;">
+    <div style="font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;
+                color:{TEXT_MUTED};margin-bottom:12px;">{_weekly_title}</div>
+    <div style="display:flex;gap:4px;justify-content:space-between;align-items:flex-end;">
+        {_week_cols_html}
+    </div>
+</div>
+""", height=130)
 
 # ══════════════════════════════════════════════════════════
 #  AI SCHEDULER
