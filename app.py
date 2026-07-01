@@ -5,7 +5,7 @@ import hashlib
 import base64
 import streamlit.components.v1 as components
 from datetime import datetime
-from utils import save_data, get_schedule_file, get_data_file
+from utils import save_data, load_data, save_preferences, load_preferences, get_schedule_data
 import time
 
 # ══════════════════════════════════════════════════════════
@@ -26,32 +26,6 @@ def t(key, **kwargs):
         text = text.format(**kwargs)
     return text
 
-
-def get_preferences_file():
-    email = st.user.email if st.user.is_logged_in else st.session_state.get("user_email", "default")
-    return f"preferences_{hashlib.md5(email.encode()).hexdigest()[:8]}.json"
-
-
-def save_preferences():
-    with open(get_preferences_file(), "w", encoding="utf-8") as f:
-        json.dump({
-            "dark_mode": st.session_state.get("dark_mode", True),
-            "lang":      st.session_state.get("lang", "badini"),
-        }, f, ensure_ascii=False, indent=2)
-
-
-def load_preferences():
-    fn = get_preferences_file()
-    if os.path.exists(fn):
-        try:
-            with open(fn, "r", encoding="utf-8") as f:
-                d = json.load(f)
-            st.session_state.dark_mode = d.get("dark_mode", True)
-            st.session_state.lang      = d.get("lang", "badini")
-            return True
-        except Exception:
-            pass
-    return False
 
 
 # ══════════════════════════════════════════════════════════
