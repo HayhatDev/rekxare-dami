@@ -1083,46 +1083,12 @@ section[data-testid="stMain"] .block-container{{padding-top:68px!important;}}
   </div>
   <div class="rd-right">
     <span class="rd-user">👤 {user_name}</span>
-    <span class="rd-btn" style="cursor:default; opacity:0.85;">{dark_icon}</span>
-    <span class="rd-btn" style="cursor:default; opacity:0.85;">{lang_abbr}</span>
   </div>
 </div>
 """, unsafe_allow_html=True)
 
 
 render_nav(_active)
-
-# ── Native dark/lang toggles (positioned over nav bar right side) ──
-is_dark = st.session_state.get("dark_mode", True)
-lang    = st.session_state.get("lang", "badini")
-st.markdown("""
-<style>
-div[data-testid="stHorizontalBlock"]:has(> div > div[data-testid="stButton"] > button[kind="secondary"]#nav_dm) {
-    position: fixed !important;
-    top: 10px !important;
-    right: 12px !important;
-    z-index: 2000000 !important;
-    width: auto !important;
-    gap: 4px !important;
-}
-</style>
-""", unsafe_allow_html=True)
-_c1, _c2 = st.columns([1, 1])
-with _c1:
-    if st.button("☀️" if is_dark else "🌙", key="nav_darkmode_btn",
-                 help="Toggle dark/light mode"):
-        st.session_state.dark_mode = not is_dark
-        save_preferences()
-        st.session_state.pop("prefs_loaded", None)
-        st.rerun()
-with _c2:
-    lang_abbr = {"badini": "BA", "english": "EN", "arabic": "AR"}.get(lang, "EN")
-    if st.button(f"🌐{lang_abbr}", key="nav_lang_btn", help="Cycle language"):
-        order = ["badini", "english", "arabic"]
-        st.session_state.lang = order[(order.index(lang) + 1) % 3] if lang in order else "badini"
-        save_preferences()
-        st.session_state.pop("prefs_loaded", None)
-        st.rerun()
         
 
 # ══════════════════════════════════════════════════════════
