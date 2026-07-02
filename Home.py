@@ -1285,71 +1285,76 @@ def render_circle(mins_val, secs_val, progress, color):
     """, unsafe_allow_html=True)
 
 
-if st.session_state.timer_running and st.session_state.end_time:
-    remaining = st.session_state.end_time - time.time()
-    if remaining > 0:
-        mv, sv_ = divmod(int(remaining), 60)
-        prog = min(1.0, 1.0 - (remaining / max(1, st.session_state.total_seconds)))
-        render_circle(mv, sv_, prog, arc_color)
-        st.success(t("timer_running", name=_effective_name, minutes=deqe, subject=ders))
-        st.info(f"💬 {current_quote}")
-        time.sleep(1)
-        st.rerun()
-    else:
-        st.session_state.timer_running = False
-        st.session_state.paused        = False
-        st.session_state.total_study_seconds += st.session_state.total_seconds
-        st.session_state.completed_sessions  += 1
-        st.session_state.daily_seconds       += st.session_state.total_seconds
-        yesterday = (date.today() - timedelta(days=1)).isoformat()
-        if st.session_state.last_study_date == today_str:
-            pass
-        elif st.session_state.last_study_date == yesterday:
-            st.session_state.streak += 1
+@st.fragment(run_every=1)
+def live_timer():
+    is_running = st.session_state.get("timer_running", False)
+    end_time   = st.session_state.get("end_time")
+    is_paused  = st.session_state.get("paused", False)
+    arc_c      = subject_color(st.session_state.get("last_subject", ""))
+
+    if is_running and end_time:
+        remaining = end_time - time.time()
+        if remaining > 0:
+            mv, sv_ = divmod(int(remaining), 60)
+            prog = min(1.0, 1.0 - (remaining / max(1, st.session_state.get("total_seconds", 1))))
+            render_circle(mv, sv_, prog, arc_c)
+            st.success(t("timer_running",
+                         name=st.session_state.get("student_name") or t("default_name"),
+                         minutes=st.session_state.get("total_seconds", 0) // 60,
+                         subject=st.session_state.get("last_subject", "")))
+            st.info(f"💬 {hezt[st.session_state.quote_idx % len(hezt)]}")
         else:
-            st.session_state.streak = 1
-        st.session_state.last_study_date = today_str
-        subject_name = ders.split(" ", 1)[1] if " " in ders else ders
-        st.session_state.last_subject = subject_name
-        now_ts  = datetime.now().strftime("%H:%M")
-        minutes = st.session_state.total_seconds // 60
-        st.session_state.study_history.append(
-            f"{now_ts} - {subject_name} ({minutes} {t('minutes_unit')})"
-        )
-        save_data()
-        components.html("""
-        <script>
-        (function(){
-            var AC = window.AudioContext || window.webkitAudioContext;
-            if (!AC) return;
-            var ctx = new AC();
-            function note(f, d, dur){
-                var o = ctx.createOscillator(), g = ctx.createGain();
-                o.connect(g); g.connect(ctx.destination);
-                o.type = 'sine'; o.frequency.value = f;
-                var t = ctx.currentTime + d;
-                g.gain.setValueAtTime(0, t);
-                g.gain.linearRampToValueAtTime(0.25, t + 0.02);
-                g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-                o.start(t); o.stop(t + dur);
-            }
-            note(659, 0.0, 1.2); note(830, 0.22, 1.2); note(988, 0.44, 1.4);
-        })();
-        </script>
-        """, height=0)
-        st.balloons()
-        st.success(t("timer_done"))
+            # ── Session complete ──
+            st.session_state.timer_running = False
+            st.session_state.paused        = False
+            total_secs = st.session_state.get("total_seconds", 0)
+            st.session_state.total_study_seconds += total_secs
+            st.session_state.completed_sessions  += 1
+            st.session_state.daily_seconds       += total_secs
+            today_str = date.today().isoformat()
+            yesterday = (date.today() - timedelta(days=1)).isoformat()
+            if st.session_state.last_study_date == yesterday:
+                st.session_state.streak += 1
+            elif st.session_state.last_study_date != today_str:
+                st.session_state.streak = 1
+            st.session_state.last_study_date = today_str
+            minutes = total_secs // 60
+            now_ts  = datetime.now().strftime("%H:%M")
+            subj    = st.session_state.get("last_subject", "")
+            st.session_state.study_history.append(
+                f"{now_ts} - {subj} ({minutes} {t('minutes_unit')})"
+            )
+            save_data()
+            components.html("""<script>
+            (function(){
+                var AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return;
+                var ctx = new AC();
+                function note(f,d,dur){
+                    var o=ctx.createOscillator(),g=ctx.createGain();
+                    o.connect(g);g.connect(ctx.destination);
+                    o.type='sine';o.frequency.value=f;
+                    var t=ctx.currentTime+d;
+                    g.gain.setValueAtTime(0,t);
+                    g.gain.linearRampToValueAtTime(0.25,t+0.02);
+                    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+                    o.start(t);o.stop(t+dur);
+                }
+                note(659,0.0,1.2);note(830,0.22,1.2);note(988,0.44,1.4);
+            })();
+            </script>""", height=0)
+            st.balloons()
+            st.success(t("timer_done"))
+            st.rerun()  # one full rerun to update stats display
 
-elif st.session_state.paused and st.session_state.remaining_at_pause > 0:
-    mv, sv_ = divmod(int(st.session_state.remaining_at_pause), 60)
-    prog = min(1.0, 1.0 - (st.session_state.remaining_at_pause / max(1, st.session_state.total_seconds)))
-    render_circle(mv, sv_, prog, "#FFA500")
-    pause_lbl = {
-        "badini":  "⏸️ دەمژمێر راوەستیایە",
-        "english": "⏸️ Timer paused",
-        "arabic":  "⏸️ الموقت متوقف",
-    }.get(st.session_state.lang, "⏸️ Timer paused")
-    st.markdown(f'<div class="paused-banner">{pause_lbl}</div>', unsafe_allow_html=True)
+    elif is_paused and st.session_state.get("remaining_at_pause", 0) > 0:
+        mv, sv_ = divmod(int(st.session_state.remaining_at_pause), 60)
+        prog = min(1.0, 1.0 - (st.session_state.remaining_at_pause / max(1, st.session_state.get("total_seconds", 1))))
+        render_circle(mv, sv_, prog, "#FFA500")
+        pause_lbl = {"badini": "⏸️ دەمژمێر راوەستیایە", "english": "⏸️ Timer paused", "arabic": "⏸️ الموقت متوقف"}.get(st.session_state.lang, "⏸️ Timer paused")
+        st.markdown(f'<div class="paused-banner">{pause_lbl}</div>', unsafe_allow_html=True)
 
-else:
-    render_circle(deqe, 0, 0.0, arc_color)
+    else:
+        render_circle(st.session_state.get(SLIDER_KEY, 25), 0, 0.0, arc_c)
+
+live_timer()
